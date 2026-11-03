@@ -504,6 +504,14 @@
             border-bottom-color: var(--green-dark);
         }
 
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
         /* ==========================================================================
            4. MOBILE BOTTOM NAVIGATION BAR (< 768px)
            ========================================================================== */
@@ -2873,7 +2881,7 @@
         <div class="container">
 
             <!-- TAB 1: UPCOMING MATCHES (3-COL CARDS IN SCREENSHOT) -->
-            <div class="tab-pane {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" id="pane-upcoming" style="{% if active_tab == 'upcoming' or not active_tab %}display:block;{% else %}display:none;{% endif %}">
+            <div class="tab-pane {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" id="pane-upcoming">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Upcoming matches</h2>
@@ -2997,7 +3005,7 @@
             </div>
 
             <!-- TAB 2: RESULTS (3-COL CARDS) -->
-            <div class="tab-pane {% if active_tab == 'results' %}active{% endif %}" id="pane-results" style="{% if active_tab == 'results' %}display:block;{% else %}display:none;{% endif %}">
+            <div class="tab-pane {% if active_tab == 'results' %}active{% endif %}" id="pane-results">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Completed Match Results</h2>
@@ -3122,7 +3130,7 @@
             </div>
 
             <!-- TAB 3: POINTS TABLE -->
-            <div class="tab-pane {% if active_tab == 'table' %}active{% endif %}" id="pane-table" style="{% if active_tab == 'table' %}display:block;{% else %}display:none;{% endif %}">
+            <div class="tab-pane {% if active_tab == 'table' %}active{% endif %}" id="pane-table">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Official League Standings</h2>
@@ -3201,7 +3209,7 @@
             </div>
 
             <!-- TAB 4: STATS -->
-            <div class="tab-pane {% if active_tab == 'stats' %}active{% endif %}" id="pane-stats" style="{% if active_tab == 'stats' %}display:block;{% else %}display:none;{% endif %}">
+            <div class="tab-pane {% if active_tab == 'stats' %}active{% endif %}" id="pane-stats">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Competition Statistics</h2>
@@ -3443,7 +3451,7 @@
             </div>
 
             <!-- TAB 5: TEAMS -->
-            <div class="tab-pane {% if active_tab == 'teams' %}active{% endif %}" id="pane-teams" style="{% if active_tab == 'teams' %}display:block;{% else %}display:none;{% endif %}">
+            <div class="tab-pane {% if active_tab == 'teams' %}active{% endif %}" id="pane-teams">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Participating Clubs ({{ teams.count }})</h2>
