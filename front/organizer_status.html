@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Touchline | Application Status</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --dark: #101b16;
+            --dark-card: #17251e;
+            --green: #b4f56b;
+            --green-dark: #245d3c;
+            --cream: #f5f6ef;
+            --soft-green: #e9efdf;
+            --white: #fff;
+            --muted: #aab5ac;
+            --text: #17221b;
+            --border: #e0e5da;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+            --red: #d93838;
+            --yellow: #b58105;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(850px, 92%);
+            margin: auto;
+        }
+
+        .navbar {
+            background: var(--dark);
+            color: white;
+            border-bottom: 1px solid #26342b;
+        }
+
+        .nav-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            font: 900 25px var(--font-heading);
+            letter-spacing: -.5px;
+        }
+
+        .logo-mark {
+            color: var(--green);
+            margin-right: 8px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 20px;
+            background: var(--green);
+            color: var(--dark);
+            border: 1px solid var(--green);
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .btn:hover {
+            background: #c7ff88;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--dark);
+            border-color: var(--border);
+        }
+
+        .status-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 40px;
+            margin: 50px 0;
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 26px;
+            margin: 0 auto 20px;
+        }
+
+        .status-icon.pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-icon.approved {
+            background: #def7ec;
+            color: #03543f;
+        }
+
+        .status-icon.rejected {
+            background: #fde8e8;
+            color: #9b1c1c;
+        }
+
+        .status-icon.suspended {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        h1 {
+            font: 800 36px var(--font-heading);
+            text-transform: uppercase;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .details-box {
+            text-align: left;
+            background: #fafbfa;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            margin: 25px 0;
+            font-size: 12px;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #edf1eb;
+        }
+
+        .details-row:last-child {
+            border-bottom: none;
+        }
+
+        .details-label {
+            color: #68746a;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .rejection-alert {
+            background: #fde8e8;
+            border-left: 4px solid #e02424;
+            padding: 16px;
+            border-radius: 3px;
+            text-align: left;
+            color: #9b1c1c;
+            font-size: 13px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="container nav-inner">
+            <a href="/" class="logo"><span class="logo-mark">//</span>TOUCHLINE</a>
+
+            <div style="display:flex;align-items:center;gap:16px;">
+                <span style="font-size:12px;color:#d8e0d9;">User: <strong>{{ user.username }}</strong></span>
+                <a href="/logout/" style="font-size:11px;color:var(--muted);font-weight:700;">Sign out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="status-card">
+            {% if status == 'APPROVED' %}
+                <div class="status-icon approved">✓</div>
+                <div class="status-pill" style="background:#def7ec;color:#03543f;">APPROVED &amp; ACTIVE</div>
+                <h1>ORGANIZER APPLICATION APPROVED</h1>
+                <p style="color:#4b5563;max-width:550px;margin:auto;">
+                    Congratulations! Your application has been verified by the Super Admin. You are now authorized to manage competitions, generate fixtures, add squads, and record results.
+                </p>
+
+                <div style="margin-top:30px;display:flex;justify-content:center;gap:12px;">
+                    <a href="/organizer/" class="btn">LAUNCH ORGANIZER DASHBOARD <span>→</span></a>
+                    <a href="/" class="btn btn-outline">Back to Public Site</a>
+                </div>
+
+            {% elif status == 'PENDING' %}
+                <div class="status-icon pending">⏳</div>
+                <div class="status-pill" style="background:#fef3c7;color:#b45309;">UNDER SUPER ADMIN REVIEW</div>
+                <h1>APPLICATION UNDER REVIEW</h1>
+                <p style="color:#4b5563;max-width:550px;margin:auto;">
+                    Thank you for applying. Your application is currently in the Super Admin Approvals Hub.
+                    Review typically completes within 24 hours.
+                </p>
+
+                {% if latest_app %}
+                <div class="details-box">
+                    <div class="details-row">
+                        <span class="details-label">Applicant Name</span>
+                        <strong>{{ latest_app.full_name }}</strong>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Organization</span>
+                        <strong>{{ latest_app.organization_name }}</strong>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Location</span>
+                        <strong>{{ latest_app.city }}, {{ latest_app.country }}</strong>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Submitted On</span>
+                        <strong>{{ latest_app.created_at|date:"D, d M Y - H:i" }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-top:25px;display:flex;justify-content:center;gap:12px;">
+                    <a href="/" class="btn btn-outline">Return to Home</a>
+                    <a href="/organizer/apply/" class="btn btn-outline">Edit Application Details</a>
+                </div>
+
+            {% elif status == 'REJECTED' %}
+                <div class="status-icon rejected">✕</div>
+                <div class="status-pill" style="background:#fde8e8;color:#9b1c1c;">APPLICATION NOT APPROVED</div>
+                <h1>REVISION REQUIRED</h1>
+                <p style="color:#4b5563;max-width:550px;margin:auto;">
+                    The Super Admin reviewed your application and noted items that need attention before approval can be granted.
+                </p>
+
+                <div class="rejection-alert">
+                    <strong style="display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;">Super Admin Rejection Notes:</strong>
+                    {{ profile.rejection_reason|default:latest_app.rejection_reason|default:"Incomplete organization verification or venue credentials. Please review and update your information." }}
+                </div>
+
+                <div style="margin-top:30px;display:flex;justify-content:center;gap:12px;">
+                    <a href="/organizer/apply/" class="btn">UPDATE &amp; RE-SUBMIT APPLICATION <span>→</span></a>
+                    <a href="/" class="btn btn-outline">Return to Home</a>
+                </div>
+
+            {% elif status == 'SUSPENDED' %}
+                <div class="status-icon suspended">⛔</div>
+                <div class="status-pill" style="background:#fee2e2;color:#b91c1c;">ORGANIZER SUSPENDED</div>
+                <h1>ACCOUNT ACCESS SUSPENDED</h1>
+                <p style="color:#4b5563;max-width:550px;margin:auto;">
+                    Your organizer credentials have been temporarily suspended by the Super Admin.
+                    Please contact platform administration at <a href="mailto:admin@touchline.football" style="text-decoration:underline;">admin@touchline.football</a>.
+                </p>
+                <div style="margin-top:25px;">
+                    <a href="/" class="btn btn-outline">Return to Home</a>
+                </div>
+
+            {% else %}
+                <div class="status-icon pending">●</div>
+                <h1>NO ACTIVE APPLICATION</h1>
+                <p style="color:#4b5563;max-width:550px;margin:auto;">
+                    You have not submitted an organizer application yet.
+                </p>
+                <div style="margin-top:25px;">
+                    <a href="/organizer/apply/" class="btn">APPLY AS ORGANIZER <span>→</span></a>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+
+</body>
+
+</html>
+

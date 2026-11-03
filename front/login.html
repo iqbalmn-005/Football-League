@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touchline - Login</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --dark: #0b1712;
+            --dark-card: #15251d;
+            --green: #b6fa6d;
+            --cream: #f4f5ed;
+            --white: #f7f8f3;
+            --muted: #9aa99e;
+            --border: #2c3b32;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: clamp(20px, 4vh, 40px) clamp(16px, 4vw, 24px);
+            background:
+                linear-gradient(180deg, rgba(11, 23, 18, 0.88), rgba(11, 23, 18, 0.72)),
+                url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1600&q=90") center / cover no-repeat fixed;
+            color: var(--white);
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            position: relative;
+        }
+
+        /* TOP CORNER REGISTER LINK */
+        .top-register {
+            position: absolute;
+            top: clamp(16px, 3vh, 32px);
+            right: clamp(20px, 4vw, 40px);
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        a {
+            color: var(--green);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color .2s;
+        }
+
+        a:hover {
+            color: #c4ff81;
+            text-decoration: underline;
+        }
+
+        .top-register a {
+            margin-left: 6px;
+            font-weight: 700;
+        }
+
+        /* CENTERED LOGIN CARD BOX */
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--dark-card);
+            background: linear-gradient(180deg, rgba(21, 37, 29, 0.88), rgba(16, 30, 23, 0.94));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: clamp(26px, 4vh, 38px) clamp(22px, 4.5vw, 36px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.15);
+            margin: auto 0;
+        }
+
+        /* BRANDING HEADER */
+        .login-brand {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: clamp(14px, 2.2vh, 22px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            color: var(--green);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(40px, 4.2vw, 50px);
+            font-style: italic;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .logo-title-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            color: var(--white);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(32px, 3.5vw, 42px);
+            font-style: italic;
+            font-weight: 900;
+            letter-spacing: 2px;
+            line-height: 0.95;
+        }
+
+        .tagline {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: clamp(9px, 0.75vw, 10px);
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .login-card h2 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(30px, 3vw, 42px);
+            font-weight: 900;
+            line-height: 1;
+            color: var(--cream);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: clamp(13px, 1vw, 15px);
+            margin-bottom: clamp(18px, 2.6vh, 26px);
+        }
+
+        /* FORM ELEMENTS */
+        .form-group {
+            margin-bottom: clamp(12px, 1.8vh, 18px);
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cream);
+            margin-bottom: 6px;
+        }
+
+        .input-box {
+            height: clamp(46px, 5.2vh, 52px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(11, 23, 18, 0.75);
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .input-box:focus-within {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(182, 250, 109, 0.18);
+        }
+
+        .input-box .icon {
+            font-size: 20px;
+            color: var(--green);
+            line-height: 1;
+        }
+
+        .input-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--white);
+        }
+
+        .input-box input::placeholder {
+            color: #6d7f73;
+        }
+
+        .password-toggle {
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            color: var(--muted);
+            padding: 4px;
+            line-height: 1;
+            transition: color .2s;
+        }
+
+        .password-toggle:hover {
+            color: var(--white);
+        }
+
+        .options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: clamp(12px, 1.6vh, 18px) 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .remember input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--green);
+            cursor: pointer;
+        }
+
+        .options a {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        /* SUBMIT BUTTON */
+        .login-btn {
+            width: 100%;
+            height: clamp(46px, 5.2vh, 52px);
+            border: none;
+            border-radius: 10px;
+            background: var(--green);
+            color: #102016;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(18px, 1.6vw, 21px);
+            font-weight: 800;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: background .2s, transform .1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-btn:hover {
+            background: #c4ff81;
+        }
+
+        .login-btn:active {
+            transform: scale(0.99);
+        }
+
+        .login-btn span {
+            margin-left: 10px;
+            font-size: 20px;
+        }
+
+        .bottom-register {
+            margin-top: clamp(14px, 2vh, 22px);
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .bottom-register a {
+            color: var(--green);
+            margin-left: 6px;
+            font-weight: 700;
+        }
+
+        /* FOOTER */
+        .login-footer {
+            margin-top: clamp(16px, 2.5vh, 24px);
+            text-align: center;
+        }
+
+        .login-footer .slogan {
+            color: var(--green);
+            font-size: clamp(15px, 1.4vw, 18px);
+            font-style: italic;
+            font-weight: 600;
+            transform: rotate(-3deg);
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .login-footer .copyright {
+            color: #5d6e63;
+            font-size: 11px;
+        }
+
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 600px) {
+            .top-register {
+                position: static;
+                margin-bottom: 16px;
+                text-align: right;
+                width: 100%;
+                max-width: 440px;
+            }
+
+            .login-card {
+                padding: 24px 18px;
+                border-radius: 16px;
+            }
+
+            .login-card h2 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-register">
+        Don't have an account?
+        <a href="/register/">Register →</a>
+    </div>
+
+    <!-- CENTERED LOGIN CARD -->
+    <div class="login-card">
+
+        <!-- BRAND LOGO -->
+        <div class="login-brand">
+            <a href="/" style="text-decoration:none;">
+                <div class="logo">
+                    <span class="logo-icon">T</span>
+                    <div class="logo-title-group">
+                        <span class="logo-title">TOUCHLINE</span>
+                        <div class="tagline">YOUR GAME. YOUR LEAGUE.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <h2>WELCOME BACK</h2>
+        <p class="subtitle">Log in with your phone number, username, or email</p>
+
+        {% if messages %}
+        <div style="margin-bottom:16px;">
+            {% for message in messages %}
+            <div style="padding:10px 14px;border-radius:4px;margin-bottom:8px;font-size:12px;font-weight:700;
+                {% if message.tags == 'error' %}background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;
+                {% else %}background:#def7ec;color:#03543f;border:1px solid #bcf0da;{% endif %}">
+                ● {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div style="padding:10px 14px;border-radius:4px;margin-bottom:14px;font-size:12px;font-weight:700;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
+            ● {{ error }}
+        </div>
+        {% endif %}
+
+        <form class="login-form" id="loginForm" method="post" action="/login/{% if next %}?next={{ next }}{% endif %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="phone">Phone Number / Username / Email</label>
+                <div class="input-box">
+                    <span class="icon">♧</span>
+                    <input type="text" id="phone" name="phone" value="{{ identifier|default:'' }}" placeholder="e.g. 07700900001 or admin" required autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-box">
+                    <span class="icon">♙</span>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    <button class="password-toggle" type="button" onclick="togglePassword()" aria-label="Show or hide password">◉</button>
+                </div>
+            </div>
+
+            <div class="options">
+                <label class="remember">
+                    <input type="checkbox" name="remember" value="1" checked>
+                    <span>Remember me</span>
+                </label>
+
+                <a href="#" onclick="alert('Demo notice: For test accounts, use admin/adminpassword123 or organizer123'); return false;">Forgot password?</a>
+            </div>
+
+            <button class="login-btn" type="submit">
+                LOG IN <span>→</span>
+            </button>
+
+            <div class="bottom-register">
+                New to Touchline?
+                <a href="/register/">Create an account →</a>
+            </div>
+        </form>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7;">
+            <strong>Test Credentials:</strong><br>
+            • Super Admin: <code style="color:var(--green)">admin</code> / <code style="color:var(--green)">adminpassword123</code><br>
+            • Organizer: <code style="color:var(--green)">07700900001</code> / <code style="color:var(--green)">organizer123</code><br>
+            • Viewer: <code style="color:var(--green)">viewer</code> / <code style="color:var(--green)">viewer123</code>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="login-footer">
+        <div class="slogan">More Leagues. More Football.</div>
+        <div class="copyright">© 2026 Touchline</div>
+    </footer>
+
+    <script>
+        function togglePassword() {
+            const password = document.getElementById("password");
+            password.type = password.type === "password" ? "text" : "password";
+        }
+    </script>
+
+</body>
+</html>

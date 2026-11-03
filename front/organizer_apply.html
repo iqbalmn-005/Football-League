@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Touchline | Organizer Application</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --dark: #101b16;
+            --dark-card: #17251e;
+            --green: #b4f56b;
+            --green-dark: #245d3c;
+            --cream: #f5f6ef;
+            --soft-green: #e9efdf;
+            --white: #fff;
+            --muted: #aab5ac;
+            --text: #17221b;
+            --border: #e0e5da;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1000px, 92%);
+            margin: auto;
+        }
+
+        .navbar {
+            background: var(--dark);
+            color: white;
+            border-bottom: 1px solid #26342b;
+        }
+
+        .nav-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            font: 900 25px var(--font-heading);
+            letter-spacing: -.5px;
+        }
+
+        .logo-mark {
+            color: var(--green);
+            margin-right: 8px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 20px;
+            background: var(--green);
+            color: var(--dark);
+            border: 1px solid var(--green);
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 800;
+            transition: .2s;
+        }
+
+        .btn:hover {
+            background: #c7ff88;
+            transform: translateY(-1px);
+        }
+
+        .page-heading {
+            margin: 35px 0 25px;
+        }
+
+        .eyebrow {
+            color: var(--green-dark);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font: 800 clamp(36px, 4.5vw, 50px) var(--font-heading);
+            text-transform: uppercase;
+            color: var(--dark);
+            line-height: 1;
+        }
+
+        .workflow-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .step-card {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 4px;
+        }
+
+        .step-card.active {
+            border-color: var(--green-dark);
+            background: #f4faed;
+        }
+
+        .step-num {
+            font: 800 12px var(--font-heading);
+            color: var(--green-dark);
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 13px;
+            margin: 4px 0 2px;
+            color: var(--dark);
+        }
+
+        .step-desc {
+            font-size: 11px;
+            color: #68746a;
+        }
+
+        .form-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 30px;
+            margin-bottom: 50px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            background: #fafbfa;
+            border-radius: 3px;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--dark);
+            background: white;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 85px;
+        }
+
+        @media (max-width: 768px) {
+            .workflow-steps {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert {
+            padding: 12px 18px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .alert-error {
+            background: #fde8e8;
+            color: #9b1c1c;
+            border: 1px solid #f8b4b4;
+        }
+
+        .alert-success {
+            background: #def7ec;
+            color: #03543f;
+            border: 1px solid #bcf0da;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="container nav-inner">
+            <a href="/" class="logo"><span class="logo-mark">//</span>TOUCHLINE</a>
+
+            <div class="nav-actions">
+                <span style="font-size:12px;color:#d8e0d9;">Signed in as <strong>{{ user.username }}</strong></span>
+                <a href="/logout/" style="font-size:11px;color:var(--muted);font-weight:700;">Sign out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="page-heading">
+            <p class="eyebrow">● LEAGUE ORGANIZER VERIFICATION</p>
+            <h1>SUBMIT APPLICATION FOR APPROVAL</h1>
+            <p style="color:#68746a;font-size:13px;margin-top:8px;">
+                Complete your organizer profile below to request league management permissions from the Super Admin.
+            </p>
+        </div>
+
+        {% if messages %}
+        <div style="margin-bottom:20px;">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                ● {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- WORKFLOW STEPS -->
+        <div class="workflow-steps">
+            <div class="step-card">
+                <div class="step-num">STEP 01</div>
+                <div class="step-title">Account Created</div>
+                <div class="step-desc">Registered on Touchline</div>
+            </div>
+            <div class="step-card active">
+                <div class="step-num">STEP 02</div>
+                <div class="step-title">Submit Application</div>
+                <div class="step-desc">Provide organization credentials</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 03</div>
+                <div class="step-title">Super Admin Review</div>
+                <div class="step-desc">Verification &amp; compliance</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 04</div>
+                <div class="step-title">League Assignment</div>
+                <div class="step-desc">Manage teams &amp; fixtures</div>
+            </div>
+        </div>
+
+        <!-- APPLICATION FORM -->
+        <div class="form-card">
+            <form method="post" action="/organizer/apply/">
+                {% csrf_token %}
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fullName">Organizer / Representative Full Name *</label>
+                        <input type="text" id="fullName" name="full_name" class="form-control"
+                            value="{{ latest_app.full_name|default:user.get_full_name|default:user.username }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orgName">Organization / Association / League Name *</label>
+                        <input type="text" id="orgName" name="organization_name" class="form-control"
+                            value="{{ latest_app.organization_name|default:profile.organization_name|default:'' }}"
+                            placeholder="e.g. Greater London Youth Football League" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Contact Email Address *</label>
+                        <input type="email" id="email" name="email" class="form-control"
+                            value="{{ latest_app.email|default:user.email|default:'' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Contact Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" class="form-control"
+                            value="{{ latest_app.phone|default:profile.phone|default:'' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City / Region *</label>
+                        <input type="text" id="city" name="city" class="form-control"
+                            value="{{ latest_app.city|default:'London' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" name="country" class="form-control"
+                            value="{{ latest_app.country|default:'United Kingdom' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expYears">Years of Football Organizing Experience</label>
+                        <input type="number" id="expYears" name="experience_years" class="form-control" min="0" max="60"
+                            value="{{ latest_app.experience_years|default:profile.experience_years|default:1 }}">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="proposed">Proposed Competitions &amp; Format</label>
+                        <textarea id="proposed" name="proposed_leagues" class="form-control"
+                            placeholder="Describe the leagues or tournaments you plan to host (e.g. 11-a-side weekend league, 8 teams, double round-robin)">{{ latest_app.proposed_leagues|default:'' }}</textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="summary">Experience Summary &amp; Past Tournaments</label>
+                        <textarea id="summary" name="experience_summary" class="form-control"
+                            placeholder="Briefly describe your track record, referee arrangements, or field partnerships">{{ latest_app.experience_summary|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <div style="margin-top:25px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                    <a href="/" style="font-size:12px;color:#68746a;font-weight:700;">← Back to Home</a>
+                    <button type="submit" class="btn">SUBMIT APPLICATION TO SUPER ADMIN <span>→</span></button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+</body>
+
+</html>
+

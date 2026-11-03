@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Touchline | League Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark: #101b16;
+            --dark-card: #17251e;
+            --green: #b4f56b;
+            --green-dark: #245d3c;
+            --cream: #f5f6ef;
+            --soft-green: #e9efdf;
+            --white: #fff;
+            --muted: #aab5ac;
+            --text: #17221b;
+            --border: #e0e5da;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1200px, 92%);
+            margin: auto;
+        }
+
+        .navbar {
+            background: var(--dark);
+            color: white;
+            border-bottom: 1px solid #26342b;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            font: 900 25px var(--font-heading);
+            letter-spacing: -.5px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .logo-mark {
+            color: var(--green);
+            margin-right: 8px;
+            letter-spacing: -3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 11.5px;
+            color: #d8e0d9;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .nav-links a.active,
+        .nav-links a:hover {
+            color: var(--green);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #e3e9e3;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--green);
+            color: var(--dark);
+            font-weight: 900;
+            font-size: 12px;
+        }
+
+        main {
+            padding: 38px 0 70px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            color: var(--green-dark);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        h1 {
+            font-size: clamp(38px, 5vw, 54px);
+            color: var(--dark);
+        }
+
+        .subtext {
+            color: #68746a;
+            font-size: 12.5px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 18px;
+            background: var(--green);
+            color: var(--dark);
+            border: 1px solid var(--green);
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 800;
+            transition: .2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #c7ff88;
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--dark);
+            border-color: var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: #e9efdf;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--dark);
+            color: white;
+            padding: 19px 20px;
+            border: 1px solid #26342b;
+            border-radius: 4px;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        .metric-value {
+            font: 800 35px var(--font-heading);
+            margin: 5px 0;
+            color: #FFFFFF;
+        }
+
+        .metric-note {
+            font-size: 10px;
+            color: var(--green);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(16, 27, 22, 0.04);
+        }
+
+        .panel-head {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: #FAFCF8;
+        }
+
+        .panel-head h2 {
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .panel-head p {
+            font-size: 11px;
+            color: #788578;
+            margin-top: 4px;
+        }
+
+        .panel-body {
+            padding: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field.full {
+            grid-column: 1/-1;
+        }
+
+        .field label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .45px;
+            color: #445247;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border: 1px solid #dce3d8;
+            background: #fbfcf8;
+            border-radius: 3px;
+            padding: 11px 12px;
+            font-size: 12px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--green-dark);
+            box-shadow: 0 0 0 3px #245d3c12;
+            background: #fff;
+        }
+
+        .field textarea {
+            min-height: 78px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .filter-bar {
+            padding: 16px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            background: #fff;
+        }
+
+        .search,
+        .filter {
+            border: 1px solid var(--border);
+            padding: 9px 12px;
+            border-radius: 3px;
+            background: #fbfcf8;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .search {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter {
+            background: white;
+        }
+
+        .league-list {
+            padding: 0 20px;
+        }
+
+        .league-item {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s ease;
+        }
+
+        .league-item:last-child {
+            border-bottom: 0;
+        }
+
+        .league-symbol {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            background: var(--green-dark);
+            color: var(--green);
+            font-size: 20px;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .league-title {
+            font: 800 22px var(--font-heading);
+            text-transform: uppercase;
+            color: var(--dark);
+            line-height: 1.1;
+        }
+
+        .league-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: #788578;
+            font-size: 10.5px;
+            margin-top: 4px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status.active {
+            background: #e8f5d8;
+            color: #315e35;
+        }
+
+        .status.upcoming {
+            background: #fff0d4;
+            color: #855d14;
+        }
+
+        .status.completed {
+            background: #edf0ec;
+            color: #5e6a60;
+        }
+
+        .status.pending, .status.under_review {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .league-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #455347;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.15s;
+        }
+
+        .icon-btn:hover {
+            background: var(--soft-green);
+            color: var(--dark);
+        }
+
+        .empty {
+            padding: 40px 15px;
+            text-align: center;
+            color: #788578;
+            font-size: 12px;
+            display: none;
+        }
+
+        .empty strong {
+            display: block;
+            font: 800 22px var(--font-heading);
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            background: var(--dark);
+            color: #aab6ab;
+            padding: 22px 0;
+            font-size: 11px;
+            margin-top: 50px;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .footer b {
+            color: var(--green);
+        }
+
+        @media(max-width:950px) {
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 14px;
+            }
+        }
+
+        @media(max-width:600px) {
+            .nav-inner {
+                padding: 13px 0;
+                flex-wrap: wrap;
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                overflow: auto;
+                gap: 20px;
+                padding-bottom: 4px;
+            }
+
+            .profile .profile-name {
+                display: none;
+            }
+
+            main {
+                padding-top: 27px;
+            }
+
+            .metrics {
+                gap: 9px;
+            }
+
+            .metric-card {
+                padding: 14px;
+            }
+
+            .metric-value {
+                font-size: 30px;
+            }
+
+            .panel-head,
+            .panel-body {
+                padding: 17px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full {
+                grid-column: auto;
+            }
+
+            .league-item {
+                grid-template-columns: 40px minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .league-symbol {
+                width: 40px;
+                height: 40px;
+            }
+
+            .league-title {
+                font-size: 20px;
+            }
+
+            .league-right {
+                grid-column: 2;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .league-actions {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- TOP NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-inner">
+            <a class="logo" href="/"><span class="logo-mark">//</span>TOUCHLINE</a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/organizer/" class="active">My Leagues</a>
+                <a href="/#tournaments">Competitions</a>
+                <a href="/#contact">Contact</a>
+            </nav>
+            <div class="profile">
+                <div class="avatar">{{ user.username|slice:":2"|upper }}</div>
+                <span class="profile-name"><strong>{{ user.first_name|default:user.username }}</strong> · Organizer</span>
+                <a href="/logout/" style="font-size:11px;color:#fca5a5;margin-left:8px;font-weight:700;">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ALERTS / FEEDBACK -->
+    {% if messages %}
+    <div class="container" style="margin-top:20px;">
+        {% for message in messages %}
+        <div style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:10px;
+            {% if message.tags == 'error' %}background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;
+            {% else %}background:#def7ec;color:#03543f;border:1px solid #bcf0da;{% endif %}">
+            ● {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="container">
+        <section class="page-heading">
+            <div>
+                <div class="eyebrow">Your control room / 01</div>
+                <h1>League Organizer</h1>
+                <p class="subtext">Create competitions, manage your leagues, and keep every team in the game.</p>
+            </div>
+            <a class="btn" href="#add-league">＋ &nbsp; CREATE A LEAGUE <span>↗</span></a>
+        </section>
+
+        <!-- METRICS -->
+        <section class="metrics">
+            <article class="metric-card">
+                <div class="metric-label">Total leagues</div>
+                <div class="metric-value">{{ total_count|stringformat:"02d" }}</div>
+                <div class="metric-note">All competitions you organize</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Active leagues</div>
+                <div class="metric-value">{{ active_count|stringformat:"02d" }}</div>
+                <div class="metric-note">Currently running</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Upcoming leagues</div>
+                <div class="metric-value">{{ upcoming_count|stringformat:"02d" }}</div>
+                <div class="metric-note">Ready for kickoff</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Teams registered</div>
+                <div class="metric-value">{{ total_teams }}</div>
+                <div class="metric-note">Across your leagues</div>
+            </article>
+        </section>
+
+        {% if pending_count > 0 %}
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;padding:14px 18px;border-radius:6px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div>
+                <strong style="color:#92400e;font-size:13px;display:block;">⏳ League Submission Under Review</strong>
+                <p style="margin:4px 0 0;font-size:12px;color:#b45309;">You have {{ pending_count }} competition{{ pending_count|pluralize }} currently under review by the platform administrator. Once approved, full fixture scheduling and team management will be activated.</p>
+            </div>
+            <span style="font-size:10.5px;font-weight:800;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;border:1px solid #fde68a;white-space:nowrap;">IN REVIEW</span>
+        </div>
+        {% endif %}
+
+        <div class="content-grid">
+            <!-- LEFT PANEL: MY LEAGUES -->
+            <section class="panel" id="my-leagues">
+                <div class="panel-head">
+                    <div>
+                        <h2>My Leagues</h2>
+                        <p>Competitions you organize and manage.</p>
+                    </div>
+                    <div>
+                        <span id="visibleCount" style="font-size:11px;font-weight:800;color:var(--green-dark)">
+                            {{ user_competitions.count|stringformat:"02d" }} LEAGUE{{ user_competitions.count|pluralize:"S" }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- SEARCH & FILTER BAR (Pure Django GET Form) -->
+                <form method="get" action="/organizer/" class="filter-bar" style="display:flex;gap:10px;align-items:center;">
+                    <input type="search" name="q" class="search" id="searchInput" value="{{ search_query|default:'' }}" placeholder="Search leagues by name, venue, or format..." style="flex:1;">
+                    <select name="status" class="filter" id="statusFilter" onchange="this.form.submit()">
+                        <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All statuses</option>
+                        <option value="ACTIVE" {% if status_filter == 'ACTIVE' or status_filter == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="UPCOMING" {% if status_filter == 'UPCOMING' or status_filter == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                        <option value="PENDING" {% if status_filter == 'PENDING' or status_filter == 'Under Review' %}selected{% endif %}>Under Review</option>
+                        <option value="COMPLETED" {% if status_filter == 'COMPLETED' or status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                    {% if search_query or status_filter and status_filter != 'all' %}
+                    <a href="/organizer/" style="font-size:11px;font-weight:700;color:#d93838;text-decoration:none;white-space:nowrap;padding:0 8px;">✕ Clear</a>
+                    {% endif %}
+                </form>
+
+                <!-- LEAGUES LIST -->
+                <div class="league-list" id="leagueList">
+                    {% for comp in user_competitions %}
+                    <article class="league-item" data-name="{{ comp.name|lower }} {{ comp.location|lower }} {{ comp.category|lower }}" data-status="{{ comp.get_status_display }}">
+                        <div class="league-symbol">
+                            {% if comp.get_logo_url %}
+                            <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">
+                            {% else %}
+                            <div style="width:100%;height:100%;background:rgba(180,245,107,0.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);">
+                                {{ comp.name|slice:":3"|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="league-title">{{ comp.name }}</div>
+                            <div class="league-meta">
+                                <span>▦ {{ comp.category|default:"11-a-side" }}</span>
+                                <span>♟ {{ comp.teams.count }} / {{ comp.max_teams }} teams</span>
+                                <span>⌖ {{ comp.location|default:"Community Arena" }}</span>
+                            </div>
+                            <div class="league-meta">
+                                <span>◷ {{ comp.start_date|date:"d M Y"|default:"TBD" }} – {{ comp.end_date|date:"d M Y"|default:"TBD" }} · Season {{ comp.season }}</span>
+                            </div>
+                        </div>
+                        <div class="league-right">
+                            <span class="status {{ comp.status|lower }}">{{ comp.get_status_display }}</span>
+                            <div class="league-actions">
+                                {% if comp.status == 'PENDING' %}
+                                <span class="badge" style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:4px;font-size:10px;font-weight:800;border:1px solid #fde68a;">⏳ Under Review</span>
+                                {% else %}
+                                <a href="/organizer/{{ comp.id }}/" class="btn" style="padding:6px 12px;font-size:10px;">Manage ↗</a>
+                                <a href="/competition/{{ comp.id }}/" class="icon-btn" target="_blank" title="View Public Match Center">Public View ↗</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="empty" style="display:block;">
+                        <strong>No leagues assigned yet</strong>
+                        Create your first league using the form on the right!
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="empty" id="emptyState">
+                    <strong>No leagues found</strong>
+                    Try another search term or status filter.
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: ADD NEW LEAGUE -->
+            <section class="panel" id="add-league">
+                <div class="panel-head">
+                    <div>
+                        <h2>Add New League</h2>
+                        <p>Set up the details for your next competition.</p>
+                    </div>
+                    <span style="font-size:23px;color:var(--green-dark)">＋</span>
+                </div>
+                <div class="panel-body">
+                    <form id="leagueForm" method="post" action="/organizer/competition/create/" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="field full">
+                                <label for="leagueName">League name *</label>
+                                <input id="leagueName" name="name" required maxlength="70" placeholder="e.g. Malabar Champions League">
+                            </div>
+                            <div class="field full">
+                                <label for="orgName">Host organization / Committee (optional)</label>
+                                <input id="orgName" name="organization_name" placeholder="e.g. Kozhikode District Football Association" value="{{ user.profile.organization_name|default:'' }}">
+                            </div>
+                            <div class="field">
+                                <label for="leagueFormat">Competition format *</label>
+                                <select id="leagueFormat" name="category" required>
+                                    <option value="11-a-side">11-a-side</option>
+                                    <option value="7-a-side">7-a-side</option>
+                                    <option value="6-a-side">6-a-side</option>
+                                    <option value="5-a-side">5-a-side</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="teamLimit">Team size / Number of teams *</label>
+                                <select id="teamLimit" name="max_teams" required>
+                                    <option value="4">4 teams</option>
+                                    <option value="6">6 teams</option>
+                                    <option value="8" selected>8 teams</option>
+                                    <option value="10">10 teams</option>
+                                    <option value="12">12 teams</option>
+                                    <option value="custom">Enter number of teams</option>
+                                </select>
+                                <div id="customTeamsWrapper" style="display: none; margin-top: 8px;">
+                                    <input type="number" id="customTeams" name="custom_teams" min="2" max="128" placeholder="Enter number of teams (e.g. 16)">
+                                </div>
+                            </div>
+                            <div class="field full">
+                                <label for="venue">Location / venue *</label>
+                                <input id="venue" name="location" required placeholder="e.g. City Sports Ground, Kozhikode">
+                            </div>
+                            <div class="field">
+                                <label for="startDate">Start date *</label>
+                                <input id="startDate" name="start_date" type="date" required>
+                            </div>
+                            <div class="field">
+                                <label for="endDate">End date *</label>
+                                <input id="endDate" name="end_date" type="date" required>
+                            </div>
+                            <div class="field full">
+                                <label for="leagueLogo">League Logo / Crest (Optional)</label>
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <input type="file" id="leagueLogo" name="logo" accept="image/*" style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
+                                    <input type="url" id="leagueLogoUrl" name="logo_url" placeholder="Or enter logo URL (optional)" style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
+                                </div>
+                            </div>
+                            <div class="field full">
+                                <label for="leagueDescription">Description (optional)</label>
+                                <textarea id="leagueDescription" name="description" maxlength="250" placeholder="A short note about the league, rules, or eligibility..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn" type="submit" id="submitBtn">SUBMIT LEAGUE FOR REVIEW ↗</button>
+                            <button class="btn btn-ghost" type="button" onclick="fillDummyForm()">⚡ SAMPLE LEAGUE DATA</button>
+                            <button class="btn btn-ghost" type="reset" id="resetBtn">CLEAR FORM</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span>© 2026 <b>TOUCHLINE</b> — PLAY. ORGANIZE. COMPETE.</span>
+            <span>LEAGUE ORGANIZER DASHBOARD</span>
+        </div>
+    </footer>
+
+    <script>
+        // Real-time client-side search and filtering
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const leagueItems = document.querySelectorAll('.league-item');
+        const emptyState = document.getElementById('emptyState');
+        const visibleCount = document.getElementById('visibleCount');
+
+        function filterLeagues() {
+            const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const f = statusFilter ? statusFilter.value.toLowerCase() : 'all';
+            let visible = 0;
+
+            leagueItems.forEach(item => {
+                const name = (item.dataset.name || '').toLowerCase();
+                const status = (item.dataset.status || '').toLowerCase();
+                const matchesSearch = !q || name.includes(q);
+                const matchesStatus = (f === 'all') || (status === f);
+
+                if (matchesSearch && matchesStatus) {
+                    item.style.display = 'grid';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (emptyState) emptyState.style.display = (visible === 0 && leagueItems.length > 0) ? 'block' : 'none';
+            if (visibleCount) visibleCount.textContent = String(visible).padStart(2, '0') + (visible === 1 ? ' LEAGUE' : ' LEAGUES');
+        }
+
+        if (searchInput) searchInput.addEventListener('input', filterLeagues);
+        if (statusFilter) statusFilter.addEventListener('change', filterLeagues);
+
+        // Custom teams toggle
+        const teamLimitSelect = document.getElementById('teamLimit');
+        const customTeamsWrapper = document.getElementById('customTeamsWrapper');
+        const customTeamsInput = document.getElementById('customTeams');
+
+        function toggleCustomTeams() {
+            if (!teamLimitSelect) return;
+            if (teamLimitSelect.value === 'custom') {
+                if (customTeamsWrapper) customTeamsWrapper.style.display = 'block';
+                if (customTeamsInput) {
+                    customTeamsInput.name = 'max_teams';
+                    teamLimitSelect.removeAttribute('name');
+                    customTeamsInput.required = true;
+                    customTeamsInput.focus();
+                }
+            } else {
+                if (customTeamsWrapper) customTeamsWrapper.style.display = 'none';
+                if (customTeamsInput) {
+                    teamLimitSelect.setAttribute('name', 'max_teams');
+                    customTeamsInput.removeAttribute('name');
+                    customTeamsInput.required = false;
+                    customTeamsInput.value = '';
+                }
+            }
+        }
+        if (teamLimitSelect) teamLimitSelect.addEventListener('change', toggleCustomTeams);
+
+        // Sample data filler
+        function fillDummyForm() {
+            document.getElementById('leagueName').value = 'Touchline Premier Championship';
+            document.getElementById('leagueFormat').value = '11-a-side';
+            document.getElementById('teamLimit').value = '8';
+            toggleCustomTeams();
+            document.getElementById('venue').value = 'Metropolis National Arena';
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            const s = new Date(now.getTime() + 7 * 86400000);
+            const e = new Date(now.getTime() + 45 * 86400000);
+            document.getElementById('startDate').value = fmt(s);
+            document.getElementById('endDate').value = fmt(e);
+            document.getElementById('leagueDescription').value = 'Official 8-team weekend championship with round-robin fixtures and knockout playoffs.';
+        }
+    </script>
+</body>
+</html>

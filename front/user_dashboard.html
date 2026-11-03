@@ -1,0 +1,3932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>{{ competition.name }} · Touchline Match Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --dark: #0D1912;
+            --hero-bg: #101B16;
+            --card-dark: #16241C;
+            --green: #B4F56B;
+            --green-dark: #245D3C;
+            --cream: #F5F6EF;
+            --cream-card: #FFFFFF;
+            --text-dark: #101B16;
+            --text-muted: #738276;
+            --border: #E2E6DC;
+            --border-dark: #24352A;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --shadow-subtle: 0 2px 12px rgba(16, 27, 22, 0.04);
+            --shadow-card: 0 4px 18px rgba(16, 27, 22, 0.07);
+            --header-h: 70px;
+            --bnav-h: 64px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .container {
+            width: min(1360px, calc(100% - 48px));
+            margin: 0 auto;
+        }
+
+        /* ==========================================================================
+           1. TOP NAVIGATION (MATCHING SCREENSHOT)
+           ========================================================================== */
+        .navbar {
+            background: var(--dark);
+            border-bottom: 1px solid var(--border-dark);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-inner {
+            height: var(--header-h);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-weight: 900;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+            color: #FFFFFF;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .logo-mark {
+            color: var(--green);
+            letter-spacing: -2px;
+            font-weight: 900;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: #D2DCD4;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--green);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-nav-primary {
+            background: var(--green);
+            color: var(--dark);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-nav-primary:hover {
+            background: #C4FA84;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(180, 245, 107, 0.3);
+        }
+
+        .btn-nav-link {
+            color: #D2DCD4;
+            font-size: 13px;
+            font-weight: 600;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-nav-link:hover {
+            color: #FFFFFF;
+        }
+
+        /* Mobile Hamburger Button */
+        .mobile-menu-btn {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-dark);
+            color: #FFFFFF;
+            font-size: 18px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: min(300px, 80vw);
+            background: var(--dark);
+            border-left: 1px solid var(--border-dark);
+            z-index: 2000;
+            padding: 24px 20px;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mobile-drawer.open {
+            transform: translateX(0);
+        }
+
+        .mobile-drawer-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 1999;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .mobile-drawer-backdrop.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-drawer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border-dark);
+            margin-bottom: 20px;
+        }
+
+        .mobile-drawer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .mobile-drawer-link {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 800;
+            color: #FFFFFF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mobile-drawer-link:hover,
+        .mobile-drawer-link:active {
+            color: var(--green);
+        }
+
+        /* ==========================================================================
+           2. BROADCAST HERO SECTION (MATCHING SCREENSHOT)
+           ========================================================================== */
+        .hero-banner {
+            background: radial-gradient(circle at 60% 30%, #173322 0%, var(--hero-bg) 65%, #0B140F 100%);
+            color: #FFFFFF;
+            padding: 38px 0 34px;
+            border-bottom: 1px solid var(--border-dark);
+            position: relative;
+        }
+
+        .hero-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .hero-brand {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        /* Red Bundes-style emblem or competition logo */
+        .hero-emblem {
+            width: 82px;
+            height: 82px;
+            border-radius: var(--radius-md);
+            background: #E51B24;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(229, 27, 36, 0.35);
+        }
+
+        .hero-emblem img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hero-emblem-fallback {
+            font-family: var(--font-heading);
+            font-size: 34px;
+            font-weight: 900;
+            color: #FFFFFF;
+            letter-spacing: -1px;
+        }
+
+        .hero-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 4px;
+        }
+
+        .hero-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: scale(1.3);
+            }
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -0.5px;
+            color: #FFFFFF;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .hero-desc {
+            font-size: 13.5px;
+            color: #A4B2A7;
+            max-width: 680px;
+            line-height: 1.45;
+        }
+
+        .hero-side-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .season-badge {
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: var(--radius-sm);
+            padding: 7px 14px;
+            font-size: 11.5px;
+            color: #B2BFB5;
+            white-space: nowrap;
+        }
+
+        .season-badge strong {
+            color: #FFFFFF;
+            margin-left: 3px;
+        }
+
+        .btn-share-dash {
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            color: #FFFFFF;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-share-dash:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: rgba(180, 245, 107, 0.08);
+        }
+
+        /* 3 KPI Metric Cards (Matching Screenshot) */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        .kpi-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            position: relative;
+        }
+
+        .kpi-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #8C9C90;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card-header .kpi-icon {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .kpi-main-val {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .kpi-main-val strong {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 900;
+            color: #FFFFFF;
+            line-height: 1;
+        }
+
+        .kpi-main-val span {
+            font-size: 12px;
+            color: #D2DCD4;
+            font-weight: 600;
+        }
+
+        .kpi-sub-text {
+            font-size: 11px;
+            color: #798A7D;
+            margin-top: 6px;
+        }
+
+        /* ==========================================================================
+           3. DESKTOP SEGMENTED TABS (CLEAN TEXT UNDERLINE STYLE IN SCREENSHOT)
+           ========================================================================== */
+        .tabs-container {
+            background: var(--cream);
+            border-bottom: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .tabs-list {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .tab-btn {
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-muted);
+            padding: 10px 4px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-dark);
+        }
+
+        .tab-btn.active {
+            color: var(--text-dark);
+            border-bottom-color: var(--green-dark);
+        }
+
+        /* ==========================================================================
+           4. MOBILE BOTTOM NAVIGATION BAR (< 768px)
+           ========================================================================== */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bnav-h);
+            background: var(--dark);
+            border-top: 1px solid var(--border-dark);
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            padding: 0 4px calc(env(safe-area-inset-bottom, 0px) + 2px);
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .bnav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 100%;
+            max-width: 76px;
+            color: #8FA093;
+            padding: 6px 2px;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+        }
+
+        .bnav-tab:active {
+            transform: scale(0.92);
+        }
+
+        .bnav-icon-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 24px;
+        }
+
+        .bnav-icon {
+            font-size: 18px;
+            line-height: 1;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .bnav-badge {
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            background: var(--green);
+            color: var(--dark);
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 900;
+            line-height: 14px;
+            height: 15px;
+            min-width: 15px;
+            padding: 0 4px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bnav-label {
+            font-family: var(--font-heading);
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            line-height: 1;
+            color: inherit;
+        }
+
+        .bnav-tab.active {
+            color: var(--green);
+        }
+
+        .bnav-tab.active .bnav-icon {
+            transform: translateY(-2px) scale(1.12);
+            filter: drop-shadow(0 2px 8px rgba(180, 245, 107, 0.45));
+        }
+
+        .bnav-tab.active .bnav-label {
+            color: var(--green);
+            font-weight: 900;
+        }
+
+        .bnav-tab.active::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: var(--green);
+            border-radius: 0 0 3px 3px;
+            box-shadow: 0 2px 8px var(--green);
+        }
+
+        /* ==========================================================================
+           5. SECTION HEADER WITH FILTER TOGGLE (MATCHING SCREENSHOT)
+           ========================================================================== */
+        .content-area {
+            padding: 30px 0 60px;
+        }
+
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .section-title-box h2 {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+            color: var(--text-dark);
+            line-height: 1.1;
+        }
+
+        .section-title-box p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* Filter Pills on Right */
+        .filter-pill-group {
+            display: inline-flex;
+            background: #EAEFE4;
+            border-radius: var(--radius-sm);
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--dark);
+            color: #FFFFFF;
+        }
+
+        /* ==========================================================================
+           6. FIXTURE CARDS GRID (EXACT MATCH TO USER SCREENSHOT)
+           ========================================================================== */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .fixture-card {
+            background: var(--cream-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .fixture-card:hover {
+            transform: translateY(-2px);
+            border-color: #B4F56B;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Top header: SUN, 01 NOV · 10:30 AM  |  UPCOMING */
+        .fixture-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+        }
+
+        .status-badge-upcoming {
+            background: #E8F5E9;
+            color: #2E7D32;
+            font-family: var(--font-heading);
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            padding: 2.5px 8px;
+            border-radius: 4px;
+        }
+
+        .status-badge-ft {
+            background: #DEF7EC;
+            color: #03543F;
+            font-family: var(--font-heading);
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            padding: 2.5px 8px;
+            border-radius: 4px;
+        }
+
+        /* Card Matchup: Home vs Away */
+        .fixture-matchup {
+            display: grid;
+            grid-template-columns: 1fr 34px 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 0 16px;
+        }
+
+        .match-team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            min-width: 0;
+        }
+
+        .match-team.home {
+            justify-content: flex-start;
+        }
+
+        .match-team.away {
+            justify-content: flex-end;
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .team-crest-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #EAEFE4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--green-dark);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .team-crest-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-meta {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .team-meta .team-name {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.15s ease;
+        }
+
+        .match-team:hover .team-name {
+            color: var(--green-dark);
+        }
+
+        .team-meta .team-code {
+            display: block;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Center VS / Score */
+        .match-vs {
+            text-align: center;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 800;
+            color: #9AA79D;
+            text-transform: uppercase;
+        }
+
+        .match-score-pill {
+            background: var(--dark);
+            color: #FFFFFF;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* Card Footer: MATCHWEEK 10  |  📍 Greenfield Sports Ground */
+        .fixture-card-footer {
+            border-top: 1px solid #EEF2EB;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .fixture-round-tag {
+            font-family: var(--font-heading);
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #6C7D70;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .fixture-venue-tag {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 65%;
+            font-size: 11px;
+        }
+
+        /* ==========================================================================
+           7. POINTS TABLE (CLEAN, STREAMLINED ON MOBILE)
+           ========================================================================== */
+        .table-card {
+            background: var(--cream-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .standings-table thead tr {
+            background: #F0F4EC;
+            border-bottom: 2px solid var(--border);
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .standings-table th,
+        .standings-table td {
+            padding: 12px 14px;
+            white-space: nowrap;
+        }
+
+        .standings-table th.center,
+        .standings-table td.center {
+            text-align: center;
+        }
+
+        .standings-table tbody tr {
+            border-bottom: 1px solid #EEF2EB;
+            transition: background 0.15s ease;
+        }
+
+        .standings-table tbody tr:hover {
+            background: #F9FAF7;
+        }
+
+        .rank-badge {
+            display: inline-grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 900;
+            background: #EAEFE4;
+            color: var(--text-dark);
+        }
+
+        .rank-badge.leader {
+            background: #FCD34D;
+            color: #78350F;
+        }
+
+        .rank-badge.top-tier {
+            background: #DEF7EC;
+            color: #03543F;
+        }
+
+        .table-club {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .table-club:hover {
+            color: var(--green-dark);
+        }
+
+        .table-club .mini-crest {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: #EAEFE4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .table-club .mini-crest img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pts-col {
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--dark);
+            background: rgba(180, 245, 107, 0.18);
+        }
+
+        .form-pill {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 3px;
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-right: 2px;
+        }
+
+        .form-pill.w {
+            background: #15803D;
+        }
+
+        .form-pill.d {
+            background: #B45309;
+        }
+
+        .form-pill.l {
+            background: #B91C1C;
+        }
+
+        /* ==========================================================================
+           8. STATISTICS & TEAMS TABS
+           ========================================================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stats-card {
+            background: var(--cream-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .stats-card-full {
+            grid-column: 1 / -1;
+        }
+
+        .stats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .stats-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .leader-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .leader-table thead tr {
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: var(--font-heading);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .leader-table th,
+        .leader-table td {
+            padding: 9px 8px;
+        }
+
+        .leader-table tbody tr {
+            border-bottom: 1px solid #F4F6F2;
+        }
+
+        .player-modal-trigger {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .player-modal-trigger:hover {
+            color: var(--green-dark);
+            text-decoration: underline;
+        }
+
+        .stat-value-badge {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--dark);
+            text-align: right;
+        }
+
+        .clubs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .club-card-link {
+            background: var(--cream-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .club-card-link:hover {
+            transform: translateY(-2px);
+            border-color: var(--green);
+            box-shadow: var(--shadow-card);
+        }
+
+        .club-card-inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .club-crest-large {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            background: #EAEFE4;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--green-dark);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+        }
+
+        .club-crest-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .club-info {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .club-info h3 {
+            font-family: var(--font-heading);
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.15s ease;
+        }
+
+        .club-card-link:hover .club-info h3 {
+            color: var(--green-dark);
+        }
+
+        .club-action-arrow {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #F0F4EC;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            font-size: 14px;
+            font-weight: 800;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .club-card-link:hover .club-action-arrow {
+            background: var(--dark);
+            color: var(--green);
+            border-color: var(--dark);
+            transform: translateX(2px) translateY(-2px);
+        }
+
+        /* Empty state */
+        .empty-box {
+            background: var(--cream-card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 40px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        /* ==========================================================================
+           9. MODALS
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 25, 18, 0.72);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-window {
+            background: #FFFFFF;
+            border-radius: var(--radius-md);
+            width: min(540px, 100%);
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 22px;
+            position: relative;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #F0F4EC;
+            color: var(--text-dark);
+            font-size: 16px;
+            font-weight: 800;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+
+        .modal-scoreboard {
+            background: var(--dark);
+            color: #FFFFFF;
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 14px 0 18px;
+            gap: 8px;
+        }
+
+        .modal-team-side {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .modal-team-side.home {
+            text-align: right;
+        }
+
+        .modal-team-side.away {
+            text-align: left;
+        }
+
+        .modal-team-side h3 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+
+        .modal-score-display {
+            padding: 0 14px;
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--green);
+            letter-spacing: 2px;
+        }
+
+        .modal-events-box {
+            background: #F8FAF6;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+
+        .event-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: #FFFFFF;
+            border: 1px solid #EDF1EB;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .player-modal-head {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .player-modal-photo {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            background: #EAEFE4;
+            border: 2px solid var(--green);
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .player-modal-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-modal-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: var(--dark);
+            color: var(--green);
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .player-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: #F8FAF6;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .p-stat-box span {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .p-stat-box strong {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--border);
+            background: #FFFFFF;
+            padding: 24px 0;
+            margin-top: 36px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* ==========================================================================
+           10. RESPONSIVENESS & MOBILE ADAPTATION
+           ========================================================================== */
+        @media (max-width: 900px) {
+            .hero-layout {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 18px;
+            }
+
+            .hero-side-actions {
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --header-h: 60px;
+            }
+
+            .container {
+                width: calc(100% - 24px);
+            }
+
+            .tabs-container {
+                display: none !important;
+            }
+
+            .mobile-bottom-nav {
+                display: flex;
+            }
+
+            body {
+                padding-bottom: calc(var(--bnav-h) + 16px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+
+            .site-footer {
+                margin-bottom: calc(var(--bnav-h) + 10px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: inline-flex;
+            }
+
+            .mobile-drawer {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 28px;
+            }
+
+            .hero-banner {
+                padding: 22px 0 18px;
+            }
+
+            .hero-brand {
+                gap: 14px;
+            }
+
+            .hero-emblem {
+                width: 60px;
+                height: 60px;
+            }
+
+            .hero-emblem-fallback {
+                font-size: 24px;
+            }
+
+            /* Metrics Row on Mobile */
+            .metrics-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-top: 16px;
+            }
+
+            .kpi-card {
+                padding: 10px 8px;
+            }
+
+            .kpi-main-val strong {
+                font-size: 20px;
+            }
+
+            .kpi-main-val span {
+                font-size: 10px;
+            }
+
+            .kpi-sub-text {
+                display: none;
+            }
+
+            /* Fixture cards grid on mobile */
+            .matches-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            /* Points Table on Mobile: Show ONLY POS, CLUB, P, W, D, L, GD, PTS */
+            .col-gf,
+            .col-ga,
+            .col-form {
+                display: none !important;
+            }
+
+            .standings-table {
+                width: 100%;
+                font-size: 12px;
+            }
+
+            .standings-table th,
+            .standings-table td {
+                padding: 10px 4px;
+            }
+
+            .standings-table th:first-child,
+            .standings-table td:first-child {
+                padding-left: 8px;
+                width: 24px;
+                text-align: center;
+            }
+
+            .table-club .team-code {
+                display: none;
+            }
+
+            .table-club span {
+                font-size: 13px;
+                max-width: 110px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .pts-col {
+                font-size: 15px;
+                padding: 10px 6px !important;
+            }
+        }
+    
+        
+        /* LAST MATCH RESULT POSTER (CLEAN RESULT & BALANCED DESKTOP VIEW) */
+        .poster-result-board {
+            max-width: 820px;
+            width: 100%;
+            margin: 20px auto 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .poster-club-pillar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            max-width: 220px;
+            min-width: 100px;
+        }
+
+        .poster-scoreboard-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-shrink: 0;
+            cursor: pointer;
+            padding: 4px 14px;
+            border-radius: 12px;
+            background: rgba(180, 245, 107, 0.04);
+            border: 1px solid rgba(180, 245, 107, 0.15);
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .poster-scoreboard-center:hover {
+            transform: scale(1.04);
+            background: rgba(180, 245, 107, 0.12);
+            border-color: rgba(180, 245, 107, 0.45);
+            box-shadow: 0 0 22px rgba(180, 245, 107, 0.35);
+        }
+
+        .poster-scoreboard-center:active {
+            transform: scale(0.98);
+        }
+
+        .poster-result-team-name {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 21px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 10px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            line-height: 1.15;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .poster-big-score {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 68px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .poster-ft-container {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .poster-ft-badge {
+            display: inline-block;
+            transform: skewX(-12deg);
+            background: rgba(180, 245, 107, 0.16);
+            border: 1.5px solid rgba(180, 245, 107, 0.45);
+            color: #B4F56B;
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            padding: 6px 18px;
+            border-radius: 4px;
+            box-shadow: 0 0 16px rgba(180, 245, 107, 0.25);
+        }
+
+        /* STATS CATEGORY NAVIGATION (ONLY SHOW WHAT USER CLICKED) */
+        .stats-category-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            font-size: 13px;
+            font-weight: 800;
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            letter-spacing: 0.6px;
+            border-radius: 30px;
+            border: 1.5px solid #dcdfdc;
+            background: #ffffff;
+            color: #1a2e23;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .stat-pill-btn:hover {
+            border-color: #14241c;
+            color: #14241c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-pill-btn.active {
+            background: #14241c;
+            color: #B4F56B;
+            border-color: #14241c;
+            box-shadow: 0 4px 16px rgba(20, 36, 28, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .stat-pill-btn .pill-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .stats-grid {
+            display: block !important;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .stats-card {
+            background: var(--cream-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 22px 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            box-sizing: border-box;
+            transition: opacity 0.2s ease;
+        }
+
+        .stats-card[data-stat-card] {
+            display: none;
+        }
+
+        .stats-card[data-stat-card="goals"] {
+            display: block;
+        }
+
+        /* CARD SUB-HEADER (CLEAN INTEGRATED UNIFIED HEADER) */
+        .stats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .stats-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stats-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(36, 93, 60, 0.08);
+            border: 1px solid rgba(36, 93, 60, 0.2);
+            color: #173b27;
+            padding: 3px 9px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 800;
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .stats-card-heading {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--dark);
+            letter-spacing: 0.3px;
+            margin: 0;
+            line-height: 1.15;
+            text-transform: uppercase;
+        }
+
+        .stats-metric-pill {
+            background: #101b16;
+            color: #B4F56B;
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+
+
+        /* HIGHLIGHT NEXT MATCH & LAST RESULT CARDS */
+        .highlight-next-match-card {
+            border: 2px solid var(--green-dark, #245d3c) !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fee7 100%) !important;
+            box-shadow: 0 10px 28px rgba(36, 93, 60, 0.18) !important;
+            position: relative;
+        }
+
+        .status-badge-next {
+            background: #101b16;
+            color: #b4f56b;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(180, 245, 107, 0.45);
+            box-shadow: 0 0 10px rgba(180, 245, 107, 0.35);
+        }
+
+        .highlight-last-match-card {
+            border: 2px solid #B4F56B !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%) !important;
+            box-shadow: 0 10px 28px rgba(2, 132, 199, 0.18) !important;
+            position: relative;
+        }
+
+        .status-badge-latest {
+            background: #0c4a6e;
+            color: #bae6fd;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+        }
+
+        /* LEAGUE BANNER DESIGN FOR FEATURED MATCHES */
+        .league-banner {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 22px 26px;
+            margin-bottom: 24px;
+            border: 1px solid #26342b;
+            border-radius: 8px;
+            background:
+                radial-gradient(ellipse at 90% 10%, rgba(180, 245, 107, 0.16), transparent 50%),
+                linear-gradient(135deg, #101b16, #17251e);
+            color: #ffffff;
+        }
+
+        .league-banner::after {
+            content: "⚽";
+            position: absolute;
+            right: 22%;
+            top: -40px;
+            font-size: 150px;
+            opacity: .05;
+            pointer-events: none;
+        }
+
+        .league-brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .match-banner-crests {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .league-crest {
+            width: 62px;
+            height: 62px;
+            min-width: 62px;
+            min-height: 62px;
+            border-radius: 12px;
+            background: #0f1914;
+            border: 2px solid rgba(180, 245, 107, 0.45);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .league-crest img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .league-crest-fallback {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .match-vs-badge {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--green);
+            background: rgba(180, 245, 107, 0.15);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 245, 107, 0.35);
+            letter-spacing: 0.5px;
+        }
+
+        .banner-score-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-heading);
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--green);
+            background: #0f1914;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(180, 245, 107, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .league-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .league-info h2 {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 900;
+            margin: 2px 0 6px;
+            color: #ffffff;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .league-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 600;
+        }
+
+        .banner-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-pill.live {
+            background: var(--green);
+            color: var(--dark);
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 900px) {
+            .league-banner {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 18px 20px;
+                gap: 16px;
+            }
+            .banner-actions {
+                width: 100%;
+            }
+            .banner-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* MATCH FIXTURE POSTER (MATCHING USER REFERENCE DESIGN) */
+        .match-fixture-poster {
+            position: relative;
+            background: radial-gradient(ellipse at 85% 15%, rgba(180, 245, 107, 0.16), transparent 50%),
+                        radial-gradient(ellipse at 15% 85%, rgba(180, 245, 107, 0.08), transparent 45%),
+                        linear-gradient(135deg, #101b16 0%, #17251e 100%);
+            border: 1px solid #26342b;
+            border-radius: 12px;
+            padding: 26px 32px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+
+        .match-fixture-poster::after {
+            content: "⚽";
+            position: absolute;
+            right: 18%;
+            top: -40px;
+            font-size: 165px;
+            opacity: .05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .poster-top-header,
+        .poster-matchup,
+        .poster-info-pill,
+        .poster-actions {
+            position: relative;
+            z-index: 1;
+        }
+
+        .poster-top-header {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .poster-title {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .poster-title-line {
+            width: 38px;
+            height: 2px;
+            background: #B4F56B;
+            margin-top: 4px;
+            border-radius: 2px;
+        }
+
+        .poster-matchup {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .poster-team {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .poster-team-home {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .poster-team-away {
+            justify-content: flex-start;
+            text-align: left;
+        }
+
+        .poster-crest-wrap {
+            width: 82px;
+            height: 82px;
+            min-width: 82px;
+            min-height: 82px;
+            border-radius: 50%;
+            background: #142019;
+            border: 2px solid rgba(180, 245, 107, 0.4);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            padding: 4px;
+        }
+
+        .poster-crest-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .poster-crest-fallback {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 26px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .poster-team-name {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            line-height: 1.15;
+            max-width: 220px;
+        }
+
+        .poster-vs-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            flex-shrink: 0;
+        }
+
+        .poster-vs-text {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 42px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1.5px;
+            line-height: 1;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .poster-score-text {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 48px;
+            font-weight: 900;
+            color: #B4F56B;
+            letter-spacing: 2px;
+            line-height: 1;
+            text-shadow: 0 2px 14px rgba(180, 245, 107, 0.45);
+            white-space: nowrap;
+        }
+
+        .poster-info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(10, 18, 14, 0.75);
+            border: 1px solid rgba(180, 245, 107, 0.25);
+            border-radius: 30px;
+            padding: 8px 24px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .poster-pill-divider {
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 400;
+        }
+
+        .poster-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .poster-btn {
+            font-family: var(--font-heading, "Barlow Condensed", sans-serif);
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 10px 26px;
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .poster-btn-primary {
+            background: #B4F56B;
+            color: #101B16;
+            font-weight: 900;
+            box-shadow: 0 4px 16px rgba(180, 245, 107, 0.4);
+        }
+
+        .poster-btn-primary:hover {
+            background: #a3ea57;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(180, 245, 107, 0.6);
+        }
+
+        .poster-btn-secondary {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .poster-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Brand accent #B4F56B highlights */
+        .highlight-next-match-row {
+            background: rgba(180, 245, 107, 0.10) !important;
+            border-left: 4px solid #B4F56B !important;
+        }
+
+        .highlight-next-match-row:hover {
+            background: rgba(180, 245, 107, 0.16) !important;
+        }
+
+        .highlight-last-match-row {
+            background: rgba(180, 245, 107, 0.07) !important;
+            border-left: 4px solid #B4F56B !important;
+        }
+
+        .highlight-last-match-row:hover {
+            background: rgba(180, 245, 107, 0.13) !important;
+        }
+
+        .badge-next-match {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #B4F56B;
+            color: #101B16;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        .badge-last-match {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #B4F56B;
+            color: #101B16;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .match-fixture-poster {
+                padding: 20px 16px;
+            }
+
+            .poster-matchup {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .poster-team {
+                width: 100%;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+
+            .poster-team-home {
+                flex-direction: column;
+            }
+
+            .poster-team-away {
+                flex-direction: column-reverse;
+            }
+
+            .poster-team-name {
+                max-width: 100%;
+                font-size: 18px;
+            }
+
+            .poster-crest-wrap {
+                width: 64px;
+                height: 64px;
+                min-width: 64px;
+                min-height: 64px;
+            }
+
+            .poster-vs-text {
+                font-size: 32px;
+            }
+
+            .poster-score-text {
+                font-size: 36px;
+            }
+
+            .poster-info-pill {
+                flex-direction: column;
+                gap: 4px;
+                border-radius: 12px;
+                padding: 8px 14px;
+                font-size: 11px;
+            }
+
+            .poster-pill-divider {
+                display: none;
+            }
+
+            .poster-actions {
+                width: 100%;
+            }
+
+            .poster-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* RESPONSIVE MOBILE STYLES FOR HIGHLIGHTED FIXTURES & RESULTS */
+        @media (max-width: 768px) {
+            .match-fixture-poster {
+                padding: 18px 14px 16px !important;
+                margin-bottom: 18px !important;
+                border-radius: 12px !important;
+            }
+
+            .match-fixture-poster::after {
+                font-size: 110px !important;
+                right: 8% !important;
+                top: -25px !important;
+                opacity: 0.04 !important;
+            }
+
+            .poster-top-header {
+                margin-bottom: 10px !important;
+            }
+
+            .poster-title {
+                font-size: 13px !important;
+                letter-spacing: 1.5px !important;
+            }
+
+            .poster-title-line {
+                width: 28px !important;
+                height: 2px !important;
+            }
+
+            /* FIXTURES: Next Match mobile layout (balanced 3-column horizontal) */
+            .poster-matchup {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 8px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .poster-team {
+                flex: 1 !important;
+                min-width: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                gap: 6px !important;
+            }
+
+            .poster-team-home,
+            .poster-team-away {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+
+            .poster-team-name {
+                font-size: 14px !important;
+                line-height: 1.2 !important;
+                max-width: 100% !important;
+                text-align: center !important;
+                letter-spacing: 0.3px !important;
+            }
+
+            .poster-crest-wrap {
+                width: 50px !important;
+                height: 50px !important;
+                min-width: 50px !important;
+                min-height: 50px !important;
+                padding: 3px !important;
+                border-width: 1.5px !important;
+            }
+
+            .poster-crest-fallback {
+                font-size: 18px !important;
+            }
+
+            .poster-vs-wrap {
+                padding: 0 4px !important;
+                flex-shrink: 0 !important;
+            }
+
+            .poster-vs-text {
+                font-size: 24px !important;
+                color: #B4F56B !important;
+                letter-spacing: 1px !important;
+            }
+
+            /* RESULTS: Last Match mobile layout (balanced compact horizontal scoreboard) */
+            .poster-result-board {
+                max-width: 100% !important;
+                margin: 12px 0 14px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 8px !important;
+            }
+
+            .poster-club-pillar {
+                flex: 1 !important;
+                max-width: 110px !important;
+                min-width: 60px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .poster-scoreboard-center {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                flex-shrink: 0 !important;
+            }
+
+            .poster-crest-wrap {
+                width: 48px !important;
+                height: 48px !important;
+                min-width: 48px !important;
+                min-height: 48px !important;
+                padding: 3px !important;
+            }
+
+            .poster-crest-fallback {
+                font-size: 18px !important;
+            }
+
+            .poster-big-score {
+                font-size: 38px !important;
+                line-height: 1 !important;
+                height: auto !important;
+                min-width: 24px !important;
+            }
+
+            .poster-result-team-name {
+                font-size: 12.5px !important;
+                margin-top: 5px !important;
+                letter-spacing: 0.3px !important;
+                line-height: 1.2 !important;
+                max-width: 105px !important;
+            }
+
+            .poster-ft-container {
+                padding: 0 !important;
+                height: auto !important;
+                flex-shrink: 0 !important;
+            }
+
+            .poster-ft-badge {
+                font-size: 12px !important;
+                padding: 3px 10px !important;
+                letter-spacing: 1px !important;
+            }
+
+            /* STATS SUB-HEADER & NAV (NO SLIDE / FULLY VISIBLE 2-ROW GRID ON MOBILE) */
+            .stats-category-nav {
+                display: grid !important;
+                grid-template-columns: repeat(6, 1fr) !important;
+                gap: 6px !important;
+                margin: 6px 0 16px 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                position: static !important;
+                background: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border-bottom: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .stats-category-nav::-webkit-scrollbar {
+                display: none !important;
+            }
+            .stat-pill-btn {
+                padding: 8px 4px !important;
+                font-size: 11.5px !important;
+                height: 38px !important;
+                min-height: 38px !important;
+                gap: 5px !important;
+                border-radius: 8px !important;
+                border-width: 1px !important;
+                width: 100% !important;
+                justify-content: center !important;
+                text-align: center !important;
+                box-sizing: border-box !important;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+            }
+            .stat-pill-btn .pill-icon {
+                font-size: 13.5px !important;
+            }
+            .stat-pill-btn.active {
+                box-shadow: 0 2px 8px rgba(20, 36, 28, 0.25) !important;
+            }
+
+            /* Row 1: 3 buttons spanning 2 columns each (3 x 2 = 6) */
+            .stat-pill-btn:nth-child(1),
+            .stat-pill-btn:nth-child(2),
+            .stat-pill-btn:nth-child(3) {
+                grid-column: span 2 !important;
+            }
+
+            /* Row 2: 2 buttons spanning 3 columns each (2 x 3 = 6) */
+            .stat-pill-btn:nth-child(4),
+            .stat-pill-btn:nth-child(5) {
+                grid-column: span 3 !important;
+            }
+
+            .stats-card {
+                padding: 16px 14px !important;
+                border-radius: 12px !important;
+            }
+
+            /* CARD SUB-HEADER ON MOBILE */
+            .stats-header {
+                margin-bottom: 12px !important;
+                padding-bottom: 10px !important;
+                gap: 8px !important;
+            }
+            .stats-header-badge {
+                font-size: 10px !important;
+                padding: 2px 7px !important;
+                letter-spacing: 0.5px !important;
+            }
+            .stats-card-heading {
+                font-size: 17px !important;
+            }
+            .stats-metric-pill {
+                font-size: 10px !important;
+                padding: 3px 8px !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            /* Responsive tables in stats */
+            .leader-table th,
+            .leader-table td {
+                padding: 8px 6px !important;
+                font-size: 12.5px !important;
+            }
+
+            /* INFO PILL & ACTIONS */
+            .poster-info-pill {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 4px 8px !important;
+                border-radius: 20px !important;
+                padding: 6px 14px !important;
+                font-size: 11px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .poster-pill-divider {
+                display: inline !important;
+                opacity: 0.4 !important;
+            }
+
+            .poster-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 8px !important;
+            }
+
+            .poster-btn {
+                flex: 1 !important;
+                min-width: 0 !important;
+                justify-content: center !important;
+                font-size: 12px !important;
+                padding: 9px 10px !important;
+                letter-spacing: 0.5px !important;
+                border-radius: 20px !important;
+            }
+
+            /* GAME DETAILS MODAL MOBILE OPTIMIZATION */
+            .match-popup-card {
+                max-width: 100% !important;
+                width: 100% !important;
+                max-height: 92vh !important;
+                max-height: 92dvh !important;
+                border-radius: 14px !important;
+                margin: 0 !important;
+            }
+
+            .popup-scoreboard-row {
+                gap: 6px !important;
+            }
+
+            #matchModalHomeScore,
+            #matchModalAwayScore {
+                font-size: 38px !important;
+            }
+
+            #matchModalDash {
+                font-size: 26px !important;
+            }
+
+            #matchModalHomeName,
+            #matchModalAwayName {
+                font-size: 14px !important;
+                margin: 6px 0 2px !important;
+            }
+
+            #matchModalHomeCrestWrap,
+            #matchModalAwayCrestWrap {
+                width: 48px !important;
+                height: 48px !important;
+                min-width: 48px !important;
+                min-height: 48px !important;
+            }
+
+            #matchModalHomeFallback,
+            #matchModalAwayFallback {
+                font-size: 18px !important;
+            }
+
+            #matchModalHomeRank,
+            #matchModalAwayRank {
+                font-size: 10px !important;
+                padding: 1px 7px !important;
+            }
+
+            #modalScorersGrid {
+                gap: 8px !important;
+            }
+
+            #modalHomeScorersList div,
+            #modalAwayScorersList div {
+                font-size: 11.5px !important;
+                line-height: 1.35 !important;
+            }
+
+            #modalCenterEventIcon {
+                font-size: 14px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .poster-actions {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            .poster-btn {
+                width: 100% !important;
+            }
+
+            .poster-info-pill {
+                font-size: 10px !important;
+                padding: 5px 10px !important;
+            }
+        }
+
+</style>
+</head>
+
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <header class="navbar">
+        <div class="container nav-inner">
+            <a href="/" class="logo">
+                <span class="logo-mark">//</span>TOUCHLINE
+            </a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="/#tournaments" class="nav-link">Competitions</a>
+                <a href="/#organizers" class="nav-link">For Organizers</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                {% if user.is_superuser or user.profile.is_super_admin %}
+                <a href="/super-admin/" class="btn-nav-primary">Super Admin ↗</a>
+                {% elif user.profile.role == 'ORGANIZER' %}
+                <a href="/organizer/{{ competition.id }}/" class="btn-nav-primary">Organizer Console ↗</a>
+                {% else %}
+                <span style="font-size:12px;color:#A4B2A7;">Hi, {{ user.first_name|default:user.username }}</span>
+                <a href="/logout/" class="btn-nav-link" style="margin-left:4px;font-size:12px;">Sign Out</a>
+                {% endif %}
+                {% else %}
+                <a href="/login/" class="btn-nav-link">Sign in</a>
+                <a href="/register/" class="btn-nav-primary">Create a tournament ↗</a>
+                {% endif %}
+
+                <!-- Mobile Hamburger Toggle -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu"
+                    onclick="toggleMobileMenu()">
+                    ☰
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE DRAWER BACKDROP & MENU -->
+    <div class="mobile-drawer-backdrop" id="mobileMenuBackdrop" onclick="toggleMobileMenu()"></div>
+    <div class="mobile-drawer" id="mobileMenu">
+        <div>
+            <div class="mobile-drawer-top">
+                <span class="logo"><span class="logo-mark">//</span>TOUCHLINE</span>
+                <button class="modal-close-btn" style="position:static;" onclick="toggleMobileMenu()">✕</button>
+            </div>
+            <nav class="mobile-drawer-links">
+                <a href="/" class="mobile-drawer-link">Home <span>↗</span></a>
+                <a href="/#tournaments" class="mobile-drawer-link">Competitions <span>↗</span></a>
+                <a href="/#organizers" class="mobile-drawer-link">For Organizers <span>↗</span></a>
+                <a href="/#contact" class="mobile-drawer-link">Contact <span>↗</span></a>
+                {% if user.is_authenticated %}
+                {% if user.is_superuser or user.profile.is_super_admin %}
+                <a href="/super-admin/" class="mobile-drawer-link" style="color:var(--green);">Super Admin
+                    <span>↗</span></a>
+                {% elif user.profile.role == 'ORGANIZER' %}
+                <a href="/organizer/{{ competition.id }}/" class="mobile-drawer-link"
+                    style="color:var(--green);">Organizer Console <span>↗</span></a>
+                {% endif %}
+                {% endif %}
+            </nav>
+        </div>
+
+        <div style="border-top:1px solid var(--border-dark);padding-top:16px;">
+            {% if user.is_authenticated %}
+            <div style="font-size:12px;color:#A4B2A7;margin-bottom:8px;">Signed in as <strong>{{ user.username }}</strong></div>
+            <a href="/logout/" class="btn-club-profile" style="background:#842029;border-color:#842029;margin:0;">Sign
+                Out</a>
+            {% else %}
+            <div style="display:flex;gap:8px;">
+                <a href="/login/" class="btn-club-profile" style="margin:0;flex:1;">Sign In</a>
+                <a href="/register/" class="btn-nav-primary" style="flex:1;justify-content:center;">Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- BROADCAST HERO BANNER -->
+    <section class="hero-banner">
+        <div class="container">
+            <div class="hero-layout">
+                <div class="hero-brand">
+                    <div class="hero-emblem">
+                        {% if competition.get_logo_url %}
+                        <img src="{{ competition.get_logo_url }}" alt="{{ competition.name }}">
+                        {% else %}
+                        <span class="hero-emblem-fallback">{{ competition.short_name|default:"TL"|slice:":3" }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="hero-live-badge">
+                            <span class="hero-live-dot"></span>
+                            LIVE TOURNAMENT DASHBOARD
+                        </div>
+                        <h1 class="hero-title">{{ competition.name }}</h1>
+                        <p class="hero-desc">{{ competition.description|default:"Live standings, fixtures, results, golden boot race, and registered club profiles for the 2026/27 campaign." }}</p>
+                    </div>
+                </div>
+
+                <div class="hero-side-actions">
+                    <div class="season-badge">
+                        Season: <strong>{{ competition.season }}</strong> · {{ competition.get_category_display }}
+                    </div>
+                    <div>
+                        <button class="btn-share-dash"
+                            onclick="navigator.clipboard?.writeText(window.location.href); alert('Dashboard link copied to clipboard!');">
+                            Share Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- METRIC CARDS (3 TILES IN SCREENSHOT) -->
+            <div class="metrics-row">
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span>Registered Clubs</span>
+                        <span class="kpi-icon">🛡️</span>
+                    </div>
+                    <div class="kpi-main-val">
+                        <strong>{{ teams.count|stringformat:"02d" }}</strong>
+                        <span>Clubs Active</span>
+                    </div>
+                    <div class="kpi-sub-text">
+                        {% if standings.0 %}{{ standings.0.team.name }} leading (+{{ standings.0.goal_difference }}
+                        GD){% else %}{{ competition.location }} · Division 1{% endif %}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span>Scheduled Fixtures</span>
+                        <span class="kpi-icon">📅</span>
+                    </div>
+                    <div class="kpi-main-val">
+                        <strong>{{ competition.matches.count }}</strong>
+                        <span>Matches Total</span>
+                    </div>
+                    <div class="kpi-sub-text">
+                        {{ completed_matches.count }} Finished · {{ upcoming_matches.count }} Upcoming
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span>Goals Scored</span>
+                        <span class="kpi-icon">⚽</span>
+                    </div>
+                    <div class="kpi-main-val">
+                        <strong>{{ stats.total_goals }}</strong>
+                        <span>Goals Recorded</span>
+                    </div>
+                    <div class="kpi-sub-text">
+                        {{ stats.avg_goals_per_game }} goals per match avg
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DESKTOP TOP SEGMENTED TABS (CLEAN TEXT UNDERLINE STYLE IN SCREENSHOT) -->
+    <nav class="tabs-container" aria-label="Competition sections">
+        <div class="container">
+            <div class="tabs-list" id="tabs">
+                <button type="button" class="tab-btn {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" data-tab="upcoming" onclick="switchTab('upcoming')">
+                    Upcoming Matches
+                </button>
+                <button type="button" class="tab-btn {% if active_tab == 'results' %}active{% endif %}" data-tab="results" onclick="switchTab('results')">
+                    Results
+                </button>
+                <button type="button" class="tab-btn {% if active_tab == 'table' %}active{% endif %}" data-tab="table" onclick="switchTab('table')">
+                    Points Table
+                </button>
+                <button type="button" class="tab-btn {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats" onclick="switchTab('stats')">
+                    Statistics
+                </button>
+                <button type="button" class="tab-btn {% if active_tab == 'teams' %}active{% endif %}" data-tab="teams" onclick="switchTab('teams')">
+                    Teams
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="content-area" id="contentArea">
+        <div class="container">
+
+            <!-- TAB 1: UPCOMING MATCHES (3-COL CARDS IN SCREENSHOT) -->
+            <div class="tab-pane {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" id="pane-upcoming" style="{% if active_tab == 'upcoming' or not active_tab %}display:block;{% else %}display:none;{% endif %}">
+                <div class="section-header-row">
+                    <div class="section-title-box">
+                        <h2>Upcoming matches</h2>
+                        <p>Your next fixtures, kickoff times and venues.</p>
+                    </div>
+                    <div class="filter-pill-group">
+                        <button class="filter-btn active" onclick="filterFixtures('all', this)">All Matches</button>
+                        <button class="filter-btn" onclick="filterFixtures('week', this)">This Week</button>
+                    </div>
+                </div>
+
+                {% if next_match %}
+                <!-- FEATURED NEXT MATCH POSTER -->
+                <section class="match-fixture-poster next-match-hero-poster" onclick="openMatchModal('{{ next_match.id }}')" style="cursor:pointer;" title="Click to view match details">
+                    <div class="poster-top-header">
+                        <span class="poster-title">NEXT MATCH</span>
+                        <div class="poster-title-line"></div>
+                    </div>
+
+                    <div class="poster-matchup">
+                        <a href="/team/{{ next_match.home_team.id }}/" class="poster-team poster-team-home" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ next_match.home_team.name }} details">
+                            <div class="poster-crest-wrap" title="{{ next_match.home_team.name }}">
+                                {% if next_match.home_team.get_logo_url %}
+                                <img src="{{ next_match.home_team.get_logo_url }}" alt="{{ next_match.home_team.name }}">
+                                {% else %}
+                                <span class="poster-crest-fallback">{{ next_match.home_team.short_name|default:next_match.home_team.name|slice:":3"|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="poster-team-name">{{ next_match.home_team.name }}</div>
+                        </a>
+
+                        <div class="poster-vs-wrap">
+                            <span class="poster-vs-text">VS</span>
+                        </div>
+
+                        <a href="/team/{{ next_match.away_team.id }}/" class="poster-team poster-team-away" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ next_match.away_team.name }} details">
+                            <div class="poster-team-name">{{ next_match.away_team.name }}</div>
+                            <div class="poster-crest-wrap" title="{{ next_match.away_team.name }}">
+                                {% if next_match.away_team.get_logo_url %}
+                                <img src="{{ next_match.away_team.get_logo_url }}" alt="{{ next_match.away_team.name }}">
+                                {% else %}
+                                <span class="poster-crest-fallback">{{ next_match.away_team.short_name|default:next_match.away_team.name|slice:":3"|upper }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="poster-info-pill" onclick="openMatchModal('{{ next_match.id }}')" style="cursor:pointer;" title="Click to view match details">
+                        <span>📅 {{ next_match.match_date|date:"M d"|upper }}{% if next_match.kickoff_time %}, {{ next_match.kickoff_time|time:"h:i A"|upper }}{% endif %}</span>
+                        <span class="poster-pill-divider">|</span>
+                        <span>📍 {{ next_match.venue|default:"Payyanad Stadium"|upper }}</span>
+                    </div>
+                </section>
+                {% endif %}
+
+                <div class="matches-grid">
+                    {% for m in upcoming_matches %}
+                    <div class="fixture-card {% if next_match and m.id == next_match.id or forloop.first %}highlight-next-match-card{% endif %}" onclick="openMatchModal('{{ m.id }}')"
+                        title="Click to view match details">
+                        <div>
+                            <div class="fixture-card-header">
+                                <span>{{ m.match_date|date:"D, d M"|upper }} · {{ m.kickoff_time|time:"H:i A" }}</span>
+                                {% if next_match and m.id == next_match.id or forloop.first %}
+                                <span class="status-badge-next">⚡ NEXT MATCH</span>
+                                {% else %}
+                                <span class="status-badge-upcoming">UPCOMING</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="fixture-matchup">
+                                <!-- Home Team -->
+                                <a href="/team/{{ m.home_team.id }}/" class="match-team home"
+                                    onclick="event.stopPropagation();">
+                                    <div class="team-crest-box">
+                                        {% if m.home_team.get_logo_url %}
+                                        <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_team.name }}">
+                                        {% else %}
+                                        <span>{{ m.home_team.short_name|default:"HME" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="team-meta">
+                                        <span class="team-name">{{ m.home_team.name }}</span>
+                                        <span class="team-code">{{ m.home_team.short_name }}</span>
+                                    </div>
+                                </a>
+
+                                <div class="match-vs">vs</div>
+
+                                <!-- Away Team -->
+                                <a href="/team/{{ m.away_team.id }}/" class="match-team away"
+                                    onclick="event.stopPropagation();">
+                                    <div class="team-meta">
+                                        <span class="team-name">{{ m.away_team.name }}</span>
+                                        <span class="team-code">{{ m.away_team.short_name }}</span>
+                                    </div>
+                                    <div class="team-crest-box">
+                                        {% if m.away_team.get_logo_url %}
+                                        <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_team.name }}">
+                                        {% else %}
+                                        <span>{{ m.away_team.short_name|default:"AWY" }}</span>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="fixture-card-footer">
+                            <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                            <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-box">
+                        <div style="font-size:32px;margin-bottom:8px;">📅</div>
+                        <h4 style="font-family:var(--font-heading);font-size:20px;">No Upcoming Matches</h4>
+                        <p style="font-size:12.5px;">All fixtures for this round have concluded. Stay tuned for the next
+                            schedule!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB 2: RESULTS (3-COL CARDS) -->
+            <div class="tab-pane {% if active_tab == 'results' %}active{% endif %}" id="pane-results" style="{% if active_tab == 'results' %}display:block;{% else %}display:none;{% endif %}">
+                <div class="section-header-row">
+                    <div class="section-title-box">
+                        <h2>Completed Match Results</h2>
+                        <p>Full-time scores, goal scorers, and official match records.</p>
+                    </div>
+                </div>
+
+                {% if last_match %}
+                <!-- FEATURED LAST MATCH RESULT POSTER -->
+                <section class="match-fixture-poster last-match-hero-poster" onclick="openMatchModal('{{ last_match.id }}')" style="cursor:pointer;" title="Click to view match scorecard">
+                    <div class="poster-info-pill" style="margin-bottom:12px;">
+                        <span>📅 {{ last_match.match_date|date:"l, j F, Y" }}</span>
+                        <span class="poster-pill-divider">|</span>
+                        <span>🕒 {{ last_match.kickoff_time|time:"g:i A" }}</span>
+                        <span class="poster-pill-divider">|</span>
+                        <span>📍 {{ last_match.venue|default:"Payyanad Stadium, Manjeri" }}</span>
+                    </div>
+
+                    <div class="poster-result-board">
+                        <!-- HOME CLUB PILLAR -->
+                        <a href="/team/{{ last_match.home_team.id }}/" class="poster-club-pillar poster-pillar-home" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ last_match.home_team.name }} details">
+                            <div class="poster-crest-wrap" title="{{ last_match.home_team.name }}">
+                                {% if last_match.home_team.get_logo_url %}
+                                <img src="{{ last_match.home_team.get_logo_url }}" alt="{{ last_match.home_team.name }}">
+                                {% else %}
+                                <span class="poster-crest-fallback">{{ last_match.home_team.short_name|default:last_match.home_team.name|slice:":3"|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="poster-result-team-name">{{ last_match.home_team.name }}</div>
+                        </a>
+
+                        <!-- CENTER SCOREBOARD (HOME SCORE - FT BADGE - AWAY SCORE) - ACTS AS BUTTON -->
+                        <div class="poster-scoreboard-center" title="Click to view match scorecard">
+                            <div class="poster-big-score">{{ last_match.home_score }}</div>
+                            <div class="poster-ft-container">
+                                <div class="poster-ft-badge">FT</div>
+                            </div>
+                            <div class="poster-big-score">{{ last_match.away_score }}</div>
+                        </div>
+
+                        <!-- AWAY CLUB PILLAR -->
+                        <a href="/team/{{ last_match.away_team.id }}/" class="poster-club-pillar poster-pillar-away" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ last_match.away_team.name }} details">
+                            <div class="poster-crest-wrap" title="{{ last_match.away_team.name }}">
+                                {% if last_match.away_team.get_logo_url %}
+                                <img src="{{ last_match.away_team.get_logo_url }}" alt="{{ last_match.away_team.name }}">
+                                {% else %}
+                                <span class="poster-crest-fallback">{{ last_match.away_team.short_name|default:last_match.away_team.name|slice:":3"|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="poster-result-team-name">{{ last_match.away_team.name }}</div>
+                        </a>
+                    </div>
+                </section>
+                {% endif %}
+
+                <div class="matches-grid">
+                    {% for m in completed_matches %}
+                    <div class="fixture-card {% if last_match and m.id == last_match.id or forloop.first %}highlight-last-match-card{% endif %}" onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
+                        <div>
+                            <div class="fixture-card-header">
+                                <span>{{ m.match_date|date:"D, d M"|upper }}</span>
+                                {% if last_match and m.id == last_match.id or forloop.first %}
+                                <span class="status-badge-latest">🏆 LATEST RESULT</span>
+                                {% else %}
+                                <span class="status-badge-ft">FULL TIME</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="fixture-matchup">
+                                <!-- Home Team -->
+                                <a href="/team/{{ m.home_team.id }}/" class="match-team home"
+                                    onclick="event.stopPropagation();">
+                                    <div class="team-crest-box">
+                                        {% if m.home_team.get_logo_url %}
+                                        <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_team.name }}">
+                                        {% else %}
+                                        <span>{{ m.home_team.short_name|default:"HME" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="team-meta">
+                                        <span class="team-name">{{ m.home_team.name }}</span>
+                                        <span class="team-code">{{ m.home_team.short_name }}</span>
+                                    </div>
+                                </a>
+
+                                <!-- Score -->
+                                <div class="match-score-pill">
+                                    {{ m.home_score }} : {{ m.away_score }}
+                                </div>
+
+                                <!-- Away Team -->
+                                <a href="/team/{{ m.away_team.id }}/" class="match-team away"
+                                    onclick="event.stopPropagation();">
+                                    <div class="team-meta">
+                                        <span class="team-name">{{ m.away_team.name }}</span>
+                                        <span class="team-code">{{ m.away_team.short_name }}</span>
+                                    </div>
+                                    <div class="team-crest-box">
+                                        {% if m.away_team.get_logo_url %}
+                                        <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_team.name }}">
+                                        {% else %}
+                                        <span>{{ m.away_team.short_name|default:"AWY" }}</span>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="fixture-card-footer">
+                            <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                            <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-box">
+                        <div style="font-size:32px;margin-bottom:8px;">🏆</div>
+                        <h4 style="font-family:var(--font-heading);font-size:20px;">No Results Recorded Yet</h4>
+                        <p style="font-size:12.5px;">Matches are currently in progress or upcoming.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB 3: POINTS TABLE -->
+            <div class="tab-pane {% if active_tab == 'table' %}active{% endif %}" id="pane-table" style="{% if active_tab == 'table' %}display:block;{% else %}display:none;{% endif %}">
+                <div class="section-header-row">
+                    <div class="section-title-box">
+                        <h2>Official League Standings</h2>
+                        <p>Scoring: Win = 3 PTS · Draw = 1 PT · Loss = 0 PTS · Ranked by PTS, GD, GF</p>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th style="width:36px;">#</th>
+                                <th>CLUB</th>
+                                <th class="center">P</th>
+                                <th class="center">W</th>
+                                <th class="center">D</th>
+                                <th class="center">L</th>
+                                <th class="center col-gf">GF</th>
+                                <th class="center col-ga">GA</th>
+                                <th class="center">GD</th>
+                                <th class="center pts-col">PTS</th>
+                                <th class="col-form">FORM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in standings %}
+                            <tr>
+                                <td>
+                                    <span
+                                        class="rank-badge {% if row.position == 1 %}leader{% elif row.position <= 4 %}top-tier{% endif %}">
+                                        {{ row.position }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/team/{{ row.team.id }}/" class="table-club">
+                                        <div class="mini-crest">
+                                            {% if row.team.get_logo_url %}
+                                            <img src="{{ row.team.get_logo_url }}" alt="{{ row.team.name }}">
+                                            {% else %}
+                                            {{ row.team.short_name|default:"FC"|slice:":3" }}
+                                            {% endif %}
+                                        </div>
+                                        <span>{{ row.team.name }}</span>
+                                    </a>
+                                </td>
+                                <td class="center">{{ row.played }}</td>
+                                <td class="center">{{ row.won }}</td>
+                                <td class="center">{{ row.drawn }}</td>
+                                <td class="center">{{ row.lost }}</td>
+                                <td class="center col-gf">{{ row.goals_for }}</td>
+                                <td class="center col-ga">{{ row.goals_against }}</td>
+                                <td class="center" style="font-weight:700;">{{ row.goal_difference }}</td>
+                                <td class="center pts-col">{{ row.points }}</td>
+                                <td class="col-form">
+                                    {% for f in row.form_list %}
+                                    <span
+                                        class="form-pill {% if f == 'W' %}w{% elif f == 'D' %}d{% else %}l{% endif %}">
+                                        {{ f }}
+                                    </span>
+                                    {% empty %}
+                                    <span style="color:var(--text-muted);font-size:11px;">-</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="11" style="text-align:center;padding:36px;color:var(--text-muted);">
+                                    No standings calculated yet. Table updates automatically when match results are
+                                    entered.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: STATS -->
+            <div class="tab-pane {% if active_tab == 'stats' %}active{% endif %}" id="pane-stats" style="{% if active_tab == 'stats' %}display:block;{% else %}display:none;{% endif %}">
+                <div class="section-header-row">
+                    <div class="section-title-box">
+                        <h2>Competition Statistics</h2>
+                        <p>Top goalscorers, clean sheets, and fair play records.</p>
+                    </div>
+                </div>
+
+                <!-- STATS CATEGORY SELECTOR (ONLY SHOW WHAT USER CLICKED) -->
+                <div class="stats-category-nav">
+                    <button type="button" class="stat-pill-btn active" onclick="showStatCategory('goals', this)">
+                        <span class="pill-icon">⚽</span>
+                        <span>Goals</span>
+                    </button>
+                    <button type="button" class="stat-pill-btn" onclick="showStatCategory('assists', this)">
+                        <span class="pill-icon">🎯</span>
+                        <span>Assists</span>
+                    </button>
+                    <button type="button" class="stat-pill-btn" onclick="showStatCategory('cleansheets', this)">
+                        <span class="pill-icon">🧤</span>
+                        <span>Clean Sheets</span>
+                    </button>
+                    <button type="button" class="stat-pill-btn" onclick="showStatCategory('yellows', this)">
+                        <span class="pill-icon">🟨</span>
+                        <span>Yellow Cards</span>
+                    </button>
+                    <button type="button" class="stat-pill-btn" onclick="showStatCategory('reds', this)">
+                        <span class="pill-icon">🟥</span>
+                        <span>Red Cards</span>
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <!-- GOLDEN BOOT -->
+                    <div class="stats-card" data-stat-card="goals">
+                        <div class="stats-header">
+                            <div class="stats-header-info">
+                                <div class="stats-header-badge">
+                                    <span class="badge-icon">⚽</span>
+                                    <span>GOLDEN BOOT RACE</span>
+                                </div>
+                                <h3 class="stats-card-heading">Top Goal Scorers</h3>
+                            </div>
+                            <span class="stats-metric-pill">GOALS</span>
+                        </div>
+                        <table class="leader-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;">#</th>
+                                    <th>PLAYER</th>
+                                    <th>CLUB</th>
+                                    <th style="text-align:right;">GOALS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in stats.top_scorers %}
+                                <tr>
+                                    <td style="font-weight:900;">{{ s.rank }}</td>
+                                    <td>
+                                        <a href="javascript:void(0)" onclick="openPlayerModal('{{ s.id }}')"
+                                            class="player-modal-trigger">
+                                            {{ s.full_name }}
+                                        </a>
+                                    </td>
+                                    <td><a href="/team/{{ s.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ s.team_short_name }}</a></td>
+                                    <td class="stat-value-badge">{{ s.goals }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">No
+                                        goals recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                                        <!-- MOST ASSISTS / PLAYMAKERS -->
+                    <div class="stats-card" data-stat-card="assists" style="display:none;">
+                        <div class="stats-header">
+                            <div class="stats-header-info">
+                                <div class="stats-header-badge">
+                                    <span class="badge-icon">🎯</span>
+                                    <span>PLAYMAKERS &amp; CREATORS</span>
+                                </div>
+                                <h3 class="stats-card-heading">Top Assists</h3>
+                            </div>
+                            <span class="stats-metric-pill">ASSISTS</span>
+                        </div>
+                        <table class="leader-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;">#</th>
+                                    <th>PLAYER</th>
+                                    <th>CLUB</th>
+                                    <th style="text-align:right;">ASSISTS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in stats.top_assists %}
+                                <tr>
+                                    <td style="font-weight:900;">{{ a.rank }}</td>
+                                    <td>
+                                        <a href="javascript:void(0)" onclick="openPlayerModal('{{ a.id }}')"
+                                            class="player-modal-trigger">
+                                            {{ a.full_name }}
+                                        </a>
+                                    </td>
+                                    <td><a href="/team/{{ a.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ a.team_short_name|default:a.team_name }}</a></td>
+                                    <td class="stat-value-badge" style="color:var(--green-dark);font-weight:900;">&#127919; {{ a.assists }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">No
+                                        assists recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CLEAN SHEETS -->
+                    <div class="stats-card stats-card-full" data-stat-card="cleansheets" style="display:none;">
+                        <div class="stats-header">
+                            <div class="stats-header-info">
+                                <div class="stats-header-badge">
+                                    <span class="badge-icon">🧤</span>
+                                    <span>GOLDEN GLOVE RACE</span>
+                                </div>
+                                <h3 class="stats-card-heading">Goalkeeper Clean Sheets</h3>
+                            </div>
+                            <span class="stats-metric-pill">CLEAN SHEETS</span>
+                        </div>
+                        <table class="leader-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;">#</th>
+                                    <th>CLUB</th>
+                                    <th>GOALKEEPER</th>
+                                    <th style="text-align:right;">CLEAN SHEETS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cs in stats.clean_sheets %}
+                                {% if cs.clean_sheets > 0 %}
+                                <tr>
+                                    <td style="font-weight:900;">{{ cs.rank }}</td>
+                                    <td><a href="/team/{{ cs.team.id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ cs.team.name }}</a></td>
+                                    <td style="color:var(--text-muted);">{{ cs.goalkeeper_name }}</td>
+                                    <td class="stat-value-badge" style="color:var(--green-dark);">{{ cs.clean_sheets }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">No
+                                        clean sheets recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- YELLOW CARDS -->
+                    <div class="stats-card" data-stat-card="yellows" style="display:none;">
+                        <div class="stats-header">
+                            <div class="stats-header-info">
+                                <div class="stats-header-badge">
+                                    <span class="badge-icon">🟨</span>
+                                    <span>CAUTIONS &amp; FAIR PLAY</span>
+                                </div>
+                                <h3 class="stats-card-heading">Yellow Cards</h3>
+                            </div>
+                            <span class="stats-metric-pill">YELLOW CARDS</span>
+                        </div>
+                        <table class="leader-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;">#</th>
+                                    <th>PLAYER</th>
+                                    <th>CLUB</th>
+                                    <th style="text-align:right;">YELLOW CARDS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for y in stats.yellow_cards %}
+                                <tr>
+                                    <td style="font-weight:900;">{{ y.rank }}</td>
+                                    <td style="font-weight:700;">{{ y.full_name }}</td>
+                                    <td><a href="/team/{{ y.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ y.team_name }}</a></td>
+                                    <td class="stat-value-badge" style="color:#B45309;font-weight:900;">🟨 {{ y.yellow_cards }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Fair play! No yellow cards recorded.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- RED CARDS -->
+                    <div class="stats-card" data-stat-card="reds" style="display:none;">
+                        <div class="stats-header">
+                            <div class="stats-header-info">
+                                <div class="stats-header-badge">
+                                    <span class="badge-icon">🟥</span>
+                                    <span>EXPULSIONS &amp; DISCIPLINARY</span>
+                                </div>
+                                <h3 class="stats-card-heading">Red Cards</h3>
+                            </div>
+                            <span class="stats-metric-pill">RED CARDS</span>
+                        </div>
+                        <table class="leader-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;">#</th>
+                                    <th>PLAYER</th>
+                                    <th>CLUB</th>
+                                    <th style="text-align:right;">RED CARDS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in stats.red_cards %}
+                                <tr>
+                                    <td style="font-weight:900;">{{ r.rank }}</td>
+                                    <td style="font-weight:700;">{{ r.full_name }}</td>
+                                    <td><a href="/team/{{ r.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ r.team_name }}</a></td>
+                                    <td class="stat-value-badge" style="color:#B91C1C;font-weight:900;">🟥 {{ r.red_cards }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Clean record! No red cards recorded.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: TEAMS -->
+            <div class="tab-pane {% if active_tab == 'teams' %}active{% endif %}" id="pane-teams" style="{% if active_tab == 'teams' %}display:block;{% else %}display:none;{% endif %}">
+                <div class="section-header-row">
+                    <div class="section-title-box">
+                        <h2>Participating Clubs ({{ teams.count }})</h2>
+                        <p>Select any club to view team details, complete squad roster, and match history.</p>
+                    </div>
+                </div>
+
+                <div class="clubs-grid">
+                    {% for t in teams %}
+                    <a href="/team/{{ t.id }}/" class="club-card-link" title="View {{ t.name }} details">
+                        <div class="club-card-inner">
+                            <div class="club-crest-large">
+                                {% if t.get_logo_url %}
+                                <img src="{{ t.get_logo_url }}" alt="{{ t.name }}">
+                                {% else %}
+                                <span>{{ t.short_name|default:"FC"|slice:":3" }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="club-info">
+                                <h3>{{ t.name }}</h3>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="empty-box">
+                        <div style="font-size:32px;margin-bottom:8px;">🛡️</div>
+                        <h4 style="font-family:var(--font-heading);font-size:20px;">No Teams Registered</h4>
+                        <p style="font-size:12.5px;">No clubs have registered for this tournament yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div>
+                <strong>TOUCHLINE</strong> · Your Game. Your League.
+            </div>
+            <div>
+                Live Competition Engine &copy; 2026 Touchline Platform
+            </div>
+        </div>
+    </footer>
+
+    <!-- MOBILE FIXED BOTTOM NAVIGATION BAR (SHOWN ON MOBILE <= 768px) -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="?tab=upcoming" class="bnav-tab {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" data-tab="upcoming">
+            <div class="bnav-icon-wrap">
+                <span class="bnav-icon">📅</span>
+            </div>
+            <span class="bnav-label">Fixtures</span>
+        </a>
+
+        <a href="?tab=results" class="bnav-tab {% if active_tab == 'results' %}active{% endif %}" data-tab="results">
+            <div class="bnav-icon-wrap">
+                <span class="bnav-icon">🏆</span>
+            </div>
+            <span class="bnav-label">Results</span>
+        </a>
+
+        <a href="?tab=table" class="bnav-tab {% if active_tab == 'table' %}active{% endif %}" data-tab="table">
+            <div class="bnav-icon-wrap">
+                <span class="bnav-icon">📊</span>
+            </div>
+            <span class="bnav-label">Table</span>
+        </a>
+
+        <a href="?tab=stats" class="bnav-tab {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats">
+            <div class="bnav-icon-wrap">
+                <span class="bnav-icon">📊</span>
+            </div>
+            <span class="bnav-label">Statistics</span>
+        </a>
+
+        <a href="?tab=teams" class="bnav-tab {% if active_tab == 'teams' %}active{% endif %}" data-tab="teams">
+            <div class="bnav-icon-wrap">
+                <span class="bnav-icon">🛡️</span>
+            </div>
+            <span class="bnav-label">Teams</span>
+        </a>
+    </nav>
+
+    <!-- MODAL 1: MATCH DETAILS & EVENTS -->
+    <!-- MODAL: MATCH GAME DETAILS (POPUPS ON VIEW DETAILS) -->
+    <div class="modal-backdrop modal-overlay" id="matchModal" onclick="closeMatchModal(event)">
+        <div class="modal-card match-popup-card" style="max-width:620px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.14), transparent 65%), linear-gradient(135deg, #0e1712 0%, #15231b 100%);border:1px solid rgba(180, 245, 107, 0.3);box-shadow:0 0 32px rgba(180, 245, 107, 0.18), 0 24px 50px rgba(0, 0, 0, 0.7);color:#ffffff;" onclick="event.stopPropagation()">
+            <!-- HEADER -->
+            <div style="background:#0b1410;padding:14px 20px;border-bottom:1px solid #26342b;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <span id="matchModalRound" style="font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#B4F56B;">Matchweek</span>
+                    <span style="color:rgba(255,255,255,0.4);margin:0 6px;">·</span>
+                    <span id="matchModalStatusPill" style="font-size:10px;font-weight:900;color:#B4F56B;background:rgba(180,245,107,0.15);padding:2px 8px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);letter-spacing:0.5px;">COMPLETED</span>
+                    <div id="matchModalMeta" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;">Date · Venue</div>
+                </div>
+                <button type="button" onclick="closeMatchModal()" style="color:#ffffff;background:rgba(255,255,255,0.12);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;border:none;cursor:pointer;font-size:14px;font-weight:bold;transition:all 0.2s;">✕</button>
+            </div>
+
+            <!-- SCOREBOARD (LIKE USER IMAGE SPEC) -->
+            <div style="padding:28px 24px 24px;">
+                <div class="popup-scoreboard-row" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                    <!-- HOME TEAM -->
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                        <div id="matchModalHomeCrestWrap" class="poster-crest-wrap" style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
+                            <img id="matchModalHomeLogo" src="" alt="Home Logo" style="width:100%;height:100%;object-fit:contain;display:none;">
+                            <span id="matchModalHomeFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">HME</span>
+                        </div>
+                        <h3 id="matchModalHomeName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Home Team</h3>
+                        <div id="matchModalHomeRank" style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">—</div>
+                    </div>
+
+                    <!-- CENTER SCORE -->
+                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0;">
+                        <span id="matchModalHomeScore" style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
+                        <span id="matchModalDash" style="font-family:var(--font-heading, sans-serif);font-size:42px;font-weight:900;color:#B4F56B;line-height:1;opacity:0.9;">-</span>
+                        <span id="matchModalAwayScore" style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
+                    </div>
+
+                    <!-- AWAY TEAM -->
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                        <div id="matchModalAwayCrestWrap" class="poster-crest-wrap" style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
+                            <img id="matchModalAwayLogo" src="" alt="Away Logo" style="width:100%;height:100%;object-fit:contain;display:none;">
+                            <span id="matchModalAwayFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">AWY</span>
+                        </div>
+                        <h3 id="matchModalAwayName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Away Team</h3>
+                        <div id="matchModalAwayRank" style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">—</div>
+                    </div>
+                </div>
+
+                <!-- SCORERS & EVENTS ROW (MATCHING USER SCREENSHOT SPEC) -->
+                <div style="margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);">
+                    <div id="modalScorersGrid" style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:flex-start;">
+                        <!-- HOME SCORERS -->
+                        <div id="modalHomeScorersList" style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;">
+                            <!-- Sumeet Passi 51' -->
+                        </div>
+
+                        <!-- CENTER ICON -->
+                        <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
+                            <span id="modalCenterEventIcon" style="font-size:18px;color:#B4F56B;filter:drop-shadow(0 0 6px rgba(180,245,107,0.5));">⚽</span>
+                        </div>
+
+                        <!-- AWAY SCORERS -->
+                        <div id="modalAwayScorersList" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right;">
+                            <!-- Francisco Feuillassier 35' -->
+                        </div>
+                    </div>
+                    <div id="modalNoEventsNotice" style="display:none;color:rgba(255,255,255,0.5);text-align:center;font-size:12px;padding:8px 0;">No goals or red cards recorded</div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div style="padding:12px 20px;background:#0b1410;display:flex;justify-content:flex-end;border-top:1px solid #26342b;">
+                <button type="button" onclick="closeMatchModal()" style="background:#B4F56B;color:#101B16;font-family:var(--font-heading, sans-serif);font-size:13px;font-weight:900;letter-spacing:0.5px;padding:8px 22px;border-radius:24px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(180,245,107,0.35);transition:all 0.2s;">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PLAYER PROFILE & STATS -->
+    <div class="modal-overlay" id="playerModal" role="dialog" aria-modal="true">
+        <div class="modal-window">
+            <button class="modal-close-btn" onclick="closePlayerModal()">✕</button>
+
+            <div class="player-modal-head">
+                <div class="player-modal-photo">
+                    <img id="modalPlayerPhoto" src="/static/img/players/p1.jpg" alt="Player headshot">
+                    <span class="player-modal-badge" id="modalPlayerNumber">#10</span>
+                </div>
+                <div>
+                    <span id="modalPlayerPosition"
+                        style="font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 6px;background:#DEF7EC;color:#03543F;border-radius:3px;">Forward</span>
+                    <h3 id="modalPlayerName"
+                        style="font-family:var(--font-heading);font-size:22px;font-weight:800;color:var(--dark);margin-top:3px;">
+                        Player Name</h3>
+                    <div id="modalPlayerTeam" style="font-size:12px;color:var(--text-muted);">Club Name</div>
+                </div>
+            </div>
+
+            <div class="player-modal-stats">
+                <div class="p-stat-box">
+                    <span>Goals</span>
+                    <strong id="modalPlayerGoals">0</strong>
+                </div>
+                <div class="p-stat-box">
+                    <span>Assists</span>
+                    <strong id="modalPlayerAssists">0</strong>
+                </div>
+                <div class="p-stat-box">
+                    <span>Yellow Cards</span>
+                    <strong id="modalPlayerYellowCards" style="color:#B45309;">0</strong>
+                </div>
+                <div class="p-stat-box">
+                    <span>Red Cards</span>
+                    <strong id="modalPlayerRedCards" style="color:#B91C1C;">0</strong>
+                </div>
+            </div>
+
+            <div style="text-align:right;">
+                <button class="btn-club-profile" style="margin:0;" onclick="closePlayerModal()">Close Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Tab switching synced for both desktop top bar and mobile bottom nav
+        function showStatCategory(category, btn) {
+            if (btn) {
+                document.querySelectorAll('.stat-pill-btn').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+            } else {
+                document.querySelectorAll('.stat-pill-btn').forEach(function(b) {
+                    const onclickAttr = b.getAttribute('onclick') || '';
+                    if (onclickAttr.includes("'" + category + "'")) {
+                        b.classList.add('active');
+                    } else {
+                        b.classList.remove('active');
+                    }
+                });
+            }
+            const cards = document.querySelectorAll('.stats-grid [data-stat-card]');
+            cards.forEach(function(card) {
+                if (card.getAttribute('data-stat-card') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMobileStats(category, btn) {
+            showStatCategory(category, btn);
+        }
+
+        function switchPublicTab(tabId, btn) {
+            switchTab(tabId);
+        }
+
+        function switchTab(tabId) {
+            if (!tabId) tabId = 'upcoming';
+
+            // Hide all tab panes
+            document.querySelectorAll(".tab-pane").forEach(function(p) {
+                p.style.display = "none";
+                p.classList.remove("active");
+            });
+
+            // Deactivate all tab buttons & bottom nav tabs
+            document.querySelectorAll(".tab-btn, .bnav-tab").forEach(function(t) {
+                t.classList.remove("active");
+            });
+
+            // Show target pane
+            const target = document.getElementById("pane-" + tabId);
+            if (target) {
+                target.style.display = "block";
+                target.classList.add("active");
+            }
+
+            // Sync active state on all buttons matching this tab
+            document.querySelectorAll("[data-tab='" + tabId + "']").forEach(function(t) {
+                t.classList.add("active");
+            });
+
+            // Update browser URL query string without reloading page
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tabId);
+                window.history.replaceState({ tab: tabId }, '', url.toString());
+            } catch (e) {}
+
+            // When switching to stats, ensure active category is shown
+            if (tabId === 'stats') {
+                const activeStatBtn = document.querySelector('.stat-pill-btn.active');
+                const activeCategory = activeStatBtn ? (activeStatBtn.getAttribute('onclick').match(/'([^']+)'/) || [null, 'goals'])[1] : 'goals';
+                showStatCategory(activeCategory);
+            }
+
+            // If on mobile (or triggered via bottom navbar), scroll smoothly to the content
+            if (window.innerWidth <= 768) {
+                const content = document.getElementById("contentArea");
+                if (content) {
+                    const yOffset = -66;
+                    const y = content.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Filter fixtures (All Matches vs This Week)
+        function filterFixtures(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            // Can be expanded to filter by dates
+        }
+
+        // Mobile drawer toggle
+        function toggleMobileMenu() {
+            const drawer = document.getElementById('mobileMenu');
+            const backdrop = document.getElementById('mobileMenuBackdrop');
+            const isOpen = drawer.classList.contains('open');
+
+            if (isOpen) {
+                drawer.classList.remove('open');
+                backdrop.classList.remove('open');
+                document.body.style.overflow = '';
+            } else {
+                drawer.classList.add('open');
+                backdrop.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Fetch and show player modal
+        function openPlayerModal(playerId) {
+            fetch('/api/player/' + playerId + '/')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalPlayerName').textContent = data.full_name;
+                    document.getElementById('modalPlayerNumber').textContent = '#' + data.jersey_number;
+                    document.getElementById('modalPlayerPosition').textContent = data.position;
+                    document.getElementById('modalPlayerTeam').textContent = data.team_name;
+                    document.getElementById('modalPlayerPhoto').src = data.photo_url || '/static/img/players/p1.jpg';
+                    document.getElementById('modalPlayerGoals').textContent = data.goals;
+                    document.getElementById('modalPlayerAssists').textContent = data.assists;
+                    document.getElementById('modalPlayerYellowCards').textContent = data.yellow_cards;
+                    document.getElementById('modalPlayerRedCards').textContent = data.red_cards;
+
+                    document.getElementById('playerModal').classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(err => console.error(err));
+        }
+
+        function closePlayerModal() {
+            document.getElementById('playerModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Fetch and show match modal
+        function openMatchModal(matchId) {
+            fetch('/api/match/' + matchId + '/')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('matchModalRound').textContent = data.tournament_round || 'Official Match';
+                    document.getElementById('matchModalMeta').textContent = (data.match_date || '') + (data.kickoff_time ? ' @ ' + data.kickoff_time : '') + (data.venue ? ' · ' + data.venue : '');
+                    document.getElementById('matchModalHomeName').textContent = data.home_team.name;
+                    const mHomeLink = document.getElementById('matchModalHomeLink'); if (mHomeLink && data.home_team.id) mHomeLink.href = '/team/' + data.home_team.id + '/';
+                    document.getElementById('matchModalAwayName').textContent = data.away_team.name;
+                    const mAwayLink = document.getElementById('matchModalAwayLink'); if (mAwayLink && data.away_team.id) mAwayLink.href = '/team/' + data.away_team.id + '/';
+
+                    // Team logos or fallbacks
+                    const hLogo = document.getElementById('matchModalHomeLogo');
+                    const hFallback = document.getElementById('matchModalHomeFallback');
+                    if (data.home_team.logo_url) {
+                        hLogo.src = data.home_team.logo_url;
+                        hLogo.style.display = 'block';
+                        hFallback.style.display = 'none';
+                    } else {
+                        hLogo.style.display = 'none';
+                        hFallback.textContent = data.home_team.short_name || data.home_team.name.slice(0, 3).toUpperCase();
+                        hFallback.style.display = 'block';
+                    }
+
+                    const aLogo = document.getElementById('matchModalAwayLogo');
+                    const aFallback = document.getElementById('matchModalAwayFallback');
+                    if (data.away_team.logo_url) {
+                        aLogo.src = data.away_team.logo_url;
+                        aLogo.style.display = 'block';
+                        aFallback.style.display = 'none';
+                    } else {
+                        aLogo.style.display = 'none';
+                        aFallback.textContent = data.away_team.short_name || data.away_team.name.slice(0, 3).toUpperCase();
+                        aFallback.style.display = 'block';
+                    }
+
+                    // Team ranks / positions
+                    const hRank = document.getElementById('matchModalHomeRank');
+                    if (hRank) {
+                        hRank.textContent = data.home_team.rank ? ('— ' + data.home_team.rank) : '—';
+                    }
+                    const aRank = document.getElementById('matchModalAwayRank');
+                    if (aRank) {
+                        aRank.textContent = data.away_team.rank ? ('↑ ' + data.away_team.rank) : '—';
+                    }
+
+                    const isUpcoming = (data.status === 'Upcoming' || data.status === 'Scheduled');
+                    const hScore = document.getElementById('matchModalHomeScore');
+                    const aScore = document.getElementById('matchModalAwayScore');
+                    const dash = document.getElementById('matchModalDash');
+                    const statusPill = document.getElementById('matchModalStatusPill');
+
+                    if (isUpcoming) {
+                        hScore.textContent = '';
+                        dash.textContent = 'VS';
+                        aScore.textContent = '';
+                        if (statusPill) statusPill.textContent = 'SCHEDULED';
+                    } else {
+                        hScore.textContent = data.home_team.score ?? 0;
+                        dash.textContent = '-';
+                        aScore.textContent = data.away_team.score ?? 0;
+                        if (statusPill) statusPill.textContent = (data.status || 'COMPLETED').toUpperCase();
+                    }
+
+                    // Populate scorers & red cards (no yellow cards, no assists)
+                    const homeList = document.getElementById('modalHomeScorersList');
+                    const awayList = document.getElementById('modalAwayScorersList');
+                    const scorersGrid = document.getElementById('modalScorersGrid');
+                    const noEventsNotice = document.getElementById('modalNoEventsNotice');
+                    const centerIcon = document.getElementById('modalCenterEventIcon');
+
+                    homeList.innerHTML = '';
+                    awayList.innerHTML = '';
+
+                    const homeHighlights = data.home_highlights || [];
+                    const awayHighlights = data.away_highlights || [];
+
+                    homeHighlights.forEach(h => {
+                        const isRed = h.icon === '🟥';
+                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
+                        homeList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
+                    });
+
+                    awayHighlights.forEach(h => {
+                        const isRed = h.icon === '🟥';
+                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
+                        awayList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
+                    });
+
+                    if (homeHighlights.length === 0 && awayHighlights.length === 0) {
+                        scorersGrid.style.display = 'none';
+                        noEventsNotice.style.display = 'block';
+                    } else {
+                        scorersGrid.style.display = 'grid';
+                        noEventsNotice.style.display = 'none';
+                        if (centerIcon) centerIcon.style.display = 'inline-block';
+                    }
+
+                    const modal = document.getElementById('matchModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        modal.classList.add('open');
+                    }
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(err => console.error('Error loading match details:', err));
+        }
+
+        function closeMatchModal(event) {
+            if (event && event.target && event.target.closest('.modal-card') && event.target.tagName !== 'BUTTON') {
+                return;
+            }
+            const modal = document.getElementById('matchModal');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.classList.remove('open');
+            }
+            document.body.style.overflow = '';
+        }
+
+        // Close on clicking backdrop
+        window.addEventListener('click', function (e) {
+            const pModal = document.getElementById('playerModal');
+            const mModal = document.getElementById('matchModal');
+            if (e.target === pModal) closePlayerModal();
+            if (e.target === mModal) closeMatchModal();
+        });
+
+        // Close on Escape key
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closePlayerModal();
+                closeMatchModal();
+                const drawer = document.getElementById('mobileMenu');
+                if (drawer && drawer.classList.contains('open')) toggleMobileMenu();
+            }
+        });
+    </script>
+</body>
+
+</html>
