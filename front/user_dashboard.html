@@ -2795,6 +2795,9 @@
                 <div class="hero-side-actions">
                     <div class="season-badge">
                         Season: <strong>{{ competition.season }}</strong> · {{ competition.get_category_display }}
+                        {% if competition.is_completed %}
+                        · <span style="background:#B4F56B;color:#142019;font-weight:900;padding:2px 7px;border-radius:4px;font-size:10px;">COMPLETED</span>
+                        {% endif %}
                     </div>
                     <div>
                         <button class="btn-share-dash"
@@ -2817,8 +2820,13 @@
                         <span>Clubs Active</span>
                     </div>
                     <div class="kpi-sub-text">
-                        {% if standings.0 %}{{ standings.0.team.name }} leading (+{{ standings.0.goal_difference }}
-                        GD){% else %}{{ competition.location }} · Division 1{% endif %}
+                        {% if competition.is_completed and competition.winner %}
+                        🏆 Champion: {{ competition.winner.name }} ({{ competition.winner_entry.points }} pts)
+                        {% elif standings.0 %}
+                        {{ standings.0.team.name }} leading (+{{ standings.0.goal_difference }} GD)
+                        {% else %}
+                        {{ competition.location }} · Division 1
+                        {% endif %}
                     </div>
                 </div>
 
@@ -2985,6 +2993,34 @@
                                     </div>
                                 </a>
                             </div>
+                            {% if m.home_highlights or m.away_highlights %}
+                            <div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-size:11px;display:flex;flex-direction:column;gap:5px;border:1px solid #edf2f7;">
+                                {% if m.home_highlights %}
+                                <div style="display:flex;align-items:flex-start;gap:6px;">
+                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;min-width:38px;">{{ m.home_team.short_name|default:"HOME" }}:</span>
+                                    <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
+                                        {% for h in m.home_highlights %}
+                                        <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
+                                            <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if m.away_highlights %}
+                                <div style="display:flex;align-items:flex-start;gap:6px;">
+                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;min-width:38px;">{{ m.away_team.short_name|default:"AWAY" }}:</span>
+                                    <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
+                                        {% for h in m.away_highlights %}
+                                        <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
+                                            <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="fixture-card-footer">
@@ -3057,6 +3093,24 @@
                             <div class="poster-result-team-name">{{ last_match.away_team.name }}</div>
                         </a>
                     </div>
+                    {% if last_match.home_highlights or last_match.away_highlights %}
+                    <div class="poster-highlights" style="display:flex;justify-content:space-between;gap:20px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15);font-size:12px;color:rgba(255,255,255,0.9);width:100%;max-width:700px;margin-left:auto;margin-right:auto;">
+                        <div style="flex:1;text-align:left;display:flex;flex-direction:column;gap:4px;">
+                            {% for h in last_match.home_highlights %}
+                            <div style="display:inline-flex;align-items:center;gap:4px;">
+                                <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div style="flex:1;text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                            {% for h in last_match.away_highlights %}
+                            <div style="display:inline-flex;align-items:center;gap:4px;">
+                                <span>{{ h.text }}</span> <span>{{ h.icon }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </section>
                 {% endif %}
 
@@ -3111,6 +3165,34 @@
                                     </div>
                                 </a>
                             </div>
+                            {% if m.home_highlights or m.away_highlights %}
+                            <div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-size:11px;display:flex;flex-direction:column;gap:5px;border:1px solid #edf2f7;">
+                                {% if m.home_highlights %}
+                                <div style="display:flex;align-items:flex-start;gap:6px;">
+                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;min-width:38px;">{{ m.home_team.short_name|default:"HOME" }}:</span>
+                                    <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
+                                        {% for h in m.home_highlights %}
+                                        <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
+                                            <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if m.away_highlights %}
+                                <div style="display:flex;align-items:flex-start;gap:6px;">
+                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;min-width:38px;">{{ m.away_team.short_name|default:"AWAY" }}:</span>
+                                    <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
+                                        {% for h in m.away_highlights %}
+                                        <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
+                                            <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="fixture-card-footer">
@@ -3136,6 +3218,45 @@
                         <p>Scoring: Win = 3 PTS · Draw = 1 PT · Loss = 0 PTS · Ranked by PTS, GD, GF</p>
                     </div>
                 </div>
+
+                {% if competition.is_completed and competition.winner %}
+                <!-- OFFICIAL LEAGUE WINNERS BANNER -->
+                <div class="champions-banner" style="background:linear-gradient(135deg, #142019 0%, #1c3829 60%, #0d1712 100%);border-radius:12px;padding:20px 24px;margin-bottom:20px;border:1px solid rgba(180,245,107,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <div style="width:64px;height:64px;border-radius:50%;background:#B4F56B;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(180,245,107,0.4);flex-shrink:0;">
+                            {% if competition.winner.get_logo_url %}
+                            <img src="{{ competition.winner.get_logo_url }}" alt="{{ competition.winner.name }}" style="width:48px;height:48px;object-fit:contain;border-radius:50%;">
+                            {% else %}
+                            <span style="font-size:32px;">🏆</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                <span style="background:#B4F56B;color:#142019;font-size:11px;font-weight:900;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">🏆 LEAGUE CHAMPION</span>
+                                <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;">COMPLETED</span>
+                            </div>
+                            <h3 style="margin:0;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.02em;">{{ competition.winner.name }}</h3>
+                            <p style="margin:3px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">
+                                Crowned champions of {{ competition.name }} ({{ competition.season }}) with {{ competition.winner_entry.points }} points!
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">Won</div>
+                            <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.won }}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">GD</div>
+                            <div style="font-size:17px;font-weight:900;color:#fff;">{{ competition.winner_entry.goal_difference }}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">PTS</div>
+                            <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.points }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="table-card">
                     <table class="standings-table">
@@ -3173,6 +3294,9 @@
                                             {% endif %}
                                         </div>
                                         <span>{{ row.team.name }}</span>
+                                        {% if competition.is_completed and forloop.first %}
+                                        <span style="background:linear-gradient(135deg, #FFD700, #FFA500);color:#000;font-size:10px;font-weight:900;padding:2px 7px;border-radius:4px;margin-left:6px;box-shadow:0 1px 3px rgba(0,0,0,0.2);white-space:nowrap;">🏆 WINNER</span>
+                                        {% endif %}
                                     </a>
                                 </td>
                                 <td class="center">{{ row.played }}</td>

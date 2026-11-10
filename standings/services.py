@@ -126,5 +126,17 @@ def recalculate_competition_standings(competition):
                 )
                 updated_entries.append(entry)
 
+        # Automatically update competition status when all scheduled matches are completed
+        from leagues.models import CompetitionStatus
+        total_matches = competition.matches.count()
+        if total_matches > 0 and not competition.matches.exclude(status=MatchStatus.COMPLETED).exists():
+            if competition.status != CompetitionStatus.COMPLETED:
+                competition.status = CompetitionStatus.COMPLETED
+                competition.save(update_fields=['status'])
+        else:
+            if competition.status == CompetitionStatus.COMPLETED:
+                competition.status = CompetitionStatus.ACTIVE
+                competition.save(update_fields=['status'])
+
         return updated_entries
 

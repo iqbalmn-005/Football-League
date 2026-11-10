@@ -92,6 +92,35 @@ class Competition(models.Model):
         left = self.max_teams - self.total_teams_count
         return max(0, left)
 
+    @property
+    def is_completed(self):
+        if self.status == CompetitionStatus.COMPLETED:
+            return True
+        total = self.matches.count()
+        return total > 0 and not self.matches.exclude(status='COMPLETED').exists()
+
+    @property
+    def winner_entry(self):
+        if not self.is_completed:
+            return None
+        return self.standings.order_by('position').first()
+
+    @property
+    def winner(self):
+        if not self.is_completed:
+            return None
+        final_match = self.matches.filter(
+            tournament_round__iexact='Final',
+            status='COMPLETED'
+        ).first()
+        if final_match and final_match.winner:
+            return final_match.winner
+
+        top_entry = self.standings.order_by('position').first()
+        if top_entry:
+            return top_entry.team
+        return None
+
 
 class TournamentGroup(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='groups')

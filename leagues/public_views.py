@@ -83,7 +83,7 @@ def competition_viewer(request, comp_id):
     fixture_filter = request.GET.get('fixture_filter', 'all')
     upcoming_matches = competition.matches.filter(
         status__in=[MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.POSTPONED]
-    ).order_by('match_date', 'kickoff_time')
+    ).select_related('home_team', 'away_team', 'group').order_by('match_date', 'kickoff_time')
 
     if fixture_filter == 'week':
         from django.utils import timezone
@@ -94,6 +94,8 @@ def competition_viewer(request, comp_id):
 
     completed_matches = competition.matches.filter(
         status=MatchStatus.COMPLETED
+    ).select_related('home_team', 'away_team', 'group').prefetch_related(
+        'events', 'events__player', 'events__team'
     ).order_by('-match_date', '-kickoff_time')
 
     next_match = upcoming_matches.first()

@@ -57,11 +57,13 @@ def organizer_dashboard(request, comp_id=None):
         comp_teams = active_competition.teams.all().prefetch_related('players')
         upcoming_matches = active_competition.matches.filter(
             status__in=[MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.POSTPONED]
-        ).order_by('match_date', 'kickoff_time')
+        ).select_related('home_team', 'away_team', 'group').order_by('match_date', 'kickoff_time')
         completed_matches = active_competition.matches.filter(
             status=MatchStatus.COMPLETED
+        ).select_related('home_team', 'away_team', 'group').prefetch_related(
+            'events', 'events__player', 'events__team'
         ).order_by('-match_date', '-kickoff_time')
-        all_matches = active_competition.matches.all().order_by('round_number', 'match_date', 'kickoff_time')
+        all_matches = active_competition.matches.all().select_related('home_team', 'away_team', 'group').order_by('round_number', 'match_date', 'kickoff_time')
         next_match = upcoming_matches.first()
         last_match = completed_matches.first()
 

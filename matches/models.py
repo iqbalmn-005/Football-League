@@ -73,7 +73,14 @@ class Match(models.Model):
     def _get_team_highlights(self, team):
         """Returns grouped goal scorers and red cards (no yellow cards, no assists)."""
         valid_types = [MatchEventType.GOAL, MatchEventType.PENALTY, MatchEventType.OWN_GOAL, MatchEventType.RED_CARD]
-        events = self.events.filter(team=team, event_type__in=valid_types).order_by('minute', 'extra_minute')
+        if hasattr(self, '_prefetched_objects_cache') and 'events' in self._prefetched_objects_cache:
+            events = [
+                e for e in self.events.all()
+                if (e.team_id == team.id or e.team == team) and e.event_type in valid_types
+            ]
+            events.sort(key=lambda e: (e.minute or 0, e.extra_minute or 0))
+        else:
+            events = self.events.filter(team=team, event_type__in=valid_types).order_by('minute', 'extra_minute')
         
         highlights = []
         goal_map = {}
