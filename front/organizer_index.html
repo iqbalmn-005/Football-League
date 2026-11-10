@@ -6366,7 +6366,6 @@
                                             <th>PLAYER</th>
                                             <th>TEAM</th>
                                             <th>GOALS</th>
-                                            <th>PENALTIES</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -6377,11 +6376,10 @@
                                             <td><a href="/organizer/team/{{ s.team_id }}/?competition={{ active_competition.id }}"
                                                     style="color:inherit;text-decoration:none;font-weight:700;">{{ s.team_short_name }}</a></td>
                                             <td style="font-weight:900;color:var(--dark);">{{ s.goals }}</td>
-                                            <td>{{ s.penalties }}</td>
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">No
+                                            <td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">No
                                                 goals recorded yet.</td>
                                         </tr>
                                         {% endfor %}
@@ -7025,6 +7023,7 @@
                             <label>Format</label>
                             <select class="field" name="tournament_format">
                                 <option value="ROUND_ROBIN">Round Robin</option>
+                                <option value="LEAGUE_KNOCKOUT">League + Knockout</option>
                                 <option value="GROUP_KNOCKOUT">Group Stage + Knockout</option>
                                 <option value="SINGLE_ELIMINATION">Single Elimination</option>
                             </select>
@@ -7301,8 +7300,7 @@
                             cards.push({ ...e, side: 'away' });
                         }
                     });
-                    cards.sort((a, b) => a.minute - b.minute);
-                    cards.forEach(c => addCardRow(c.side, c.player_id, c.event_type, c.minute));
+                    cards.forEach(c => addCardRow(c.side, c.player_id, c.event_type));
                 })
                 .catch(err => {
                     console.error("Failed to fetch match details:", err);
@@ -7355,12 +7353,10 @@
                 const sSelect = row.querySelector('select[name="' + side + '_goal_scorer"]');
                 const aSelect = row.querySelector('select[name="' + side + '_goal_assist"]');
                 const pCheck = row.querySelector('input[type="checkbox"]');
-                const mInput = row.querySelector('input[name="' + side + '_goal_minute"]');
                 savedData.push({
                     scorer: sSelect ? sSelect.value : '',
                     assist: aSelect ? aSelect.value : '',
-                    penalty: pCheck ? pCheck.checked : false,
-                    minute: mInput ? mInput.value : ''
+                    penalty: pCheck ? pCheck.checked : false
                 });
             });
 
@@ -7369,18 +7365,15 @@
                 let prevScorer = '';
                 let prevAssist = '';
                 let prevPenalty = false;
-                let prevMinute = '';
 
                 if (savedData[i]) {
                     prevScorer = savedData[i].scorer;
                     prevAssist = savedData[i].assist;
                     prevPenalty = savedData[i].penalty;
-                    prevMinute = savedData[i].minute;
                 } else if (goalsList[i]) {
                     prevScorer = goalsList[i].player_id || '';
                     prevAssist = goalsList[i].assist_id || '';
                     prevPenalty = goalsList[i].event_type === 'PENALTY';
-                    prevMinute = goalsList[i].minute || '';
                 }
 
                 let scorerOptions = '<option value="">-- Select Goal Scorer (Compulsory) --</option>';
@@ -7403,7 +7396,7 @@
                             <span>Penalty Goal (P)</span>
                         </label>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:10px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                         <div>
                             <label style="display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">
                                 Scorer <span style="color:#d93838;">*</span>
@@ -7420,32 +7413,25 @@
                                 ${assistOptions}
                             </select>
                         </div>
-                        <div>
-                            <label style="display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">
-                                Minute
-                            </label>
-                            <input type="number" name="${side}_goal_minute" class="field" placeholder="Min" min="1" max="130" value="${prevMinute || ''}" style="width:100%;font-size:12px;padding:6px 8px;">
-                        </div>
                     </div>
                 </div>`;
             }
             container.innerHTML = html;
         }
 
-        function addCardRow(side, selectedPlayerId, cardType, minute) {
+        function addCardRow(side, selectedPlayerId, cardType) {
             const container = document.getElementById("cardsListContainer");
             if (!container) return;
 
             side = side || 'home';
             cardType = cardType || 'YELLOW_CARD';
-            minute = minute || '';
 
             const homeTeam = (currentMatchData && currentMatchData.home_team) ? currentMatchData.home_team : { short_name: 'Home', players: [] };
             const awayTeam = (currentMatchData && currentMatchData.away_team) ? currentMatchData.away_team : { short_name: 'Away', players: [] };
 
             const row = document.createElement("div");
             row.className = "card-entry-row";
-            row.style.cssText = "display:grid;grid-template-columns:110px 1fr 130px 80px 32px;gap:8px;align-items:center;background:#fcfdfa;border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:8px;";
+            row.style.cssText = "display:grid;grid-template-columns:110px 1fr 140px 32px;gap:8px;align-items:center;background:#fcfdfa;border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:8px;";
 
             row.innerHTML = `
                 <select name="card_team" class="field" style="font-size:11px;padding:6px;" onchange="onCardTeamSelectChange(this)">
@@ -7459,7 +7445,6 @@
                     <option value="YELLOW_CARD" ${cardType === 'YELLOW_CARD' ? 'selected' : ''}>🟨 Yellow Card</option>
                     <option value="RED_CARD" ${cardType === 'RED_CARD' ? 'selected' : ''}>🟥 Red Card</option>
                 </select>
-                <input type="number" name="card_minute" class="field" placeholder="Minute" min="1" max="130" value="${minute}" style="font-size:11px;padding:6px;">
                 <button type="button" class="btn" style="padding:4px;color:#d93838;background:none;border:none;font-size:14px;font-weight:900;" onclick="this.parentElement.remove()" title="Remove card">✕</button>
             `;
 

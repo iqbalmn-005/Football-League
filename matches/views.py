@@ -160,7 +160,7 @@ def enter_match_result_view(request, match_id):
             away_score = max(0, int(request.POST.get('away_score', 0)))
         except (ValueError, TypeError):
             messages.error(request, "Invalid scores provided.")
-            return redirect(f"/organizer/{match.competition.id}/?tab=results")
+            return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
 
         match.home_score = home_score
         match.away_score = away_score
@@ -204,8 +204,8 @@ def enter_match_result_view(request, match_id):
                 except (ValueError, Player.DoesNotExist):
                     pass
 
-            # Resolve Minute
-            minute = 45
+            # Resolve Minute (default 0 when omitted)
+            minute = 0
             if i < len(home_minutes) and home_minutes[i].strip():
                 try:
                     minute = max(1, min(130, int(home_minutes[i].strip())))
@@ -254,7 +254,7 @@ def enter_match_result_view(request, match_id):
                 except (ValueError, Player.DoesNotExist):
                     pass
 
-            minute = 45
+            minute = 0
             if i < len(away_minutes) and away_minutes[i].strip():
                 try:
                     minute = max(1, min(130, int(away_minutes[i].strip())))
@@ -287,7 +287,7 @@ def enter_match_result_view(request, match_id):
             if c_type not in [MatchEventType.YELLOW_CARD, MatchEventType.RED_CARD]:
                 c_type = MatchEventType.YELLOW_CARD
 
-            minute = 45
+            minute = 0
             if i < len(card_minutes) and card_minutes[i].strip():
                 try:
                     minute = max(1, min(130, int(card_minutes[i].strip())))
@@ -317,4 +317,4 @@ def enter_match_result_view(request, match_id):
             f"✓ Official Result Confirmed: {match.home_team.name} {home_score} - {away_score} {match.away_team.name}. Goals, assists, penalties, and cards updated!"
         )
 
-    return redirect(f"/organizer/{match.competition.id}/?tab=results")
+    return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")

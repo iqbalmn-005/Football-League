@@ -81,30 +81,40 @@ class Match(models.Model):
             p_name = e.player.full_name if e.player else "Unknown"
             p_id = e.player_id or p_name
             if e.event_type in [MatchEventType.GOAL, MatchEventType.PENALTY, MatchEventType.OWN_GOAL]:
-                min_str = f"{e.minute}'"
+                min_str = f"{e.minute}'" if (e.minute and e.minute > 0) else ""
                 if e.event_type == MatchEventType.PENALTY:
-                    min_str += " P"
+                    min_str = (min_str + " P").strip()
                 elif e.event_type == MatchEventType.OWN_GOAL:
-                    min_str += " OG"
+                    min_str = (min_str + " OG").strip()
                 if p_id not in goal_map:
                     item = {
                         'icon': '⚽',
                         'player_name': p_name,
-                        'minutes': [min_str]
+                        'minutes': [min_str] if min_str else [],
+                        'count': 1
                     }
                     goal_map[p_id] = item
                     highlights.append(item)
                 else:
-                    goal_map[p_id]['minutes'].append(min_str)
+                    goal_map[p_id]['count'] += 1
+                    if min_str:
+                        goal_map[p_id]['minutes'].append(min_str)
             elif e.event_type == MatchEventType.RED_CARD:
+                min_str = f"{e.minute}'" if (e.minute and e.minute > 0) else ""
                 highlights.append({
                     'icon': '🟥',
                     'player_name': p_name,
-                    'minutes': [f"{e.minute}'"]
+                    'minutes': [min_str] if min_str else [],
+                    'count': 1
                 })
         
         for h in highlights:
-            h['text'] = f"{h['player_name']} ({', '.join(h['minutes'])})"
+            if h.get('minutes'):
+                h['text'] = f"{h['player_name']} ({', '.join(h['minutes'])})"
+            elif h.get('count', 1) > 1:
+                h['text'] = f"{h['player_name']} (x{h['count']})"
+            else:
+                h['text'] = h['player_name']
         return highlights
 
     @property

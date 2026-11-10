@@ -436,7 +436,7 @@ def enter_match_result_view(request, match_id):
         )
 
         messages.success(request, f"Result recorded: {match_obj.home_team.short_name} {home_score} - {away_score} {match_obj.away_team.short_name}. Points table updated!")
-        return redirect(f"/organizer/{comp_id}/?tab=results")
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
     return redirect('organizer_dashboard')
 
 

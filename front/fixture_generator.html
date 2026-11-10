@@ -404,7 +404,7 @@
         /* FORMAT RADIO CARDS */
         .format-cards {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 14px;
             margin-bottom: 18px;
         }
@@ -821,6 +821,14 @@
                                 round-robin matchweeks.</div>
                         </label>
 
+                        <label class="format-card" id="cardLeagueKnockout" onclick="selectFormat('LEAGUE_KNOCKOUT')">
+                            <input type="radio" name="tournament_format" value="LEAGUE_KNOCKOUT">
+                            <div class="format-card-icon">🏅</div>
+                            <div class="format-card-title">League + Knockout</div>
+                            <div class="format-card-desc">All clubs in 1 single league group table, followed by knockout
+                                championship rounds for top qualifiers.</div>
+                        </label>
+
                         <label class="format-card" id="cardGroupKnockout" onclick="selectFormat('GROUP_KNOCKOUT')">
                             <input type="radio" name="tournament_format" value="GROUP_KNOCKOUT">
                             <div class="format-card-icon">🏆</div>
@@ -856,43 +864,51 @@
 
 
             <!-- ==========================================
-                 SECTION 2: GROUP SETTINGS (CONDITIONAL)
+                 SECTION 2: GROUP & KNOCKOUT SETTINGS
                  ========================================== -->
             <section class="wizard-section" id="sectionGroupSettings" style="display:none;">
                 <div class="section-header">
                     <div class="section-title">
                         <div>
-                            <h2>Group Stage Equal Division</h2>
-                            <p class="section-hint">Clubs are automatically divided equally across all groups.</p>
+                            <h2 id="groupSectionTitle">Group Stage Equal Division</h2>
+                            <p class="section-hint" id="groupSectionHint">Clubs are automatically divided equally across all groups.</p>
                         </div>
                     </div>
-                    <span class="hero-pill" style="font-size:10px;">GROUP STAGE ONLY</span>
+                    <span class="hero-pill" id="groupSectionBadge" style="font-size:10px;">GROUP STAGE ONLY</span>
                 </div>
 
                 <div class="form-grid-2">
-                    <div class="form-group">
+                    <div class="form-group" id="numGroupsContainer">
                         <label class="form-label">
                             Number of Groups <span class="badge-req">*</span>
                         </label>
                         <select class="form-control" name="num_groups" id="numGroupsSelect"
                             onchange="updateGroupEqualDivisionInfo(); updateSummaryKpis();">
-                            <option value="1">1 Group (Group A)</option>
+                            <option value="1">1 Group (Single Group)</option>
                             <option value="2" selected>2 Groups (Group A &amp; Group B)</option>
                             <option value="4">4 Groups (Groups A, B, C, D)</option>
                         </select>
                         <span class="input-hint">Clubs will be distributed equally between these groups.</span>
                     </div>
 
+                    <div class="form-group" id="singleGroupInfoContainer" style="display:none;">
+                        <label class="form-label">League Structure</label>
+                        <div style="background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;font-weight:700;color:var(--dark);">
+                            🛡️ 1 Group (All Clubs in Single League Table)
+                        </div>
+                        <span class="input-hint">Every club competes in 1 single league table before knockouts.</span>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label">
-                            Teams Qualifying Per Group <span class="badge-req">*</span>
+                            Teams Qualifying for Knockout <span class="badge-req">*</span>
                         </label>
                         <select class="form-control" name="qualifiers_per_group" id="qualifiersPerGroupSelect"
                             onchange="updateGroupEqualDivisionInfo(); updateSummaryKpis();">
                             <option value="1">Top 1 Team Advances directly</option>
-                            <option value="2" selected>Top 2 Teams Advance (Recommended)</option>
-                            <option value="3">Top 3 Teams Advance</option>
-                            <option value="4">Top 4 Teams Advance</option>
+                            <option value="2">Top 2 Teams Advance (Championship Final)</option>
+                            <option value="4" selected>Top 4 Teams Advance (Semi-Finals &amp; Final)</option>
+                            <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
                     </div>
                 </div>
@@ -1099,15 +1115,40 @@
         function selectFormat(fmt) {
             document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'));
             if (fmt === 'ROUND_ROBIN') document.getElementById('cardRoundRobin').classList.add('selected');
+            if (fmt === 'LEAGUE_KNOCKOUT') document.getElementById('cardLeagueKnockout').classList.add('selected');
             if (fmt === 'GROUP_KNOCKOUT') document.getElementById('cardGroupKnockout').classList.add('selected');
             if (fmt === 'KNOCKOUT') document.getElementById('cardKnockout').classList.add('selected');
 
             const groupSec = document.getElementById('sectionGroupSettings');
             const roundRobinGroup = document.getElementById('roundRobinTypeGroup');
+            const numGroupsContainer = document.getElementById('numGroupsContainer');
+            const singleGroupInfoContainer = document.getElementById('singleGroupInfoContainer');
+            const groupTitle = document.getElementById('groupSectionTitle');
+            const groupHint = document.getElementById('groupSectionHint');
+            const groupBadge = document.getElementById('groupSectionBadge');
 
-            if (fmt === 'GROUP_KNOCKOUT') {
+            if (fmt === 'LEAGUE_KNOCKOUT') {
                 groupSec.style.display = 'block';
                 roundRobinGroup.style.display = 'block';
+                if (numGroupsContainer) numGroupsContainer.style.display = 'none';
+                if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'block';
+                document.getElementById('numGroupsSelect').value = "1";
+                if (groupTitle) groupTitle.innerText = "Single League Table + Knockout Qualifiers";
+                if (groupHint) groupHint.innerText = "All clubs compete in 1 single league group; top qualifiers advance to Knockout rounds.";
+                if (groupBadge) groupBadge.innerText = "LEAGUE + KNOCKOUT";
+                document.getElementById('summaryFormat').innerText = "League + Knockout";
+                updateGroupEqualDivisionInfo();
+            } else if (fmt === 'GROUP_KNOCKOUT') {
+                groupSec.style.display = 'block';
+                roundRobinGroup.style.display = 'block';
+                if (numGroupsContainer) numGroupsContainer.style.display = 'block';
+                if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'none';
+                if (document.getElementById('numGroupsSelect').value === "1") {
+                    document.getElementById('numGroupsSelect').value = "2";
+                }
+                if (groupTitle) groupTitle.innerText = "Group Stage Equal Division";
+                if (groupHint) groupHint.innerText = "Clubs are automatically divided equally across all groups.";
+                if (groupBadge) groupBadge.innerText = "GROUP STAGE ONLY";
                 document.getElementById('summaryFormat').innerText = "Group + Knockout";
                 updateGroupEqualDivisionInfo();
             } else if (fmt === 'KNOCKOUT') {
@@ -1130,7 +1171,7 @@
 
             let allocText = '';
             if (numGroups === 1) {
-                allocText = `⚖️ Single Group Allocation: All ${totalTeamsCount} teams in Group A.`;
+                allocText = `🏆 Single League Table: All ${totalTeamsCount} clubs compete in 1 single league group table.`;
             } else {
                 let groupLabels = [];
                 for (let i = 0; i < numGroups; i++) {
@@ -1141,16 +1182,28 @@
 
             const totalQualifiers = numGroups * qPerGroup;
             let knockoutPath = '';
-            if (totalQualifiers <= 2) {
-                knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} advance (${totalQualifiers} qualifiers total) ➔ Grand Championship Final (1 match)`;
-            } else if (totalQualifiers === 4) {
-                knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (4 qualifiers total) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
-            } else if (totalQualifiers === 6) {
-                knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (6 qualifiers total) ➔ Play-In / QF (2 matches) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
-            } else if (totalQualifiers === 8) {
-                knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (8 qualifiers total) ➔ Quarter-Finals (4 matches) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+            if (numGroups === 1) {
+                if (totalQualifiers <= 2) {
+                    knockoutPath = `🏆 Knockout Stage: Top 2 clubs in the league advance ➔ Grand Championship Final (1 match)`;
+                } else if (totalQualifiers === 4) {
+                    knockoutPath = `🏆 Knockout Stage: Top 4 clubs in the league advance (1st vs 4th, 2nd vs 3rd) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+                } else if (totalQualifiers === 8) {
+                    knockoutPath = `🏆 Knockout Stage: Top 8 clubs in the league advance ➔ Quarter-Finals (4 matches) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+                } else {
+                    knockoutPath = `🏆 Knockout Stage: Top ${totalQualifiers} clubs in the league advance ➔ Knockout Bracket to Final`;
+                }
             } else {
-                knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (${totalQualifiers} qualifiers total) ➔ ${totalQualifiers - 1} Knockout Matches to the Final`;
+                if (totalQualifiers <= 2) {
+                    knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} advance (${totalQualifiers} qualifiers total) ➔ Grand Championship Final (1 match)`;
+                } else if (totalQualifiers === 4) {
+                    knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (4 qualifiers total) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+                } else if (totalQualifiers === 6) {
+                    knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (6 qualifiers total) ➔ Play-In / QF (2 matches) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+                } else if (totalQualifiers === 8) {
+                    knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (8 qualifiers total) ➔ Quarter-Finals (4 matches) ➔ Semi-Finals (2 matches) ➔ Grand Championship Final (1 match)`;
+                } else {
+                    knockoutPath = `🏆 Knockout Stage: Top ${qPerGroup} from each group advance (${totalQualifiers} qualifiers total) ➔ ${totalQualifiers - 1} Knockout Matches to the Final`;
+                }
             }
 
             document.getElementById('equalDivisionNoticeText').innerHTML =
@@ -1225,9 +1278,9 @@
                 const matchesPerRound = Math.floor(totalTeamsCount / 2);
                 const estWeeks = isDouble ? rounds * 2 : rounds;
                 estMatches = estWeeks * matchesPerRound;
-            } else if (fmt === 'GROUP_KNOCKOUT') {
-                const numGroups = parseInt(document.getElementById('numGroupsSelect').value) || 2;
-                const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || 2;
+            } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
+                const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
+                const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
                 const teamsPerGroup = Math.ceil(totalTeamsCount / numGroups);
                 const gRounds = isDouble ? (teamsPerGroup - 1) * 2 : (teamsPerGroup - 1);
                 const gMatchesPerRound = Math.floor(teamsPerGroup / 2) * numGroups;
@@ -1277,8 +1330,12 @@
             const slotInputs = Array.from(document.querySelectorAll('.daily-slot-time-input'));
             const dailyKickoffTimes = slotInputs.map(input => input.value || "15:00");
 
+            const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
+            const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
+            const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
+
             const payload = {
-                tournament_format: document.querySelector('input[name="tournament_format"]:checked').value,
+                tournament_format: fmt,
                 round_robin_type: document.getElementById('roundRobinTypeSelect').value,
                 start_date: startDate,
                 end_date: endDate,
@@ -1286,8 +1343,8 @@
                 matches_per_day: matchesPerDay,
                 daily_kickoff_times: dailyKickoffTimes,
                 venues: [],
-                num_groups: parseInt(document.getElementById('numGroupsSelect').value) || 2,
-                qualifiers_per_group: parseInt(document.getElementById('qualifiersPerGroupSelect').value) || 2,
+                num_groups: numGroups,
+                qualifiers_per_group: qPerGroup,
             };
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {

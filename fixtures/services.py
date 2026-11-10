@@ -150,19 +150,22 @@ def generate_smart_fixtures(competition, config):
             end_date=end_date
         )
 
-    elif format_type == TournamentFormat.GROUP_KNOCKOUT or format_type == 'GROUP_KNOCKOUT':
-        num_groups = int(config.get('num_groups', 2) or 2)
-        q_per_group = int(config.get('qualifiers_per_group', 2) or 2)
+    elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
+        is_league_knockout = (format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT'])
+        num_groups = 1 if is_league_knockout else int(config.get('num_groups', 2) or 2)
+        default_q = 4 if is_league_knockout else 2
+        q_per_group = int(config.get('qualifiers_per_group', default_q) or default_q)
         groups_dict = _allocate_groups_equally(teams_qs, num_groups)
         groups_info = {
             g_name: [{'id': t.id, 'name': t.name, 'short_name': t.short_name, 'logo_url': t.get_logo_url()} for t in t_list]
             for g_name, t_list in groups_dict.items()
         }
 
-        # Build group stage rounds
+        # Build group / league stage rounds
         all_group_rounds = []
         for g_name, g_teams in groups_dict.items():
-            g_rounds = _build_round_robin_rounds(g_teams, double_round=(round_robin_type == 'double'), prefix=f"{g_name} - ")
+            round_prefix = "" if num_groups == 1 else f"{g_name} - "
+            g_rounds = _build_round_robin_rounds(g_teams, double_round=(round_robin_type == 'double'), prefix=round_prefix)
             all_group_rounds.append((g_name, g_rounds))
 
         merged_rounds = _merge_concurrent_group_rounds(all_group_rounds)
@@ -554,13 +557,13 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         seeds[g] = []
         for q in range(q_per_group):
             suf = {1: 'st', 2: 'nd', 3: 'rd'}.get(q + 1, 'th')
-            rank_str = f"{q + 1}{suf}"
+            rank_str = f"{q + 1}{suf} Place" if num_groups == 1 else f"{q + 1}{suf} {g}"
             if q < len(g_teams):
                 t = g_teams[q]
                 seeds[g].append({
                     'id': t.id,
-                    'name': f"{rank_str} {g} ({t.name})",
-                    'seed_label': f"{rank_str} {g}",
+                    'name': f"{rank_str} ({t.name})",
+                    'seed_label': rank_str,
                     'team_name': t.name,
                     'short_name': t.short_name,
                     'get_logo_url': t.get_logo_url
@@ -569,10 +572,10 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 fallback_t = g_teams[-1] if g_teams else None
                 seeds[g].append({
                     'id': fallback_t.id if fallback_t else None,
-                    'name': f"{rank_str} {g}",
-                    'seed_label': f"{rank_str} {g}",
-                    'team_name': f"{rank_str} {g}",
-                    'short_name': f"{q + 1}{g[-1]}",
+                    'name': rank_str,
+                    'seed_label': rank_str,
+                    'team_name': rank_str,
+                    'short_name': f"P{q + 1}" if num_groups == 1 else f"{q + 1}{g[-1]}",
                     'get_logo_url': fallback_t.get_logo_url if fallback_t else (lambda: "")
                 })
 
@@ -655,9 +658,19 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         return knockout_matches
 
     # CASE C: 6 TOTAL QUALIFIERS -> Play-In / Quarter-Finals -> Semi-Finals -> Final
-    if total_q == 6 and num_groups == 2:
-        qf1 = (seeds['Group A'][1], seeds['Group B'][2])  # 2A vs 3B
-        qf2 = (seeds['Group B'][1], seeds['Group A'][2])  # 2B vs 3A
+    if total_q == 6:
+        if num_groups == 2:
+            qf1 = (seeds['Group A'][1], seeds['Group B'][2])  # 2A vs 3B
+            qf2 = (seeds['Group B'][1], seeds['Group A'][2])  # 2B vs 3A
+            bye1 = seeds['Group A'][0]
+            bye2 = seeds['Group B'][0]
+        else:
+            # 1 Group: 1st & 2nd bye to SF; 3rd vs 6th & 4th vs 5th in QF
+            qf1 = (seeds['Group A'][2], seeds['Group A'][5])
+            qf2 = (seeds['Group A'][3], seeds['Group A'][4])
+            bye1 = seeds['Group A'][0]
+            bye2 = seeds['Group A'][1]
+
         for idx, (h, a) in enumerate([qf1, qf2]):
             knockout_matches.append({
                 'round_name': "Play-In / Quarter-Finals",
@@ -688,7 +701,7 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             'round_name': "Semi-Finals",
             'round_number': 101,
             'group_name': "Knockout",
-            'home_team': seeds['Group A'][0],
+            'home_team': bye1,
             'away_team': sf1_away,
             'match_date': min(sf_date, end_date) if end_date else sf_date,
             'kickoff_time': slot_times[0],
@@ -699,7 +712,7 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             'round_name': "Semi-Finals",
             'round_number': 101,
             'group_name': "Knockout",
-            'home_team': seeds['Group B'][0],
+            'home_team': bye2,
             'away_team': sf2_away,
             'match_date': min(sf_date, end_date) if end_date else sf_date,
             'kickoff_time': slot_times[1 % len(slot_times)],
@@ -709,16 +722,16 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
 
         final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
         final_home = {
-            'id': seeds['Group A'][0]['id'],
-            'name': f"Winner Semi-Final 1 ({seeds['Group A'][0]['seed_label']})",
+            'id': bye1['id'],
+            'name': f"Winner Semi-Final 1 ({bye1['seed_label']})",
             'short_name': "W-SF1",
-            'get_logo_url': seeds['Group A'][0]['get_logo_url']
+            'get_logo_url': bye1['get_logo_url']
         }
         final_away = {
-            'id': seeds['Group B'][0]['id'],
-            'name': f"Winner Semi-Final 2 ({seeds['Group B'][0]['seed_label']})",
+            'id': bye2['id'],
+            'name': f"Winner Semi-Final 2 ({bye2['seed_label']})",
             'short_name': "W-SF2",
-            'get_logo_url': seeds['Group B'][0]['get_logo_url']
+            'get_logo_url': bye2['get_logo_url']
         }
         knockout_matches.append({
             'round_name': "Grand Championship Final",
