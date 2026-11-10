@@ -199,35 +199,81 @@
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 30px;
+            width: 100%;
         }
 
         .metric-card {
+            background: #ffffff;
+            color: var(--text);
+            padding: 18px 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            text-decoration: none;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
             background: var(--dark);
-            color: white;
-            padding: 19px 20px;
-            border: 1px solid #26342b;
-            border-radius: 4px;
+        }
+
+        .metric-card.accent-green::before {
+            background: #10b981;
+        }
+
+        .metric-card.accent-purple::before {
+            background: #8b5cf6;
+        }
+
+        .metric-card.accent-blue::before {
+            background: #3b82f6;
+        }
+
+        .metric-card.accent-amber::before {
+            background: #f59e0b;
         }
 
         .metric-label {
-            color: var(--muted);
-            font-size: 10px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .7px;
+            letter-spacing: .5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .metric-value {
-            font: 800 35px var(--font-heading);
-            margin: 5px 0;
-            color: #FFFFFF;
+            font: 900 36px var(--font-heading);
+            margin: 2px 0 0;
+            color: var(--dark);
+            line-height: 1;
         }
 
         .metric-note {
-            font-size: 10px;
-            color: var(--green);
+            font-size: 11px;
+            color: #68746a;
+            margin-top: 2px;
         }
 
         .content-grid {
@@ -580,7 +626,76 @@
                 margin-top: 0;
             }
         }
-    </style>
+
+        /* ALERT NOTIFICATIONS */
+        .alert-banner {
+            padding: 12px 18px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .alert-error {
+            background: #fde8e8;
+            color: #9b1c1c;
+            border: 1px solid #f8b4b4;
+        }
+        .alert-success, .alert-info {
+            background: #def7ec;
+            color: #03543f;
+            border: 1px solid #bcf0da;
+        }
+    
+        @media(max-width:768px) {
+            .page-heading {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+                margin-bottom: 18px !important;
+            }
+            .page-heading h1 {
+                font-size: 32px !important;
+                line-height: 1.1 !important;
+            }
+            .page-heading .btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .metrics {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+                margin-bottom: 18px !important;
+            }
+            .metric-card {
+                padding: 12px !important;
+                border-radius: 10px !important;
+            }
+            .metric-label {
+                font-size: 10px !important;
+            }
+            .metric-value {
+                font-size: 26px !important;
+                margin: 4px 0 !important;
+            }
+            .metric-note {
+                font-size: 9.5px !important;
+            }
+            .filter-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .filter-bar input.search,
+            .filter-bar select.filter {
+                width: 100% !important;
+                flex: auto !important;
+                min-width: 0 !important;
+            }
+        }
+</style>
 </head>
 
 <body>
@@ -606,10 +721,9 @@
     {% if messages %}
     <div class="container" style="margin-top:20px;">
         {% for message in messages %}
-        <div style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:10px;
-            {% if message.tags == 'error' %}background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;
-            {% else %}background:#def7ec;color:#03543f;border:1px solid #bcf0da;{% endif %}">
-            ● {{ message }}
+        <div class="alert-banner alert-{{ message.tags|default:'success' }}">
+            <span>● {{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;color:inherit;">✕</button>
         </div>
         {% endfor %}
     </div>
@@ -625,28 +739,28 @@
             <a class="btn" href="#add-league">＋ &nbsp; CREATE A LEAGUE <span>↗</span></a>
         </section>
 
-        <!-- METRICS -->
+        <!-- METRICS: ONLY HOSTED, COMPLETED, ONGOING, UPCOMING LEAGUES -->
         <section class="metrics">
-            <article class="metric-card">
-                <div class="metric-label">Total leagues</div>
+            <a href="/organizer/?status=all" class="metric-card accent-green" title="View all hosted competitions">
+                <div class="metric-label">🏆 Hosted leagues</div>
                 <div class="metric-value">{{ total_count|stringformat:"02d" }}</div>
                 <div class="metric-note">All competitions you organize</div>
-            </article>
-            <article class="metric-card">
-                <div class="metric-label">Active leagues</div>
+            </a>
+            <a href="/organizer/?status=COMPLETED" class="metric-card accent-purple" title="View completed competitions">
+                <div class="metric-label">🟢 Completed leagues</div>
+                <div class="metric-value">{{ completed_count|stringformat:"02d" }}</div>
+                <div class="metric-note">Concluded tournaments</div>
+            </a>
+            <a href="/organizer/?status=ACTIVE" class="metric-card accent-blue" title="View ongoing competitions">
+                <div class="metric-label">⚡ Ongoing leagues</div>
                 <div class="metric-value">{{ active_count|stringformat:"02d" }}</div>
                 <div class="metric-note">Currently running</div>
-            </article>
-            <article class="metric-card">
-                <div class="metric-label">Upcoming leagues</div>
+            </a>
+            <a href="/organizer/?status=UPCOMING" class="metric-card accent-amber" title="View upcoming competitions">
+                <div class="metric-label">⏳ Upcoming leagues</div>
                 <div class="metric-value">{{ upcoming_count|stringformat:"02d" }}</div>
                 <div class="metric-note">Ready for kickoff</div>
-            </article>
-            <article class="metric-card">
-                <div class="metric-label">Teams registered</div>
-                <div class="metric-value">{{ total_teams }}</div>
-                <div class="metric-note">Across your leagues</div>
-            </article>
+            </a>
         </section>
 
         {% if pending_count > 0 %}
@@ -754,10 +868,6 @@
                             <div class="field full">
                                 <label for="leagueName">League name *</label>
                                 <input id="leagueName" name="name" required maxlength="70" placeholder="e.g. Malabar Champions League">
-                            </div>
-                            <div class="field full">
-                                <label for="orgName">Host organization / Committee (optional)</label>
-                                <input id="orgName" name="organization_name" placeholder="e.g. Kozhikode District Football Association" value="{{ user.profile.organization_name|default:'' }}">
                             </div>
                             <div class="field">
                                 <label for="leagueFormat">Competition format *</label>

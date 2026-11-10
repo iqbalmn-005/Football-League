@@ -27,18 +27,50 @@ def super_admin_dashboard(request):
     ).count()
     pending_applications = OrganizerApplication.objects.filter(status=OrganizerApplication.Status.PENDING)
     pending_count = pending_applications.count()
+    pending_leagues_qs = Competition.objects.filter(status=CompetitionStatus.PENDING).select_related(
+        'primary_organizer', 'primary_organizer__profile', 'created_by', 'created_by__profile'
+    ).order_by('-created_at')
+    pending_leagues = list(pending_leagues_qs)
+    for comp in pending_leagues:
+        org_user = comp.primary_organizer or comp.created_by
+        if org_user:
+            comp.latest_application = OrganizerApplication.objects.filter(applicant=org_user).order_by('-created_at').first()
+        else:
+            comp.latest_application = None
+    pending_leagues_count = len(pending_leagues)
+    all_pending_count = pending_leagues_count
 
     active_competitions_count = Competition.objects.filter(status='ACTIVE').count()
+    upcoming_competitions_count = Competition.objects.filter(status=CompetitionStatus.UPCOMING).count()
+    completed_competitions_count = Competition.objects.filter(status=CompetitionStatus.COMPLETED).count()
     total_competitions_count = Competition.objects.count()
     total_teams_count = Team.objects.count()
     total_players_count = Player.objects.count()
     total_matches_count = Match.objects.count()
     completed_matches_count = Match.objects.filter(status=MatchStatus.COMPLETED).count()
+    scheduled_matches_count = Match.objects.filter(status__in=[MatchStatus.SCHEDULED, MatchStatus.POSTPONED]).count()
+    
+    # Category counts
+    eleven_side_count = Competition.objects.filter(category='11-a-side').count()
+    seven_side_count = Competition.objects.filter(category='7-a-side').count()
+    five_side_count = Competition.objects.filter(category='5-a-side').count()
+    youth_count = Competition.objects.filter(category='youth').count()
+
+    # Total platform goals
+    total_platform_goals = 0
+    for m in Match.objects.filter(status=MatchStatus.COMPLETED):
+        if m.home_score is not None and m.away_score is not None:
+            total_platform_goals += (m.home_score + m.away_score)
 
     # Lists for tabs
     applications = OrganizerApplication.objects.select_related('applicant', 'applicant__profile').order_by('-created_at')
-    competitions = Competition.objects.select_related('primary_organizer', 'created_by').prefetch_related('teams').all()
-    organizers = User.objects.filter(profile__role=UserRole.ORGANIZER).select_related('profile').order_by('-date_joined')
+    competitions = Competition.objects.exclude(status=CompetitionStatus.PENDING).select_related('primary_organizer', 'created_by').prefetch_related('teams').order_by('-created_at')
+    organizers = list(User.objects.filter(profile__role=UserRole.ORGANIZER).select_related('profile').order_by('-date_joined'))
+    for org in organizers:
+        assigned_ids = CompetitionAssignment.objects.filter(organizer=org).values_list('competition_id', flat=True)
+        org.all_hosted_competitions = list(Competition.objects.filter(
+            Q(primary_organizer=org) | Q(created_by=org) | Q(id__in=assigned_ids)
+        ).distinct().order_by('-created_at'))
     approved_organizers = User.objects.filter(
         profile__role=UserRole.ORGANIZER, profile__organizer_status=OrganizerStatus.APPROVED, profile__is_active_organizer=True
     ).select_related('profile')
@@ -48,18 +80,35 @@ def super_admin_dashboard(request):
     activity_logs = ActivityLog.objects.select_related('user').order_by('-created_at')[:100]
     platform_settings = PlatformSetting.get_settings()
 
+    top_organizers = sorted(organizers, key=lambda o: len(o.all_hosted_competitions), reverse=True)[:4]
+    recent_activity_logs = activity_logs[:6]
+
     context = {
         'active_tab': tab,
         'total_users': total_users,
         'total_organizers': total_organizers,
         'approved_organizers_count': approved_organizers_count,
         'pending_count': pending_count,
+        'pending_applications': pending_applications,
+        'pending_leagues': pending_leagues,
+        'pending_leagues_count': pending_leagues_count,
+        'all_pending_count': all_pending_count,
         'active_competitions_count': active_competitions_count,
+        'upcoming_competitions_count': upcoming_competitions_count,
+        'completed_competitions_count': completed_competitions_count,
         'total_competitions_count': total_competitions_count,
         'total_teams_count': total_teams_count,
         'total_players_count': total_players_count,
         'total_matches_count': total_matches_count,
         'completed_matches_count': completed_matches_count,
+        'scheduled_matches_count': scheduled_matches_count,
+        'eleven_side_count': eleven_side_count,
+        'seven_side_count': seven_side_count,
+        'five_side_count': five_side_count,
+        'youth_count': youth_count,
+        'total_platform_goals': total_platform_goals,
+        'top_organizers': top_organizers,
+        'recent_activity_logs': recent_activity_logs,
         'applications': applications,
         'competitions': competitions,
         'organizers': organizers,
@@ -200,6 +249,11 @@ def create_competition(request):
         assigned_organizer = None
         if organizer_id:
             assigned_organizer = User.objects.filter(id=organizer_id).first()
+        if not assigned_organizer and organizer_id != '':
+            assigned_organizer = request.user
+        if not assigned_organizer and not organizer_id:
+            # Default to current admin when creating competition
+            assigned_organizer = request.user
 
         comp = Competition.objects.create(
             name=name,
@@ -228,8 +282,21 @@ def create_competition(request):
             CompetitionAssignment.objects.get_or_create(
                 competition=comp,
                 organizer=assigned_organizer,
-                defaults={'assigned_by': request.user, 'role': CompetitionAssignment.Role.PRIMARY}
+                defaults={
+                    'assigned_by': request.user,
+                    'role': CompetitionAssignment.Role.PRIMARY,
+                    'can_edit_fixtures': True,
+                    'can_enter_results': True,
+                    'can_manage_teams': True
+                }
             )
+            # Ensure organizer profile is active so they can access console immediately
+            if hasattr(assigned_organizer, 'profile'):
+                if assigned_organizer.profile.role != UserRole.SUPER_ADMIN:
+                    assigned_organizer.profile.role = UserRole.ORGANIZER
+                assigned_organizer.profile.organizer_status = OrganizerStatus.APPROVED
+                assigned_organizer.profile.is_active_organizer = True
+                assigned_organizer.profile.save()
 
         ActivityLog.log('LEAGUE_CREATED', f"Created competition '{name}' ({season}).", user=request.user)
         messages.success(request, f"Competition '{name}' created successfully!")
@@ -356,7 +423,97 @@ def approve_competition(request, comp_id):
         ).update(status=OrganizerApplication.Status.APPROVED, reviewed_by=request.user, reviewed_at=timezone.now())
 
         ActivityLog.log('LEAGUE_APPROVED', f"Super Admin {request.user.username} approved league '{comp.name}'.", user=request.user)
+
+        if comp.created_by:
+            Notification.objects.create(
+                recipient=comp.created_by,
+                title="League Registration Approved!",
+                message=f"Congratulations! Your league '{comp.name}' has been approved and sanctioned by Super Admin. You can now manage fixtures and teams.",
+                notification_type="COMPETITION",
+                link=f"/organizer/{comp.id}/"
+            )
+
         messages.success(request, f"League '{comp.name}' approved and activated successfully!")
-    return redirect('/super-admin/?tab=competitions')
+    return redirect('/super-admin/?tab=approvals&subtab=leagues')
 
 
+
+
+@super_admin_required
+def reject_competition(request, comp_id):
+    if request.method == 'POST':
+        comp = get_object_or_404(Competition, id=comp_id)
+        reason = request.POST.get('rejection_reason', 'Criteria not met or incomplete details').strip()
+        comp.status = CompetitionStatus.ARCHIVED
+        comp.is_published = False
+        comp.save()
+
+        ActivityLog.log('LEAGUE_REJECTED', f"Super Admin {request.user.username} rejected league '{comp.name}'. Reason: {reason}", user=request.user)
+
+        if comp.created_by:
+            Notification.objects.create(
+                recipient=comp.created_by,
+                title="League Registration Update",
+                message=f"Your league registration for '{comp.name}' was not approved. Reason: {reason}",
+                notification_type="WARNING",
+                link="/organizer/"
+            )
+
+        messages.info(request, f"League registration '{comp.name}' has been declined.")
+    return redirect('/super-admin/?tab=approvals&subtab=leagues')
+
+
+def organizer_detail_page(request, user_id):
+    organizer = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    profile = getattr(organizer, 'profile', None)
+
+    # All competitions hosted by this organizer
+    assigned_ids = CompetitionAssignment.objects.filter(organizer=organizer).values_list('competition_id', flat=True)
+    all_competitions = Competition.objects.filter(
+        Q(primary_organizer=organizer) | Q(created_by=organizer) | Q(id__in=assigned_ids)
+    ).distinct().prefetch_related('teams').order_by('-created_at')
+
+    # Status filter from query params
+    status_filter = request.GET.get('status', 'all').lower()
+    search_q = request.GET.get('q', '').strip()
+
+    filtered_competitions = all_competitions
+    if search_q:
+        filtered_competitions = filtered_competitions.filter(
+            Q(name__icontains=search_q) |
+            Q(location__icontains=search_q) |
+            Q(season__icontains=search_q)
+        )
+
+    if status_filter == 'ongoing':
+        filtered_competitions = filtered_competitions.filter(status=CompetitionStatus.ACTIVE)
+    elif status_filter == 'completed':
+        filtered_competitions = filtered_competitions.filter(status=CompetitionStatus.COMPLETED)
+    elif status_filter == 'upcoming':
+        filtered_competitions = filtered_competitions.filter(status__in=[CompetitionStatus.UPCOMING, CompetitionStatus.PENDING])
+
+    # Global organizer league statistics
+    total_leagues_count = all_competitions.count()
+    ongoing_leagues_count = all_competitions.filter(status=CompetitionStatus.ACTIVE).count()
+    completed_leagues_count = all_competitions.filter(status=CompetitionStatus.COMPLETED).count()
+    upcoming_leagues_count = all_competitions.filter(status__in=[CompetitionStatus.UPCOMING, CompetitionStatus.PENDING]).count()
+
+    is_viewer_admin = (
+        request.user.is_authenticated and 
+        (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin))
+    )
+
+    context = {
+        'organizer': organizer,
+        'profile': profile,
+        'competitions': filtered_competitions,
+        'all_competitions': all_competitions,
+        'status_filter': status_filter,
+        'search_query': search_q,
+        'total_leagues_count': total_leagues_count,
+        'ongoing_leagues_count': ongoing_leagues_count,
+        'completed_leagues_count': completed_leagues_count,
+        'upcoming_leagues_count': upcoming_leagues_count,
+        'is_viewer_admin': is_viewer_admin,
+    }
+    return render(request, 'organizer_details.html', context)

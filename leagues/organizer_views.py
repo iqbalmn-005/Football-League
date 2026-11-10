@@ -32,6 +32,12 @@ def get_organizer_competitions(user):
 
 @approved_organizer_required
 def organizer_dashboard(request, comp_id=None):
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        if comp_id:
+            messages.info(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+            return redirect(f"/competition/{comp_id}/")
+        return redirect('/super-admin/?tab=leagues')
+
     user_competitions = get_organizer_competitions(request.user)
 
     if comp_id:
@@ -108,6 +114,7 @@ def organizer_dashboard(request, comp_id=None):
     total_count = user_competitions.count()
     active_count = user_competitions.filter(status=CompetitionStatus.ACTIVE).count()
     upcoming_count = user_competitions.filter(status=CompetitionStatus.UPCOMING).count()
+    completed_count = user_competitions.filter(status=CompetitionStatus.COMPLETED).count()
     pending_count = user_competitions.filter(status=CompetitionStatus.PENDING).count()
     total_teams = sum(c.teams.count() for c in user_competitions)
 
@@ -117,6 +124,8 @@ def organizer_dashboard(request, comp_id=None):
         'status_filter': status_f,
         'total_count': total_count,
         'active_count': active_count,
+        'ongoing_count': active_count,
+        'completed_count': completed_count,
         'upcoming_count': upcoming_count,
         'pending_count': pending_count,
         'total_teams': total_teams,
@@ -231,6 +240,9 @@ def organizer_create_competition(request):
 
 @approved_organizer_required
 def generate_fixtures_view(request, comp_id):
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
         teams_count = competition.teams.count()
@@ -255,6 +267,9 @@ def generate_fixtures_view(request, comp_id):
 
 @approved_organizer_required
 def add_fixture_view(request, comp_id):
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
         home_team_id = request.POST.get('home_team_id')
@@ -290,7 +305,7 @@ def add_fixture_view(request, comp_id):
             away_team=away_team,
             match_date=m_date,
             kickoff_time=k_time,
-            venue=venue or home_team.home_venue or "Central Stadium",
+            venue=venue or getattr(home_team, 'home_venue', '') or "Central Stadium",
             status=MatchStatus.SCHEDULED
         )
 
@@ -301,8 +316,12 @@ def add_fixture_view(request, comp_id):
 
 @approved_organizer_required
 def update_match_view(request, match_id):
+    match_obj = get_object_or_404(Match, id=match_id)
+    comp_id = match_obj.competition_id
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
-        match_obj = get_object_or_404(Match, id=match_id)
         comp_id = match_obj.competition_id
 
         match_date_str = request.POST.get('match_date')
@@ -341,8 +360,12 @@ def update_match_view(request, match_id):
 
 @approved_organizer_required
 def enter_match_result_view(request, match_id):
+    match_obj = get_object_or_404(Match, id=match_id)
+    comp_id = match_obj.competition_id
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
-        match_obj = get_object_or_404(Match, id=match_id)
         comp_id = match_obj.competition_id
 
         home_score = int(request.POST.get('home_score', 0))
@@ -419,6 +442,9 @@ def enter_match_result_view(request, match_id):
 
 @approved_organizer_required
 def add_team_view(request, comp_id):
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
 
@@ -436,22 +462,22 @@ def add_team_view(request, comp_id):
             messages.error(request, "Team name is required.")
             return redirect(f"/organizer/{comp_id}/?tab=teams")
 
-        # Get or create team
-        team, created = Team.objects.get_or_create(
-            name=team_name,
-            defaults={
+        # Get or create team using valid Team model fields
+        team = Team.objects.filter(name__iexact=team_name).first()
+        created = False
+        if not team:
+            create_kwargs = {
+                'name': team_name,
                 'short_name': short_name or team_name[:3].upper(),
                 'manager_name': manager_name,
-                'contact_email': contact_email,
-                'contact_phone': contact_phone,
-                'home_venue': home_venue,
-                'city': city,
-                'logo_url': logo_url,
                 'created_by': request.user
             }
-        )
+            if contact_phone:
+                create_kwargs['contact_phone'] = contact_phone
+            team = Team.objects.create(**create_kwargs)
+            created = True
 
-        if 'logo' in request.FILES:
+        if 'logo' in request.FILES and request.FILES['logo']:
             team.logo = request.FILES['logo']
             team.save()
 
@@ -500,6 +526,10 @@ def add_team_view(request, comp_id):
 
 @approved_organizer_required
 def add_player_view(request, team_id):
+    comp_id = request.POST.get('comp_id')
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(f"/competition/{comp_id}/" if comp_id else '/super-admin/?tab=leagues')
     if request.method == 'POST':
         team = get_object_or_404(Team, id=team_id)
         comp_id = request.POST.get('comp_id')
@@ -595,6 +625,9 @@ def invite_co_organizer_view(request, comp_id):
 
 @approved_organizer_required
 def update_competition_view(request, comp_id):
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit league details directly.")
+        return redirect(f"/competition/{comp_id}/")
     competition = get_object_or_404(Competition, id=comp_id)
     user_comps = get_organizer_competitions(request.user)
     if not (request.user.is_superuser or competition in user_comps):

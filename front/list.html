@@ -1989,6 +1989,8 @@
                 gap: 25px 12px;
             }
         }
+            .pill-active { background:#b4f56b; color:#101b16; }
+        .pill-inactive { background:rgba(16,27,22,0.85); color:white; }
     </style>
 </head>
 
@@ -2028,14 +2030,27 @@
     {% if messages %}
     <div class="container" style="margin-top:16px;">
         {% for message in messages %}
-        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;
-            {% if message.tags == 'error' %}background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;
-            {% elif message.tags == 'success' %}background:#def7ec;color:#03543f;border:1px solid #bcf0da;
-            {% elif message.tags == 'warning' %}background:#fdf6b2;color:#723b13;border:1px solid #fce96a;
-            {% else %}background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;{% endif %}">
+        {% if message.tags == 'error' %}
+        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
             <span>● {{ message }}</span>
             <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
         </div>
+        {% elif message.tags == 'success' %}
+        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
+            <span>● {{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+        </div>
+        {% elif message.tags == 'warning' %}
+        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fdf6b2;color:#723b13;border:1px solid #fce96a;">
+            <span>● {{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+        </div>
+        {% else %}
+        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;">
+            <span>● {{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
     {% endif %}
@@ -2123,7 +2138,7 @@
                         <a href="/competition/{{ comp.id }}/" aria-label="View {{ comp.name }}">
                             <div class="tournament-image">
                                 <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" loading="lazy">
-                                <span class="pill" style="{% if comp.status == 'ACTIVE' %}background:#b4f56b;color:#101b16;{% else %}background:rgba(16,27,22,0.85);color:white;{% endif %}">
+                                <span class="pill {% if comp.status == 'ACTIVE' %}pill-active{% else %}pill-inactive{% endif %}">
                                     {{ comp.get_status_display }}
                                 </span>
                             </div>

@@ -42,10 +42,14 @@ urlpatterns = [
     path('super-admin/application/<int:app_id>/approve/', admin_views.approve_application, name='approve_application'),
     path('super-admin/application/<int:app_id>/reject/', admin_views.reject_application, name='reject_application'),
     path('super-admin/organizer/<int:user_id>/toggle-status/', admin_views.toggle_organizer_status, name='toggle_organizer_status'),
+    path('organizer/<int:user_id>/details/', admin_views.organizer_detail_page, name='organizer_detail_page'),
+    path('organizer/profile/<int:user_id>/', admin_views.organizer_detail_page, name='organizer_profile_view'),
+    path('super-admin/organizer/<int:user_id>/', admin_views.organizer_detail_page, name='super_admin_organizer_detail'),
     path('super-admin/competition/create/', admin_views.create_competition, name='create_competition'),
     path('super-admin/competition/<int:comp_id>/assign/', admin_views.assign_competition, name='assign_competition'),
     path('super-admin/competition/<int:comp_id>/transfer/', admin_views.transfer_competition, name='transfer_competition'),
     path('super-admin/competition/<int:comp_id>/approve/', admin_views.approve_competition, name='approve_competition'),
+    path('super-admin/competition/<int:comp_id>/reject/', admin_views.reject_competition, name='reject_competition'),
     path('super-admin/settings/update/', admin_views.update_platform_settings, name='update_platform_settings'),
 
     # League Organizer Console (leagues, fixtures, matches, teams, standings apps)

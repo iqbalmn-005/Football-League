@@ -5751,9 +5751,7 @@
                 <section class="tab-content {% if active_tab == 'fixtures' %}active{% endif %}" id="fixtures">
                     {% if next_match %}
                     <!-- NEXT MATCH FIXTURE POSTER (LIKE USER REFERENCE IMAGE) -->
-                    <section class="match-fixture-poster next-match-hero-poster"
-                        onclick="openMatchModal('{{ next_match.id }}')" style="cursor:pointer;"
-                        title="Click to view match details">
+                    <section class="match-fixture-poster next-match-hero-poster" style="cursor:default;">
                         <div class="poster-top-header">
                             <span class="poster-title">NEXT MATCH</span>
                             <div class="poster-title-line"></div>
@@ -5795,8 +5793,7 @@
                             </a>
                         </div>
 
-                        <div class="poster-info-pill" onclick="openMatchModal('{{ next_match.id }}')"
-                            style="cursor:pointer;" title="Click to view match details">
+                        <div class="poster-info-pill" style="cursor:default;">
                             <span>📅 {{ next_match.match_date|date:"M d"|upper }}{% if next_match.kickoff_time %}, {{ next_match.kickoff_time|time:"h:i A"|upper }}{% endif %}</span>
                             <span class="poster-pill-divider">|</span>
                             <span>📍 {{ next_match.venue|default:"Payyanad Stadium"|upper }}</span>
@@ -6213,13 +6210,9 @@
                         <div class="card-heading">
                             <div>
                                 <h2>📊 Official League Standings &amp; Points Table</h2>
-                                <p class="card-subtitle">Automated calculation: Win = 3 pts, Draw = 1 pt, Loss = 0 pts.
-                                    Sorted by Points, GD, GF.</p>
+                                
                             </div>
-                            <form method="post" action="/organizer/{{ active_competition.id }}/recalculate-standings/">
-                                {% csrf_token %}
-                                <button class="btn btn-outline" type="submit">↺ Force Recalculate Table</button>
-                            </form>
+                            
                         </div>
 
                         <div class="table-wrap standings-table-wrap">
@@ -6249,7 +6242,7 @@
                                     <tr>
                                         <td class="col-pos"><strong>{{ row.position }}</strong></td>
                                         <td class="col-club">
-                                            <div style="display:flex;align-items:center;gap:7px;">
+                                            <a href="/organizer/team/{{ row.team.id }}/?competition={{ active_competition.id }}" style="display:flex;align-items:center;gap:7px;color:inherit;text-decoration:none;" title="View {{ row.team.name }} Details">
                                                 <div class="standings-mini-crest"
                                                     style="width:22px;height:22px;min-width:22px;border-radius:50%;overflow:hidden;background:#142019;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                                     {% if row.team.get_logo_url %}
@@ -6260,7 +6253,7 @@
                                                     {% endif %}
                                                 </div>
                                                 <strong class="standings-team-name">{{ row.team.name }}</strong>
-                                            </div>
+                                            </a>
                                         </td>
                                         <td class="center col-p">{{ row.played }}</td>
                                         <td class="center col-w">{{ row.won }}</td>
@@ -7590,40 +7583,7 @@
                         if (statusPill) statusPill.textContent = (data.status || 'COMPLETED').toUpperCase();
                     }
 
-                    // Populate scorers & red cards (no yellow cards, no assists)
-                    const homeList = document.getElementById('modalHomeScorersList');
-                    const awayList = document.getElementById('modalAwayScorersList');
-                    const scorersGrid = document.getElementById('modalScorersGrid');
-                    const noEventsNotice = document.getElementById('modalNoEventsNotice');
-                    const centerIcon = document.getElementById('modalCenterEventIcon');
-
-                    homeList.innerHTML = '';
-                    awayList.innerHTML = '';
-
-                    const homeHighlights = data.home_highlights || [];
-                    const awayHighlights = data.away_highlights || [];
-
-                    homeHighlights.forEach(h => {
-                        const isRed = h.icon === '🟥';
-                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
-                        homeList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
-                    });
-
-                    awayHighlights.forEach(h => {
-                        const isRed = h.icon === '🟥';
-                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
-                        awayList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
-                    });
-
-                    if (homeHighlights.length === 0 && awayHighlights.length === 0) {
-                        scorersGrid.style.display = 'none';
-                        noEventsNotice.style.display = 'block';
-                    } else {
-                        scorersGrid.style.display = 'grid';
-                        noEventsNotice.style.display = 'none';
-                        if (centerIcon) centerIcon.style.display = 'inline-block';
-                    }
-
+                    // Scorers & timeline removed per specification
                     const modal = document.getElementById('matchModal');
                     if (modal) {
                         modal.classList.add('active');
@@ -7731,9 +7691,7 @@
                         <h3 id="matchModalHomeName"
                             style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">
                             Home Team</h3>
-                        <div id="matchModalHomeRank"
-                            style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">
-                            —</div>
+                        
                     </div>
 
                     <!-- CENTER SCORE -->
@@ -7758,38 +7716,11 @@
                         <h3 id="matchModalAwayName"
                             style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">
                             Away Team</h3>
-                        <div id="matchModalAwayRank"
-                            style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">
-                            —</div>
+                        
                     </div>
                 </div>
 
-                <!-- SCORERS & EVENTS ROW (MATCHING USER SCREENSHOT SPEC) -->
-                <div style="margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);">
-                    <div id="modalScorersGrid"
-                        style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:flex-start;">
-                        <!-- HOME SCORERS -->
-                        <div id="modalHomeScorersList"
-                            style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;">
-                            <!-- Sumeet Passi 51' -->
-                        </div>
-
-                        <!-- CENTER ICON -->
-                        <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-                            <span id="modalCenterEventIcon"
-                                style="font-size:18px;color:#B4F56B;filter:drop-shadow(0 0 6px rgba(180,245,107,0.5));">⚽</span>
-                        </div>
-
-                        <!-- AWAY SCORERS -->
-                        <div id="modalAwayScorersList"
-                            style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right;">
-                            <!-- Francisco Feuillassier 35' -->
-                        </div>
-                    </div>
-                    <div id="modalNoEventsNotice"
-                        style="display:none;color:rgba(255,255,255,0.5);text-align:center;font-size:12px;padding:8px 0;">
-                        No goals or red cards recorded</div>
-                </div>
+                <!-- Match Details Timeline removed per specification -->
             </div>
 
             <!-- FOOTER -->

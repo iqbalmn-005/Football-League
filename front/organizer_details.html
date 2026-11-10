@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ organizer.get_full_name|default:organizer.username }} | Hosted Leagues | Touchline</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dark: #101b16;
+            --dark-card: #17251e;
+            --green: #b4f56b;
+            --green-hover: #c7ff88;
+            --green-dark: #245d3c;
+            --cream: #f5f6ef;
+            --soft-green: #e9efdf;
+            --white: #ffffff;
+            --muted: #68746a;
+            --muted-light: #94a398;
+            --text: #17221b;
+            --border: #e0e5da;
+            --border-dark: #26342b;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+            --red: #d93838;
+            --amber: #b58105;
+            --blue: #2563eb;
+            --purple: #7c3aed;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* TOPBAR NAVIGATION */
+        .topbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            height: 64px;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-heading);
+            font-size: 22px;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--dark);
+            text-decoration: none;
+        }
+
+        .brand-link span {
+            color: var(--green-dark);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .breadcrumb a {
+            color: var(--muted);
+            transition: color 0.15s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--dark);
+        }
+
+        .breadcrumb-sep {
+            color: var(--muted-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--dark);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--dark);
+            color: var(--green);
+        }
+
+        .btn-primary:hover {
+            background: #192e24;
+            color: #ffffff;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--soft-green);
+            border-color: var(--green-dark);
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            color: #ffffff;
+        }
+
+        /* PAGE CONTAINER */
+        .page-container {
+            max-width: 1240px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* HERO PROFILE CARD */
+        .hero-profile-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-main-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .profile-identity {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--dark);
+            color: var(--green);
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(16, 27, 22, 0.15);
+        }
+
+        .profile-info h1 {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .profile-org {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--green-dark);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .profile-handle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-left: 6px;
+            font-weight: 400;
+        }
+
+        .profile-badges {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-live {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .badge-suspended {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .badge-neutral {
+            background: var(--cream);
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .profile-contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .contact-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+
+        .contact-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dark);
+            word-break: break-word;
+        }
+
+        /* METRICS / STATS STRIP */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%;
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--dark);
+        }
+
+        .stat-card.accent-green::before {
+            background: var(--green);
+        }
+
+        .stat-card.accent-blue::before {
+            background: var(--blue);
+        }
+
+        .stat-card.accent-purple::before {
+            background: var(--purple);
+        }
+
+        .stat-card.accent-amber::before {
+            background: var(--amber);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+
+        .stat-number {
+            font-family: var(--font-heading);
+            font-size: 34px;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--dark);
+        }
+
+        .stat-subtext {
+            font-size: 11px;
+            color: var(--muted-light);
+            margin-top: 2px;
+        }
+
+        /* SECTION HEADINGS */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-btn:hover {
+            background: #e2e8f0;
+            color: var(--dark);
+        }
+
+        .filter-btn.active {
+            background: var(--dark);
+            color: var(--green);
+            border-color: var(--dark);
+        }
+
+        .search-input {
+            padding: 7px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            font-size: 12px;
+            color: var(--dark);
+            width: 240px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--green-dark);
+        }
+
+        /* LEAGUES SECTION */
+        .leagues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .league-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all 0.15s ease;
+        }
+
+        .league-card:hover {
+            border-color: var(--green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .league-card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .league-logo-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: var(--cream);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .league-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+
+        .league-card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+            padding: 12px 14px;
+            background: var(--cream);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .empty-state-box {
+            text-align: center;
+            padding: 56px 20px;
+            background: #ffffff;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+        }
+
+        .empty-state-icon {
+            font-size: 44px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 12px 10px 50px !important;
+                gap: 16px !important;
+            }
+
+            .hero-profile-card {
+                padding: 18px 14px !important;
+                border-radius: 12px !important;
+            }
+
+            .profile-main-row {
+                flex-direction: column !important;
+                gap: 12px !important;
+            }
+
+            .profile-identity {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+
+            .profile-avatar {
+                width: 56px !important;
+                height: 56px !important;
+                font-size: 24px !important;
+            }
+
+            .profile-info h1 {
+                font-size: 26px !important;
+            }
+
+            .profile-contact-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                padding: 12px 14px !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+
+            .stat-card {
+                padding: 14px 12px !important;
+            }
+
+            .stat-number {
+                font-size: 26px !important;
+            }
+
+            .filter-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+                padding: 10px 12px !important;
+            }
+
+            .filter-tabs {
+                width: 100% !important;
+                display: flex !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                padding-bottom: 2px !important;
+            }
+
+            .filter-tabs::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            .filter-btn {
+                flex-shrink: 0 !important;
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .search-input {
+                width: 100% !important;
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+            }
+
+            .leagues-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .league-card {
+                padding: 16px 14px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="/" class="brand-link">
+                TOUCH<span>LINE</span>
+            </a>
+            <div class="breadcrumb">
+                <span class="breadcrumb-sep">/</span>
+                {% if is_viewer_admin %}
+                <a href="/super-admin/?tab=organizers">Admin Console</a>
+                <span class="breadcrumb-sep">/</span>
+                {% else %}
+                <a href="/">Home</a>
+                <span class="breadcrumb-sep">/</span>
+                {% endif %}
+                <span class="breadcrumb-current">{{ organizer.get_full_name|default:organizer.username }}</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            {% if is_viewer_admin %}
+            <a href="/super-admin/?tab=organizers" class="btn btn-outline">
+                ← Back to Admin Console
+            </a>
+            {% else %}
+            <a href="/" class="btn btn-outline">
+                ← Back to Leagues
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- MAIN PAGE CONTAINER -->
+    <main class="page-container">
+
+        <!-- 1. HERO ORGANIZER PROFILE CARD -->
+        <section class="hero-profile-card">
+            <div class="profile-main-row">
+                <div class="profile-identity">
+                    <div class="profile-avatar">
+                        👔
+                    </div>
+                    <div class="profile-info">
+                        <h1>{{ organizer.get_full_name|default:organizer.username }}</h1>
+                        <div class="profile-org">
+                            <span>🏢 {{ profile.organization_name|default:"Independent League Organizer" }}</span>
+                            <span class="profile-handle">(@{{ organizer.username }})</span>
+                        </div>
+                        <div class="profile-badges">
+                            {% if profile.organizer_status == 'APPROVED' and profile.is_active_organizer %}
+                            <span class="badge-pill badge-live">✓ Active &amp; Sanctioned</span>
+                            {% elif profile.organizer_status == 'SUSPENDED' or not profile.is_active_organizer %}
+                            <span class="badge-pill badge-suspended">⛔ Suspended</span>
+                            {% elif profile.organizer_status == 'PENDING' %}
+                            <span class="badge-pill badge-neutral">⏳ Application Pending Review</span>
+                            {% else %}
+                            <span class="badge-pill badge-neutral">{{ profile.organizer_status }}</span>
+                            {% endif %}
+
+                            <span class="badge-pill badge-neutral">🏅 {{ profile.experience_years|default:"0" }} Years Experience</span>
+                            <span class="badge-pill badge-neutral">🛡️ Sanctioned Organizer</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if is_viewer_admin %}
+                <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+                    <form method="post" action="/super-admin/organizer/{{ organizer.id }}/toggle-status/">
+                        {% csrf_token %}
+                        {% if profile.organizer_status == 'SUSPENDED' or not profile.is_active_organizer %}
+                        <button class="btn btn-primary" type="submit">Reactivate Organizer</button>
+                        {% else %}
+                        <button class="btn btn-danger" type="submit">Suspend Organizer</button>
+                        {% endif %}
+                    </form>
+                    <small style="font-size:11px;color:var(--muted)">Admin Oversight Mode</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Contact Credentials Grid -->
+            <div class="profile-contact-grid">
+                <div class="contact-item">
+                    <span class="contact-label">📧 Email Address</span>
+                    <span class="contact-value">{{ organizer.email|default:"Not specified" }}</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">📞 Phone / Contact</span>
+                    <span class="contact-value">{{ profile.phone|default:"Not specified" }}</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">🏢 Organization / Club</span>
+                    <span class="contact-value">{{ profile.organization_name|default:"Independent Organizer" }}</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">📅 Member Since</span>
+                    <span class="contact-value">{{ organizer.date_joined|date:"d M Y" }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ORGANIZER STATS STRIP: ONLY LEAGUES (HOSTED, COMPLETED, ONGOING, UPCOMING) -->
+        <section class="stats-grid">
+            <a href="?status=all" style="text-decoration:none;display:contents;" title="View all tournaments">
+                <div class="stat-card accent-green">
+                    <span class="stat-label">🏆 Hosted Leagues</span>
+                    <span class="stat-number">{{ total_leagues_count }}</span>
+                    <span class="stat-subtext">Total tournaments managed</span>
+                </div>
+            </a>
+            <a href="?status=completed" style="text-decoration:none;display:contents;" title="View completed leagues">
+                <div class="stat-card accent-purple">
+                    <span class="stat-label">🟢 Completed Leagues</span>
+                    <span class="stat-number">{{ completed_leagues_count }}</span>
+                    <span class="stat-subtext">Seasons concluded</span>
+                </div>
+            </a>
+            <a href="?status=ongoing" style="text-decoration:none;display:contents;" title="View ongoing leagues">
+                <div class="stat-card accent-blue">
+                    <span class="stat-label">⚡ Ongoing Leagues</span>
+                    <span class="stat-number">{{ ongoing_leagues_count }}</span>
+                    <span class="stat-subtext">Currently active &amp; in play</span>
+                </div>
+            </a>
+            <a href="?status=upcoming" style="text-decoration:none;display:contents;" title="View upcoming leagues">
+                <div class="stat-card accent-amber">
+                    <span class="stat-label">⏳ Upcoming Leagues</span>
+                    <span class="stat-number">{{ upcoming_leagues_count }}</span>
+                    <span class="stat-subtext">Registration / Scheduled</span>
+                </div>
+            </a>
+        </section>
+
+        <!-- 3. LEAGUES & TOURNAMENTS HOSTED SECTION -->
+        <section id="leaguesSection">
+            <div class="section-header">
+                <h2>🏆 Leagues Hosted by {{ organizer.get_full_name|default:organizer.username }}</h2>
+                <div style="font-size:13px;color:var(--muted);font-weight:600;">
+                    Showing <strong id="leagueCountDisplay">{{ competitions|length }}</strong> of {{ total_leagues_count }} tournaments
+                </div>
+            </div>
+
+            <!-- Filter Controls for Leagues -->
+            <div class="filter-bar">
+                <div class="filter-tabs">
+                    <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}"
+                        class="filter-btn {% if status_filter == 'all' %}active{% endif %}">
+                        All Leagues ({{ total_leagues_count }})
+                    </a>
+                    <a href="?status=completed{% if search_query %}&q={{ search_query }}{% endif %}"
+                        class="filter-btn {% if status_filter == 'completed' %}active{% endif %}">
+                        Completed ({{ completed_leagues_count }})
+                    </a>
+                    <a href="?status=ongoing{% if search_query %}&q={{ search_query }}{% endif %}"
+                        class="filter-btn {% if status_filter == 'ongoing' %}active{% endif %}">
+                        Ongoing ({{ ongoing_leagues_count }})
+                    </a>
+                    <a href="?status=upcoming{% if search_query %}&q={{ search_query }}{% endif %}"
+                        class="filter-btn {% if status_filter == 'upcoming' %}active{% endif %}">
+                        Upcoming ({{ upcoming_leagues_count }})
+                    </a>
+                </div>
+
+                <div>
+                    <!-- Search Input for Leagues -->
+                    <input type="text" class="search-input" id="leagueSearchInput" placeholder="Search league or city..."
+                        value="{{ search_query }}" onkeyup="searchLeaguesClient(this.value)">
+                </div>
+            </div>
+
+            {% if competitions %}
+            <div class="leagues-grid" id="leaguesContainer">
+                {% for comp in competitions %}
+                <div class="league-card" data-name="{{ comp.name|lower }}" data-location="{{ comp.location|lower }}" data-season="{{ comp.season|lower }}">
+                    <div class="league-card-top">
+                        <div class="league-logo-box">
+                            {% if comp.logo_url %}
+                            <img src="{{ comp.logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                            {% elif comp.logo %}
+                            <img src="{{ comp.logo.url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                            {% else %}
+                            🏆
+                            {% endif %}
+                        </div>
+                        <div style="min-width:0;flex:1;">
+                            <div class="league-card-title">{{ comp.name }}</div>
+                            <small style="color:var(--muted);font-size:11px;">📍 {{ comp.location }}</small>
+                        </div>
+                        <span class="badge-pill {% if comp.status == 'ACTIVE' %}badge-live{% elif comp.status == 'COMPLETED' %}badge-neutral{% else %}badge-neutral{% endif %}">
+                            {{ comp.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="league-card-details">
+                        <div>
+                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Season</span>
+                            <strong>{{ comp.season }}</strong>
+                        </div>
+                        <div>
+                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Format</span>
+                            <strong>{{ comp.get_tournament_format_display }}</strong>
+                        </div>
+                        <div>
+                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Category</span>
+                            <strong>{{ comp.get_category_display }}</strong>
+                        </div>
+                        <div>
+                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Teams</span>
+                            <strong>{{ comp.teams.count }} / {{ comp.max_teams }}</strong>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;justify-content:flex-end;padding-top:4px;">
+                        <a href="/competition/{{ comp.id }}/" class="btn btn-primary" style="font-size:12px;padding:6px 16px;width:100%;text-align:center;">
+                            View League Portal
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state-box">
+                <span class="empty-state-icon">🛡️</span>
+                <h3 style="font-size:18px;margin-bottom:6px;color:var(--dark);">No Leagues Found</h3>
+                <p style="font-size:13px;color:var(--muted);">
+                    No competitions match the selected filter for this organizer.
+                </p>
+            </div>
+            {% endif %}
+        </section>
+
+    </main>
+
+    <script>
+        function searchLeaguesClient(query) {
+            const q = query.toLowerCase().trim();
+            const cards = document.querySelectorAll('.league-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const loc = card.getAttribute('data-location') || '';
+                const season = card.getAttribute('data-season') || '';
+                const text = name + ' ' + loc + ' ' + season;
+
+                if (!q || text.includes(q)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const countDisplay = document.getElementById('leagueCountDisplay');
+            if (countDisplay) {
+                countDisplay.textContent = visibleCount;
+            }
+        }
+    </script>
+
+</body>
+
+</html>

@@ -882,6 +882,236 @@
                 padding: 0 14px;
             }
         }
+    
+        /* MOBILE & RESPONSIVE POLISH */
+        @media (max-width: 900px) {
+            .container {
+                padding: 16px 14px 40px !important;
+            }
+            .team-stats-highlight-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 12px !important;
+                margin-bottom: 22px !important;
+            }
+            .team-matches-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 0 12px !important;
+                height: 58px !important;
+            }
+            .topbar-left {
+                gap: 8px !important;
+            }
+            .brand-link {
+                font-size: 18px !important;
+            }
+            .breadcrumb {
+                font-size: 11px !important;
+            }
+            .top-actions .btn {
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .team-hero {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 20px 14px !important;
+                border-radius: 12px !important;
+                margin-bottom: 18px !important;
+                gap: 16px !important;
+            }
+            .team-hero-main {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                gap: 14px !important;
+            }
+            .team-hero-crest {
+                width: 68px !important;
+                height: 68px !important;
+                min-width: 68px !important;
+                min-height: 68px !important;
+            }
+            .team-hero-info h1 {
+                font-size: 26px !important;
+                line-height: 1.15 !important;
+            }
+            .team-hero-meta {
+                justify-content: center !important;
+                gap: 8px 12px !important;
+                font-size: 11px !important;
+            }
+            .team-hero-actions {
+                width: 100% !important;
+                display: flex !important;
+                gap: 8px !important;
+            }
+            .team-hero-actions .btn {
+                flex: 1 !important;
+                padding: 9px 12px !important;
+                font-size: 12px !important;
+            }
+
+            /* 2x2 STAT HIGHLIGHT CARDS */
+            .team-stats-highlight-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+                margin-bottom: 20px !important;
+            }
+            .stat-highlight-card {
+                padding: 14px 12px !important;
+                border-radius: 8px !important;
+            }
+            .stat-highlight-card .stat-val {
+                font-size: 28px !important;
+            }
+
+            /* SQUAD PLAYERS GRID */
+            .squad-section {
+                padding: 16px 12px !important;
+                border-radius: 10px !important;
+                margin-bottom: 20px !important;
+            }
+            .squad-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+            .squad-header h2 {
+                font-size: 18px !important;
+            }
+            .filter-tabs {
+                width: 100% !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                padding-bottom: 4px !important;
+                scrollbar-width: none !important;
+            }
+            .filter-tabs::-webkit-scrollbar {
+                display: none !important;
+            }
+            .filter-tab {
+                padding: 5px 12px !important;
+                font-size: 10.5px !important;
+            }
+            .players-cards-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+            .player-card {
+                padding: 12px 8px !important;
+                border-radius: 8px !important;
+            }
+            .player-photo-wrap {
+                width: 62px !important;
+                height: 62px !important;
+                margin-bottom: 8px !important;
+            }
+            .player-name {
+                font-size: 13.5px !important;
+                line-height: 1.2 !important;
+                margin-bottom: 2px !important;
+            }
+            .player-position-text {
+                font-size: 10px !important;
+                margin-bottom: 6px !important;
+            }
+            .player-view-hint span {
+                font-size: 9.5px !important;
+                padding: 3px 6px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .team-stats-highlight-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .stat-highlight-card {
+                padding: 12px 8px !important;
+            }
+            .stat-highlight-card .stat-val {
+                font-size: 24px !important;
+            }
+            .players-cards-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    
+        /* SUB-HEADER TABS (MATCHES & PLAYERS) */
+        .team-sub-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .team-sub-tab {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .team-sub-tab:hover {
+            color: var(--dark);
+            background: var(--cream);
+        }
+
+        .team-sub-tab.active {
+            background: var(--dark);
+            color: var(--green);
+            box-shadow: 0 4px 12px rgba(16, 27, 22, 0.18);
+        }
+
+        .team-sub-tab .sub-tab-badge {
+            background: rgba(180, 245, 107, 0.2);
+            color: var(--green);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .team-sub-tab:not(.active) .sub-tab-badge {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .team-tab-pane {
+            animation: fadeInTab 0.2s ease-out;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
     </style>
 </head>
 
@@ -973,30 +1203,88 @@
             </div>
         </section>
 
-        <!-- SQUAD ROSTER SECTION -->
-        <section class="squad-section">
-            <div class="squad-header">
+        <!-- HIGHLIGHTED TEAM STANDING STATS (FIRST ON PAGE) -->
+        <div class="team-stats-highlight-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:28px;">
+            <!-- 1. GAMES PLAYED -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid var(--green-dark);border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">GAMES PLAYED</span>
+                    <span style="font-size:18px;">⚽</span>
+                </div>
+                <div style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;margin-bottom:6px;">{{ played|default:0 }}</div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">
+                    <span style="color:#15803d;font-weight:800;">{{ won|default:0 }}W</span> · 
+                    <span style="color:#b45309;font-weight:800;">{{ drawn|default:0 }}D</span> · 
+                    <span style="color:#b91c1c;font-weight:800;">{{ lost|default:0 }}L</span>
+                </div>
+            </div>
+
+            <!-- 2. POINTS -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid var(--green);border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">POINTS</span>
+                    <span style="font-size:18px;">🔥</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+                    <span style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">{{ points|default:0 }}</span>
+                    <span style="font-family:var(--font-heading);font-size:18px;font-weight:900;color:var(--green-dark);">PTS</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">{{ win_rate|default:0 }}% Win Rate</div>
+            </div>
+
+            <!-- 3. POSITION IN TABLE -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid #2563eb;border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">POSITION IN TABLE</span>
+                    <span style="font-size:18px;">🏆</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">#{{ position|default:"-" }}</span>
+                    {% if position == 1 %}
+                    <span style="background:rgba(180,245,107,0.25);color:var(--green-dark);border:1px solid var(--green);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;">LEADER</span>
+                    {% elif position and position <= 4 %}
+                    <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;">TOP 4</span>
+                    {% endif %}
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">{% if active_competition %}{{ active_competition.name }}{% else %}Official Standings{% endif %}</div>
+            </div>
+
+            <!-- 4. GOALS SCORED -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid #7c3aed;border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);position:relative;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">GOALS SCORED</span>
+                    <span style="font-size:18px;">🎯</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+                    <span class="stat-val" style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">{{ goals_for|default:0 }}</span>
+                    <span style="font-family:var(--font-heading);font-size:16px;font-weight:800;color:#7c3aed;">GOALS</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">Total Goals Scored</div>
+            </div>
+        </div>
+
+                <!-- SQUAD PLAYERS SECTION -->
+        <section class="squad-section" style="background:#ffffff;border:1.5px solid var(--border);border-radius:10px;padding:24px;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+            <div class="squad-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
                 <div>
-                    <h2>Squad Roster &amp; Player Cards</h2>
-                    <p style="font-size:12px;color:var(--muted);margin-top:2px;">
-                        Manage player profiles, jersey numbers, and field positions
-                    </p>
+                    <h2 style="font-family:var(--font-heading);font-size:22px;font-weight:900;color:var(--dark);text-transform:uppercase;letter-spacing:0.5px;margin:0;">👥 Squad Players ({{ players.count }})</h2>
+                    <p style="font-size:12px;color:var(--muted);margin-top:2px;">Official registered team roster</p>
                 </div>
 
                 <!-- POSITION FILTER CHIPS -->
-                <div class="filter-tabs">
-                    <button class="filter-tab active" onclick="filterPosition('ALL', this)">All ({{ players.count }})</button>
-                    <button class="filter-tab" onclick="filterPosition('GK', this)">GK ({{ gk_count }})</button>
-                    <button class="filter-tab" onclick="filterPosition('DEF', this)">DEF ({{ def_count }})</button>
-                    <button class="filter-tab" onclick="filterPosition('MID', this)">MID ({{ mid_count }})</button>
-                    <button class="filter-tab" onclick="filterPosition('FWD', this)">FWD ({{ fwd_count }})</button>
+                <div class="filter-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="filter-tab active" type="button" onclick="filterPosition('ALL', this)">All ({{ players.count }})</button>
+                    <button class="filter-tab" type="button" onclick="filterPosition('GK', this)">GK ({{ gk_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterPosition('DEF', this)">DEF ({{ def_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterPosition('MID', this)">MID ({{ mid_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterPosition('FWD', this)">FWD ({{ fwd_count|default:0 }})</button>
                 </div>
             </div>
 
             <!-- PLAYERS CARDS GRID -->
             <div class="players-cards-grid" id="playersGrid">
                 {% for p in players %}
-                <div class="player-card" data-pos="{{ p.position }}" onclick="openPlayerDetailModal('{{ p.id }}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){ openPlayerDetailModal('{{ p.id }}'); event.preventDefault(); }">
+                <div class="player-card" data-pos="{{ p.position }}" onclick="openPlayerDetailModal('{{ p.id }}')" role="button" tabindex="0" title="Click to view {{ p.full_name }} stats">
                     <!-- CARD TOP: JERSEY NUMBER & POSITION -->
                     <div class="player-card-top">
                         <span class="jersey-badge">#{{ p.jersey_number }}</span>
@@ -1014,7 +1302,7 @@
 
                     <!-- PLAYER NAME & POSITION DETAILS -->
                     <div class="player-name">{{ p.full_name }}</div>
-                    <div class="player-position-text">{{ p.get_position_display }}</div>
+                    <div class="player-position-text">{{ p.get_position_display }}{% if p.is_captain %} · <span style="color:#b45309;font-weight:800;">(C)</span>{% endif %}</div>
 
                     <!-- VIEW STATS HINT -->
                     <div class="player-view-hint">
@@ -1022,19 +1310,16 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="empty-squad">
-                    <div class="empty-squad-icon">🛡️</div>
-                    <h3 style="font-family:var(--font-heading);font-size:20px;color:var(--dark);margin-bottom:6px;">No Players in Squad Yet</h3>
-                    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
-                        Add players with their name, jersey number, position, and photo.
-                    </p>
-                    <button type="button" class="btn btn-primary" onclick="openAddPlayerModal()">
-                        + Add First Player
-                    </button>
+                <div class="empty-squad" style="grid-column:1/-1;text-align:center;padding:36px 16px;color:var(--muted);">
+                    <div style="font-size:36px;margin-bottom:8px;">🛡️</div>
+                    <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No Players in Squad Yet</strong>
+                    <p style="font-size:12px;margin:0 0 14px;">Add players with name, jersey number, and position.</p>
+                    <button type="button" class="btn btn-primary" onclick="openAddPlayerModal()">+ Add Player</button>
                 </div>
                 {% endfor %}
             </div>
         </section>
+        
 
     </main>
 
@@ -1329,7 +1614,8 @@
                 }
             });
         }
-    </script>
+    
+        </script>
 </body>
 
 </html>

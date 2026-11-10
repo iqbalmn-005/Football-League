@@ -2052,7 +2052,161 @@
             }
         }
 
-</style>
+
+        /* MOBILE POLISH FOR TEAM PROFILE */
+        @media (max-width: 900px) {
+            .team-kpis-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 12px !important;
+                margin-bottom: 22px !important;
+            }
+            .team-history-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+            }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px 12px 50px !important;
+            }
+            .team-banner {
+                padding: 20px 14px !important;
+                border-radius: 12px !important;
+                margin-bottom: 18px !important;
+            }
+            .team-kpis-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+                margin-bottom: 20px !important;
+            }
+            .stat-highlight-card {
+                padding: 14px 12px !important;
+            }
+            .stat-highlight-card .stat-val {
+                font-size: 28px !important;
+            }
+            .squad-section {
+                padding: 16px 12px !important;
+                border-radius: 10px !important;
+                margin-bottom: 20px !important;
+            }
+            .squad-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            .filter-tabs {
+                width: 100% !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                padding-bottom: 4px !important;
+                scrollbar-width: none !important;
+            }
+            .filter-tabs::-webkit-scrollbar {
+                display: none !important;
+            }
+            .players-cards-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+            .player-card {
+                padding: 12px 8px !important;
+            }
+            .player-photo-wrap {
+                width: 58px !important;
+                height: 58px !important;
+            }
+            .player-name {
+                font-size: 13.5px !important;
+            }
+        }
+        @media (max-width: 380px) {
+            .players-cards-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    
+        /* SUB-HEADER TABS (MATCHES & PLAYERS) */
+        .team-sub-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .team-sub-tab {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .team-sub-tab:hover {
+            color: var(--dark);
+            background: var(--cream);
+        }
+
+        .team-sub-tab.active {
+            background: var(--dark);
+            color: var(--green);
+            box-shadow: 0 4px 12px rgba(16, 27, 22, 0.18);
+        }
+
+        .team-sub-tab .sub-tab-badge {
+            background: rgba(180, 245, 107, 0.2);
+            color: var(--green);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .team-sub-tab:not(.active) .sub-tab-badge {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .team-tab-pane {
+            animation: fadeInTab 0.2s ease-out;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .team-sub-header {
+                padding: 4px !important;
+                margin-bottom: 18px !important;
+                gap: 6px !important;
+            }
+            .team-sub-tab {
+                padding: 8px 10px !important;
+                font-size: 12px !important;
+                gap: 6px !important;
+            }
+        }
+    
+    </style>
 </head>
 
 <body>
@@ -2111,110 +2265,116 @@
             </div>
         </div>
 
-        <!-- TEAM KPIS -->
-        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:30px;">
-            <div style="background:white;border:1px solid var(--border);border-radius:4px;padding:16px 20px;">
-                <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;">Matches Played</div>
-                <div style="font-size:28px;font-weight:900;margin:4px 0;">{{ played }}</div>
-                <div style="font-size:11px;color:#15803d;font-weight:700;">{{ won }} Wins · {{ drawn }} Draws · {{ lost }} Losses</div>
+        <!-- HIGHLIGHTED TEAM STANDING STATS (FIRST ON PAGE) -->
+        <div class="team-kpis-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:28px;">
+            <!-- 1. GAMES PLAYED -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid var(--green-dark);border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">GAMES PLAYED</span>
+                    <span style="font-size:18px;">⚽</span>
+                </div>
+                <div class="stat-val" style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;margin-bottom:6px;">{{ played|default:0 }}</div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">
+                    <span style="color:#15803d;font-weight:800;">{{ won|default:0 }}W</span> · 
+                    <span style="color:#b45309;font-weight:800;">{{ drawn|default:0 }}D</span> · 
+                    <span style="color:#b91c1c;font-weight:800;">{{ lost|default:0 }}L</span>
+                </div>
             </div>
-            <div style="background:white;border:1px solid var(--border);border-radius:4px;padding:16px 20px;">
-                <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;">Points Earned</div>
-                <div style="font-size:28px;font-weight:900;margin:4px 0;">{{ points }} PTS</div>
-                <div style="font-size:11px;color:var(--muted);">{{ win_rate }}% Win Rate</div>
+
+            <!-- 2. POINTS -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid var(--green);border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">POINTS</span>
+                    <span style="font-size:18px;">🔥</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+                    <span class="stat-val" style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">{{ points|default:0 }}</span>
+                    <span style="font-family:var(--font-heading);font-size:18px;font-weight:900;color:var(--green-dark);">PTS</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">{{ win_rate|default:0 }}% Win Rate</div>
             </div>
-            <div style="background:white;border:1px solid var(--border);border-radius:4px;padding:16px 20px;">
-                <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;">Goals &amp; Diff</div>
-                <div style="font-size:28px;font-weight:900;margin:4px 0;">{{ goals_for }} : {{ goals_against }}</div>
-                <div style="font-size:11px;color:var(--muted);">GD: {% if goal_diff > 0 %}+{% endif %}{{ goal_diff }}</div>
+
+            <!-- 3. POSITION IN TABLE -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid #2563eb;border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">POSITION IN TABLE</span>
+                    <span style="font-size:18px;">🏆</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span class="stat-val" style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">#{{ position|default:"-" }}</span>
+                    {% if position == 1 %}
+                    <span style="background:rgba(180,245,107,0.25);color:var(--green-dark);border:1px solid var(--green);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;">LEADER</span>
+                    {% elif position and position <= 4 %}
+                    <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;">TOP 4</span>
+                    {% endif %}
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">{% if active_competition %}{{ active_competition.name }}{% else %}Official Standings{% endif %}</div>
             </div>
-            <div style="background:white;border:1px solid var(--border);border-radius:4px;padding:16px 20px;">
-                <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;">Clean Sheets</div>
-                <div style="font-size:28px;font-weight:900;margin:4px 0;">{{ clean_sheets }}</div>
-                <div style="font-size:11px;color:var(--muted);">Defensive shutouts</div>
+
+            <!-- 4. GOALS SCORED (CONCEDED GOALS REMOVED PER SPEC) -->
+            <div class="stat-highlight-card" style="background:#ffffff;border:1.5px solid var(--border);border-top:4px solid #7c3aed;border-radius:8px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);">GOALS SCORED</span>
+                    <span style="font-size:18px;">🎯</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+                    <span class="stat-val" style="font-family:var(--font-heading);font-size:38px;font-weight:900;color:var(--dark);line-height:1;">{{ goals_for|default:0 }}</span>
+                    <span style="font-family:var(--font-heading);font-size:16px;font-weight:800;color:#7c3aed;">GOALS</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--muted);font-weight:600;">Total Goals Scored</div>
             </div>
         </div>
 
-        <!-- SQUAD ROSTER -->
-        <div style="background:white;border:1px solid var(--border);border-radius:6px;padding:24px;margin-bottom:30px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <!-- SQUAD PLAYERS SECTION -->
+        <div class="squad-section" style="background:#ffffff;border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:30px;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+            <div class="squad-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
                 <div>
-                    <h2 style="font-size:24px;text-transform:uppercase;margin:0;">Registered Squad Players ({{ players.count }})</h2>
+                    <h2 style="font-family:var(--font-heading);font-size:22px;font-weight:900;color:var(--dark);text-transform:uppercase;letter-spacing:0.5px;margin:0;">👥 Squad Players ({{ players.count }})</h2>
                     <p style="font-size:12px;color:var(--muted);margin-top:2px;">Official registered team roster</p>
+                </div>
+
+                <!-- POSITION FILTER CHIPS -->
+                <div class="filter-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="filter-tab active" type="button" onclick="filterTeamPosition('ALL', this)">All ({{ players.count }})</button>
+                    <button class="filter-tab" type="button" onclick="filterTeamPosition('GK', this)">GK ({{ gk_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterTeamPosition('DEF', this)">DEF ({{ def_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterTeamPosition('MID', this)">MID ({{ mid_count|default:0 }})</button>
+                    <button class="filter-tab" type="button" onclick="filterTeamPosition('FWD', this)">FWD ({{ fwd_count|default:0 }})</button>
                 </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:14px;">
+            <!-- PLAYERS CARDS GRID -->
+            <div class="players-cards-grid" id="publicPlayersGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));gap:14px;">
                 {% for p in players %}
-                <div style="background:#fafbfa;border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;align-items:center;gap:12px;">
-                    <div style="width:40px;height:40px;border-radius:50%;background:var(--cream);border:1px solid var(--border);overflow:hidden;flex-shrink:0;">
+                <div class="player-card" data-pos="{{ p.position }}" style="background:#fafbfa;border:1.5px solid var(--border);border-radius:8px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .2s ease,box-shadow .2s ease;">
+                    <!-- CARD TOP: JERSEY NUMBER & POSITION -->
+                    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span style="background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:13px;font-weight:900;padding:2px 7px;border-radius:4px;">#{{ p.jersey_number }}</span>
+                        <span class="position-badge pos-{{ p.position }}" style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;text-transform:uppercase;">{{ p.get_position_display }}</span>
+                    </div>
+
+                    <!-- PLAYER PHOTO -->
+                    <div class="player-photo-wrap" style="width:70px;height:70px;border-radius:50%;background:var(--cream);border:2px solid var(--border);overflow:hidden;margin-bottom:10px;display:flex;align-items:center;justify-content:center;">
+                        {% if p.photo or p.photo_url %}
                         <img src="{{ p.get_photo_url }}" alt="{{ p.full_name }}" style="width:100%;height:100%;object-fit:cover;">
+                        {% else %}
+                        <span style="font-family:var(--font-heading);font-size:24px;font-weight:900;color:var(--muted);">#{{ p.jersey_number }}</span>
+                        {% endif %}
                     </div>
-                    <div style="min-width:0;flex:1;">
-                        <div style="font-size:10px;font-weight:800;color:var(--green-dark);">#{{ p.jersey_number }} · {{ p.get_position_display }}</div>
-                        <strong style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.full_name }}</strong>
-                        <small style="color:var(--muted);font-size:11px;">Age {{ p.age|default:"N/A" }} · {{ p.nationality }}</small>
-                    </div>
+
+                    <!-- PLAYER NAME & POSITION DETAILS -->
+                    <strong class="player-name" style="font-family:var(--font-heading);font-size:16px;font-weight:800;color:var(--dark);line-height:1.2;margin-bottom:3px;display:block;">{{ p.full_name }}</strong>
+                    <div class="player-position-text" style="font-size:11px;color:var(--muted);font-weight:600;">{{ p.get_position_display }}{% if p.is_captain %} · <span style="color:#b45309;font-weight:800;">(C)</span>{% endif %}</div>
+                    {% if p.age %}
+                    <small style="color:var(--muted);font-size:10.5px;margin-top:2px;">Age {{ p.age }}{% if p.nationality %} · {{ p.nationality }}{% endif %}</small>
+                    {% endif %}
                 </div>
                 {% empty %}
-                <div style="grid-column:1/-1;text-align:center;padding:25px;color:var(--muted);">No players registered to this squad yet.</div>
+                <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">No players registered to this squad yet.</div>
                 {% endfor %}
             </div>
         </div>
-
-        <!-- MATCH HISTORY & FIXTURES -->
-        <div class="team-history-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-            <!-- RECENT RESULTS -->
-            <div style="background:white;border:1px solid var(--border);border-radius:6px;padding:20px;">
-                <h3 style="font-size:18px;text-transform:uppercase;margin-bottom:14px;">Recent Match Results</h3>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    {% for m in recent_matches %}
-                    <div class="team-match-card {% if forloop.first %}is-highlighted{% endif %}" onclick="openMatchModal('{{ m.id }}')" style="cursor:pointer;" title="Click to view game details">
-                        <div>
-                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-                                <span style="font-size:11px;color:var(--muted);">{{ m.tournament_round }} · {{ m.match_date|date:"d M Y" }}</span>
-                                {% if forloop.first %}
-                                <span style="background:#B4F56B;color:#101B16;font-size:9px;font-weight:900;padding:2px 6px;border-radius:3px;letter-spacing:0.4px;">🏆 LATEST RESULT</span>
-                                {% endif %}
-                            </div>
-                            <strong style="font-size:13px;"><a href="/team/{{ m.home_team.id }}/" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;">{{ m.home_team.short_name }}</a> vs <a href="/team/{{ m.away_team.id }}/" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;">{{ m.away_team.short_name }}</a></strong>
-                        </div>
-                        <div style="padding:4px 10px;background:var(--dark);color:var(--green);border-radius:3px;font-weight:900;font-size:14px;">
-                            {{ m.home_score }} : {{ m.away_score }}
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div style="color:var(--muted);text-align:center;padding:20px;">No completed matches on record.</div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- UPCOMING FIXTURES -->
-            <div style="background:white;border:1px solid var(--border);border-radius:6px;padding:20px;">
-                <h3 style="font-size:18px;text-transform:uppercase;margin-bottom:14px;">Upcoming Fixtures</h3>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    {% for m in upcoming_matches %}
-                    <div class="team-match-card {% if forloop.first %}is-highlighted{% endif %}" onclick="openMatchModal('{{ m.id }}')" style="cursor:pointer;" title="Click to view game details">
-                        <div>
-                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-                                <span style="font-size:11px;color:var(--muted);">{{ m.tournament_round }} · {{ m.match_date|date:"D, d M" }} @ {{ m.kickoff_time|time:"H:i" }}</span>
-                                {% if forloop.first %}
-                                <span style="background:#B4F56B;color:#101B16;font-size:9px;font-weight:900;padding:2px 6px;border-radius:3px;letter-spacing:0.4px;">⚡ NEXT MATCH</span>
-                                {% endif %}
-                            </div>
-                            <strong style="font-size:13px;"><a href="/team/{{ m.home_team.id }}/" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;">{{ m.home_team.name }}</a> vs <a href="/team/{{ m.away_team.id }}/" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;">{{ m.away_team.name }}</a></strong>
-                            <div style="font-size:11px;color:#68746a;">📍 {{ m.venue }}</div>
-                        </div>
-                        <div>
-                            <span style="font-size:11px;font-weight:800;padding:3px 8px;background:var(--cream);border-radius:2px;">Scheduled</span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div style="color:var(--muted);text-align:center;padding:20px;">No upcoming fixtures scheduled.</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        
 
     </main>
 
@@ -2250,7 +2410,7 @@
                             <span id="matchModalHomeFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">HME</span>
                         </div>
                         <h3 id="matchModalHomeName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Home Team</h3>
-                        <div id="matchModalHomeRank" style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">—</div>
+                        
                     </div>
 
                     <!-- CENTER SCORE -->
@@ -2267,30 +2427,11 @@
                             <span id="matchModalAwayFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">AWY</span>
                         </div>
                         <h3 id="matchModalAwayName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Away Team</h3>
-                        <div id="matchModalAwayRank" style="display:inline-block;background:rgba(180, 245, 107, 0.14);color:#B4F56B;border:1px solid rgba(180, 245, 107, 0.35);font-size:11px;font-weight:800;padding:2px 10px;border-radius:12px;letter-spacing:0.5px;">—</div>
+                        
                     </div>
                 </div>
 
-                <!-- SCORERS & EVENTS ROW (MATCHING USER SCREENSHOT SPEC) -->
-                <div style="margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);">
-                    <div id="modalScorersGrid" style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:flex-start;">
-                        <!-- HOME SCORERS -->
-                        <div id="modalHomeScorersList" style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;">
-                            <!-- Sumeet Passi 51' -->
-                        </div>
-
-                        <!-- CENTER ICON -->
-                        <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-                            <span id="modalCenterEventIcon" style="font-size:18px;color:#B4F56B;filter:drop-shadow(0 0 6px rgba(180,245,107,0.5));">⚽</span>
-                        </div>
-
-                        <!-- AWAY SCORERS -->
-                        <div id="modalAwayScorersList" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right;">
-                            <!-- Francisco Feuillassier 35' -->
-                        </div>
-                    </div>
-                    <div id="modalNoEventsNotice" style="display:none;color:rgba(255,255,255,0.5);text-align:center;font-size:12px;padding:8px 0;">No goals or red cards recorded</div>
-                </div>
+                <!-- Match Details Timeline removed per specification -->
             </div>
 
             <!-- FOOTER -->
@@ -2363,40 +2504,7 @@
                         if (statusPill) statusPill.textContent = (data.status || 'COMPLETED').toUpperCase();
                     }
 
-                    // Populate scorers & red cards (no yellow cards, no assists)
-                    const homeList = document.getElementById('modalHomeScorersList');
-                    const awayList = document.getElementById('modalAwayScorersList');
-                    const scorersGrid = document.getElementById('modalScorersGrid');
-                    const noEventsNotice = document.getElementById('modalNoEventsNotice');
-                    const centerIcon = document.getElementById('modalCenterEventIcon');
-
-                    homeList.innerHTML = '';
-                    awayList.innerHTML = '';
-
-                    const homeHighlights = data.home_highlights || [];
-                    const awayHighlights = data.away_highlights || [];
-
-                    homeHighlights.forEach(h => {
-                        const isRed = h.icon === '🟥';
-                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
-                        homeList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
-                    });
-
-                    awayHighlights.forEach(h => {
-                        const isRed = h.icon === '🟥';
-                        const prefix = isRed ? '<span style="color:#ff6b6b;margin-right:4px;">🟥</span>' : '';
-                        awayList.innerHTML += `<div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.5;">${prefix}${h.text}</div>`;
-                    });
-
-                    if (homeHighlights.length === 0 && awayHighlights.length === 0) {
-                        scorersGrid.style.display = 'none';
-                        noEventsNotice.style.display = 'block';
-                    } else {
-                        scorersGrid.style.display = 'grid';
-                        noEventsNotice.style.display = 'none';
-                        if (centerIcon) centerIcon.style.display = 'inline-block';
-                    }
-
+                    // Scorers & timeline removed per specification
                     const modal = document.getElementById('matchModal');
                     if (modal) {
                         modal.classList.add('active');
@@ -2427,7 +2535,21 @@
         window.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeMatchModal();
         });
-    </script>
+    
+        function filterTeamPosition(pos, btn) {
+            document.querySelectorAll('.filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            const cards = document.querySelectorAll('#publicPlayersGrid .player-card');
+            cards.forEach(card => {
+                if (pos === 'ALL' || card.getAttribute('data-pos') === pos) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    
+        </script>
 
 </body>
 </html>

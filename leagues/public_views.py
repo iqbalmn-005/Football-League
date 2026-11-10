@@ -70,7 +70,10 @@ def competition_viewer(request, comp_id):
     Public viewer for a specific league or tournament (front/user_dashboard.html).
     Contains: Upcoming Matches, Results, Standings, Statistics, Teams.
     """
-    competition = get_object_or_404(Competition, id=comp_id, is_published=True)
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        competition = get_object_or_404(Competition, id=comp_id)
+    else:
+        competition = get_object_or_404(Competition, id=comp_id, is_published=True)
 
     tab = request.GET.get('tab', 'upcoming')
     if tab == 'matches':

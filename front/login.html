@@ -366,11 +366,15 @@
         {% if messages %}
         <div style="margin-bottom:16px;">
             {% for message in messages %}
-            <div style="padding:10px 14px;border-radius:4px;margin-bottom:8px;font-size:12px;font-weight:700;
-                {% if message.tags == 'error' %}background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;
-                {% else %}background:#def7ec;color:#03543f;border:1px solid #bcf0da;{% endif %}">
+            {% if message.tags == 'error' %}
+            <div style="padding:10px 14px;border-radius:4px;margin-bottom:8px;font-size:12px;font-weight:700;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
                 ● {{ message }}
             </div>
+            {% else %}
+            <div style="padding:10px 14px;border-radius:4px;margin-bottom:8px;font-size:12px;font-weight:700;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
+                ● {{ message }}
+            </div>
+            {% endif %}
             {% endfor %}
         </div>
         {% endif %}
