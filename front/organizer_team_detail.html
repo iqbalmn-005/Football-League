@@ -1550,6 +1550,21 @@
         </div>
     </div>
 
+    <!-- EMBEDDED SQUAD PLAYERS DATA (APPLICATION/JSON IS LINTER & DJANGO COMPLIANT) -->
+    <script id="existingPlayersJson" type="application/json">
+        [
+            {% for p in players %}
+            {
+                "id": {{ p.id }},
+                "name": "{{ p.full_name|escapejs }}",
+                "number": {{ p.jersey_number }},
+                "position": "{{ p.position }}",
+                "photo": "{% if p.photo %}{{ p.photo.url|escapejs }}{% endif %}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+
     <!-- JAVASCRIPT: MODAL & POSITION FILTER -->
     <script>
         // Track current player being viewed / edited / deleted
@@ -1557,17 +1572,15 @@
         let currentPlayerObj = null;
 
         // Map of all existing players in squad for immediate duplicate checks
-        const existingPlayers = {
-            {% for p in players %}
-            "{{ p.id }}": {
-                id: {{ p.id }},
-                name: "{{ p.full_name|escapejs }}",
-                number: {{ p.jersey_number }},
-                position: "{{ p.position }}",
-                photo: "{% if p.photo %}{{ p.photo.url }}{% endif %}"
-            },
-            {% endfor %}
-        };
+        const existingPlayers = {};
+        try {
+            const rawPlayers = JSON.parse(document.getElementById('existingPlayersJson').textContent || '[]');
+            rawPlayers.forEach(p => {
+                existingPlayers[p.id] = p;
+            });
+        } catch (err) {
+            console.error("Error loading squad players:", err);
+        }
 
         // --- BACK BUTTON NAVIGATION (Redirects to previous page, avoiding form POST replay loops) ---
         function goBackToPreviousPage(event) {
