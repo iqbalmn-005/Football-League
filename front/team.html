@@ -2261,7 +2261,7 @@
             </div>
 
             <div>
-                <a href="javascript:history.back()" class="btn btn-outline" style="color:white;border-color:#58635b;">← Back</a>
+                <a href="javascript:void(0)" onclick="goBackToPreviousPage(event)" class="btn btn-outline" style="color:white;border-color:#58635b;">← Back</a>
             </div>
         </div>
 
@@ -2525,6 +2525,15 @@
                 modal.classList.remove('open');
             }
             document.body.style.overflow = '';
+        }
+
+        function goBackToPreviousPage(event) {
+            if (event) event.preventDefault();
+            if (document.referrer && !document.referrer.includes(window.location.pathname)) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = '/';
+            }
         }
 
         window.addEventListener('click', function(e) {

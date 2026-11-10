@@ -536,7 +536,7 @@ def add_player_view(request, team_id):
 
         full_name = request.POST.get('full_name', '').strip()
         jersey_number = int(request.POST.get('jersey_number', 0))
-        position = request.POST.get('position', 'FWD')
+        position = request.POST.get('position', '').strip()
         dob_str = request.POST.get('date_of_birth')
         nationality = request.POST.get('nationality', 'United Kingdom').strip()
         photo_url = request.POST.get('photo_url', '').strip()
@@ -545,8 +545,12 @@ def add_player_view(request, team_id):
             messages.error(request, "Player name and positive jersey number are required.")
             return redirect(f"/organizer/{comp_id}/?tab=teams" if comp_id else 'organizer_dashboard')
 
+        if not position:
+            messages.error(request, "Please select a player position.")
+            return redirect(f"/organizer/{comp_id}/?tab=teams" if comp_id else 'organizer_dashboard')
+
         if Player.objects.filter(team=team, jersey_number=jersey_number).exists():
-            messages.error(request, f"Jersey #{jersey_number} is already taken in {team.name}.")
+            messages.error(request, f"Jersey #{jersey_number} is already taken in {team.name}. Player not submitted.")
             return redirect(f"/organizer/{comp_id}/?tab=teams" if comp_id else 'organizer_dashboard')
 
         dob = None

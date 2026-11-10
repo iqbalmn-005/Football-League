@@ -6958,16 +6958,17 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                         <div class="form-group">
                             <label>Jersey Number *</label>
-                            <input type="number" class="field" name="jersey_number" min="1" max="99" value="10"
+                            <input type="number" class="field" name="jersey_number" min="1" max="99" placeholder="e.g. 7"
                                 required>
                         </div>
                         <div class="form-group">
                             <label>Position *</label>
-                            <select class="field" name="position">
+                            <select class="field" name="position" required>
+                                <option value="" disabled selected>Select Position</option>
                                 <option value="GK">Goalkeeper (GK)</option>
                                 <option value="DEF">Defender (DEF)</option>
                                 <option value="MID">Midfielder (MID)</option>
-                                <option value="FWD" selected>Forward / Striker (FWD)</option>
+                                <option value="FWD">Forward / Striker (FWD)</option>
                             </select>
                         </div>
                     </div>

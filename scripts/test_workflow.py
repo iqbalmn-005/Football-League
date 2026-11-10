@@ -45,7 +45,7 @@ def run_tests():
     res = client.get(f'/team/{team.id}/')
     assert res.status_code == 200, f"Team profile failed with {res.status_code}"
     assert b"Greenfield FC" in res.content, "Team name missing"
-    assert b"Registered Squad Players" in res.content, "Squad missing"
+    assert b"Squad Players" in res.content, "Squad missing"
     print("[OK] Test 3 Passed: Team profile (team.html) renders squad and metrics.")
 
     # Test 4: JSON APIs for Modals

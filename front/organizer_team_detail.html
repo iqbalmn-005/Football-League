@@ -1137,11 +1137,11 @@
 
         <div class="top-actions">
             {% if active_competition %}
-            <a href="/organizer/{{ active_competition.id }}/?tab=teams" class="btn btn-outline">
+            <a href="/organizer/{{ active_competition.id }}/?tab=teams" class="btn btn-outline" id="btnBackToPreviousPage" onclick="goBackToPreviousPage(event)">
                 ← Back to Tournament
             </a>
             {% else %}
-            <a href="/organizer/" class="btn btn-outline">
+            <a href="/organizer/" class="btn btn-outline" id="btnBackToPreviousPage" onclick="goBackToPreviousPage(event)">
                 ← Back to Console
             </a>
             {% endif %}
@@ -1331,26 +1331,28 @@
                 <button type="button" class="modal-close-btn" onclick="closeAddPlayerModal()">✕</button>
             </div>
 
-            <form method="post" action="/organizer/team/{{ team.id }}/player/add/" enctype="multipart/form-data">
+            <form id="addPlayerForm" method="post" action="/organizer/team/{{ team.id }}/player/add/" enctype="multipart/form-data" onsubmit="return validateAddPlayerForm(event)">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Player Name *</label>
-                        <input type="text" class="form-control" name="full_name" placeholder="e.g. Bukayo Saka" required autofocus>
+                        <input type="text" class="form-control" id="addPlayerName" name="full_name" placeholder="e.g. Bukayo Saka" required autofocus>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                         <div class="form-group">
                             <label>Jersey Number *</label>
-                            <input type="number" class="form-control" name="jersey_number" min="1" max="99" value="10" required>
+                            <input type="number" class="form-control" id="addPlayerJersey" name="jersey_number" min="1" max="99" placeholder="e.g. 7" required oninput="validateAddPlayerJersey()">
+                            <div id="addPlayerJerseyError" style="display:none;color:#dc2626;font-size:11.5px;font-weight:700;margin-top:5px;line-height:1.3;"></div>
                         </div>
                         <div class="form-group">
                             <label>Position *</label>
-                            <select class="form-control" name="position" required>
-                                <option value="FWD" selected>Forward (FWD)</option>
-                                <option value="MID">Midfielder (MID)</option>
-                                <option value="DEF">Defender (DEF)</option>
+                            <select class="form-control" id="addPlayerPosition" name="position" required>
+                                <option value="" disabled selected>Select Position</option>
                                 <option value="GK">Goalkeeper (GK)</option>
+                                <option value="DEF">Defender (DEF)</option>
+                                <option value="MID">Midfielder (MID)</option>
+                                <option value="FWD">Forward (FWD)</option>
                             </select>
                         </div>
                     </div>
@@ -1366,9 +1368,98 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeAddPlayerModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Player</button>
+                    <button type="submit" class="btn btn-primary" id="addPlayerSubmitBtn">Save Player</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT PLAYER (ONLY NAME, POSITION, JERSEY NUMBER, PHOTO) -->
+    <div class="modal-backdrop" id="editPlayerModal" onclick="closeEditPlayerModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:18px;">✏️</span>
+                    <h3 style="margin:0;font-size:18px;">Edit Player</h3>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeEditPlayerModal()">✕</button>
+            </div>
+
+            <form id="editPlayerForm" method="post" action="" enctype="multipart/form-data" onsubmit="return validateEditPlayerForm(event)">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- ONLY 4 EDITABLE FIELDS: NAME, POSITION, JERSEY NUMBER, PHOTO -->
+                    <div class="form-group">
+                        <label>Player Name *</label>
+                        <input type="text" class="form-control" id="editPlayerName" name="full_name" required>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="form-group">
+                            <label>Jersey Number *</label>
+                            <input type="number" class="form-control" id="editPlayerJersey" name="jersey_number" min="1" max="99" required oninput="validateEditPlayerJersey()">
+                            <div id="editPlayerJerseyError" style="display:none;color:#dc2626;font-size:11.5px;font-weight:700;margin-top:5px;line-height:1.3;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Position *</label>
+                            <select class="form-control" id="editPlayerPosition" name="position" required>
+                                <option value="" disabled>Select Position</option>
+                                <option value="GK">Goalkeeper (GK)</option>
+                                <option value="DEF">Defender (DEF)</option>
+                                <option value="MID">Midfielder (MID)</option>
+                                <option value="FWD">Forward (FWD)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Player Photo (Upload to Change)</label>
+                        <div id="editPlayerCurrentPhotoWrap" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                            <img id="editPlayerCurrentPhoto" src="" alt="Current Photo" style="width:38px;height:38px;border-radius:6px;object-fit:cover;border:1px solid var(--border);display:none;">
+                            <span id="editPlayerCurrentPhotoFallback" style="font-size:12px;color:var(--muted);">No custom photo uploaded</span>
+                        </div>
+                        <input type="file" class="form-control" name="photo" accept="image/*">
+                        <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block;">
+                            Leave empty to keep existing photo. Supported: PNG, JPG, JPEG, WEBP.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditPlayerModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="editPlayerSubmitBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: DELETE PLAYER CONFIRMATION (POP UP WINDOW, NO BROWSER ALERT) -->
+    <div class="modal-backdrop" id="deletePlayerModal" onclick="closeDeletePlayerModal(event)">
+        <div class="modal-card" style="max-width:440px;" onclick="event.stopPropagation()">
+            <div class="modal-header" style="border-bottom:1px solid #fee2e2;background:#fff5f5;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:22px;">🗑️</span>
+                    <h3 style="margin:0;font-size:18px;color:#991b1b;">Remove Player from Squad?</h3>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeDeletePlayerModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding:20px;">
+                <p style="font-size:13.5px;color:var(--text);margin:0 0 10px;line-height:1.5;">
+                    Are you sure you want to remove <strong id="deletePlayerConfirmName" style="color:var(--dark);">this player</strong> from <strong>{{ team.name }}</strong>?
+                </p>
+                <p style="font-size:12px;color:var(--muted);margin:0;">
+                    Their squad card will be removed from this tournament roster.
+                </p>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;background:#fafafa;">
+                <button type="button" class="btn btn-outline" onclick="closeDeletePlayerModal()">Cancel</button>
+                <form id="modalRemovePlayerForm" method="post" action="" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="background:#dc2626;color:#ffffff;font-weight:700;">
+                        ✕ Yes, Delete Player
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1442,25 +1533,88 @@
                 </div>
             </div>
 
-            <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
-                <!-- REMOVE PLAYER ACTION IN STATS MODAL -->
-                <form id="modalRemovePlayerForm" method="post" action="" onsubmit="return confirmRemovePlayer();">
-                    {% csrf_token %}
-                    <button type="submit" class="modal-remove-player-btn" title="Remove this player from the squad">
-                        ✕ Remove Player
-                    </button>
-                </form>
+            <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <!-- REMOVE PLAYER BUTTON (OPENS CUSTOM POP UP MODAL) -->
+                <button type="button" class="modal-remove-player-btn" onclick="openDeletePlayerModal()" title="Remove this player from the squad">
+                    ✕ Remove Player
+                </button>
 
-                <button type="button" class="btn btn-outline" onclick="closePlayerDetailModal()">Close</button>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <!-- EDIT PLAYER BUTTON (OPENS EDIT MODAL: NAME, POSITION, JERSEY, PHOTO ONLY) -->
+                    <button type="button" class="btn btn-primary" onclick="openEditPlayerModal()" style="font-size:12px;padding:7px 16px;display:inline-flex;align-items:center;gap:6px;">
+                        ✏️ Edit Player
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closePlayerDetailModal()">Close</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- JAVASCRIPT: MODAL & POSITION FILTER -->
     <script>
+        // Track current player being viewed / edited / deleted
+        let currentPlayerId = null;
+        let currentPlayerObj = null;
+
+        // Map of all existing players in squad for immediate duplicate checks
+        const existingPlayers = {
+            {% for p in players %}
+            "{{ p.id }}": {
+                id: {{ p.id }},
+                name: "{{ p.full_name|escapejs }}",
+                number: {{ p.jersey_number }},
+                position: "{{ p.position }}",
+                photo: "{% if p.photo %}{{ p.photo.url }}{% endif %}"
+            },
+            {% endfor %}
+        };
+
+        // --- BACK BUTTON NAVIGATION (Redirects to previous page, avoiding form POST replay loops) ---
+        function goBackToPreviousPage(event) {
+            if (event) event.preventDefault();
+            const fallbackUrl = "{% if active_competition %}/organizer/{{ active_competition.id }}/?tab=teams{% else %}/organizer/{% endif %}";
+            const stored = sessionStorage.getItem('organizer_prev_page_{{ team.id }}');
+            if (stored && !stored.includes('/organizer/team/{{ team.id }}/')) {
+                window.location.href = stored;
+            } else {
+                window.location.href = fallbackUrl;
+            }
+        }
+
+        // Initialize back navigation memory and popstate trap
+        (function initBackNavigation() {
+            const ref = document.referrer;
+            if (ref && !ref.includes('/organizer/team/{{ team.id }}/')) {
+                sessionStorage.setItem('organizer_prev_page_{{ team.id }}', ref);
+            }
+            if (window.history && window.history.pushState) {
+                window.history.pushState({ page: 'team_detail_active' }, '', window.location.href);
+                window.addEventListener('popstate', function(e) {
+                    goBackToPreviousPage();
+                });
+            }
+        })();
+
+        // --- ADD PLAYER MODAL & VALIDATION ---
         function openAddPlayerModal() {
+            // Reset fields
+            document.getElementById('addPlayerName').value = '';
+            document.getElementById('addPlayerJersey').value = '';
+            document.getElementById('addPlayerPosition').value = '';
+            
+            const errEl = document.getElementById('addPlayerJerseyError');
+            if (errEl) {
+                errEl.style.display = 'none';
+                errEl.textContent = '';
+            }
+            document.getElementById('addPlayerJersey').style.borderColor = '';
+            document.getElementById('addPlayerSubmitBtn').disabled = false;
+
             document.getElementById('addPlayerModal').classList.add('open');
             document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                document.getElementById('addPlayerName').focus();
+            }, 100);
         }
 
         function closeAddPlayerModal(event) {
@@ -1471,8 +1625,191 @@
             document.body.style.overflow = '';
         }
 
-        // Open and fetch Player Details Modal
+        function validateAddPlayerJersey() {
+            const input = document.getElementById('addPlayerJersey');
+            const errEl = document.getElementById('addPlayerJerseyError');
+            const submitBtn = document.getElementById('addPlayerSubmitBtn');
+            const val = parseInt(input.value, 10);
+
+            if (!val || isNaN(val)) {
+                errEl.style.display = 'none';
+                input.style.borderColor = '';
+                submitBtn.disabled = false;
+                return true;
+            }
+
+            // Check if jersey number is already taken in this squad
+            const takenBy = Object.values(existingPlayers).find(p => p.number === val);
+            if (takenBy) {
+                errEl.style.display = 'block';
+                errEl.textContent = `⚠️ Jersey #${val} is already assigned to ${takenBy.name}. Please select a different number.`;
+                input.style.borderColor = '#dc2626';
+                submitBtn.disabled = true;
+                return false;
+            } else {
+                errEl.style.display = 'none';
+                errEl.textContent = '';
+                input.style.borderColor = '';
+                submitBtn.disabled = false;
+                return true;
+            }
+        }
+
+        function validateAddPlayerForm(event) {
+            const pos = document.getElementById('addPlayerPosition').value;
+            if (!pos) {
+                if (event) event.preventDefault();
+                alert('Please select a player position.');
+                document.getElementById('addPlayerPosition').focus();
+                return false;
+            }
+            if (!validateAddPlayerJersey()) {
+                if (event) event.preventDefault();
+                document.getElementById('addPlayerJersey').focus();
+                return false;
+            }
+            return true;
+        }
+
+        // --- EDIT PLAYER MODAL & VALIDATION (Strictly: Name, Position, Jersey, Photo) ---
+        function openEditPlayerModal() {
+            // Close detail view first
+            const detailModal = document.getElementById('playerDetailModal');
+            if (detailModal) detailModal.classList.remove('open');
+
+            const p = (currentPlayerObj && (currentPlayerObj.id === currentPlayerId || !currentPlayerObj.id)) 
+                ? currentPlayerObj 
+                : existingPlayers[currentPlayerId];
+            if (!p) return;
+
+            document.getElementById('editPlayerName').value = p.full_name || p.name || '';
+            document.getElementById('editPlayerJersey').value = (p.jersey_number !== undefined) ? p.jersey_number : (p.number || '');
+            
+            const posVal = p.position_code || p.position || '';
+            document.getElementById('editPlayerPosition').value = posVal;
+
+            const photoUrl = p.photo_url || p.photo || '';
+            const previewEl = document.getElementById('editPlayerCurrentPhoto');
+            const fallbackEl = document.getElementById('editPlayerCurrentPhotoFallback');
+            if (photoUrl) {
+                previewEl.src = photoUrl;
+                previewEl.style.display = 'block';
+                fallbackEl.style.display = 'none';
+            } else {
+                previewEl.style.display = 'none';
+                fallbackEl.style.display = 'inline';
+            }
+
+            const editForm = document.getElementById('editPlayerForm');
+            editForm.action = '/organizer/team/{{ team.id }}/player/' + currentPlayerId + '/edit/';
+
+            const errEl = document.getElementById('editPlayerJerseyError');
+            if (errEl) {
+                errEl.style.display = 'none';
+                errEl.textContent = '';
+            }
+            document.getElementById('editPlayerJersey').style.borderColor = '';
+            document.getElementById('editPlayerSubmitBtn').disabled = false;
+
+            document.getElementById('editPlayerModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                document.getElementById('editPlayerName').focus();
+            }, 100);
+        }
+
+        function closeEditPlayerModal(event) {
+            if (event && event.target !== document.getElementById('editPlayerModal') && !event.target.classList.contains('modal-close-btn') && !event.target.classList.contains('btn-outline')) {
+                return;
+            }
+            document.getElementById('editPlayerModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function validateEditPlayerJersey() {
+            const input = document.getElementById('editPlayerJersey');
+            const errEl = document.getElementById('editPlayerJerseyError');
+            const submitBtn = document.getElementById('editPlayerSubmitBtn');
+            const val = parseInt(input.value, 10);
+
+            if (!val || isNaN(val)) {
+                errEl.style.display = 'none';
+                input.style.borderColor = '';
+                submitBtn.disabled = false;
+                return true;
+            }
+
+            // Check if taken by another player in the squad (excluding this player)
+            const takenBy = Object.values(existingPlayers).find(p => p.number === val && String(p.id) !== String(currentPlayerId));
+            if (takenBy) {
+                errEl.style.display = 'block';
+                errEl.textContent = `⚠️ Jersey #${val} is already assigned to ${takenBy.name}. Please select a different number.`;
+                input.style.borderColor = '#dc2626';
+                submitBtn.disabled = true;
+                return false;
+            } else {
+                errEl.style.display = 'none';
+                errEl.textContent = '';
+                input.style.borderColor = '';
+                submitBtn.disabled = false;
+                return true;
+            }
+        }
+
+        function validateEditPlayerForm(event) {
+            const pos = document.getElementById('editPlayerPosition').value;
+            if (!pos) {
+                if (event) event.preventDefault();
+                alert('Please select a player position.');
+                document.getElementById('editPlayerPosition').focus();
+                return false;
+            }
+            if (!validateEditPlayerJersey()) {
+                if (event) event.preventDefault();
+                document.getElementById('editPlayerJersey').focus();
+                return false;
+            }
+            return true;
+        }
+
+        // --- DELETE PLAYER CONFIRMATION MODAL (POP UP WINDOW, NO BROWSER ALERT) ---
+        function openDeletePlayerModal() {
+            // Close detail modal first
+            const detailModal = document.getElementById('playerDetailModal');
+            if (detailModal) detailModal.classList.remove('open');
+
+            const p = (currentPlayerObj && (currentPlayerObj.id === currentPlayerId || !currentPlayerObj.id)) 
+                ? currentPlayerObj 
+                : existingPlayers[currentPlayerId];
+            const name = p ? ((p.full_name || p.name) + ' (#' + (p.jersey_number || p.number) + ')') : 'this player';
+            
+            const confirmNameEl = document.getElementById('deletePlayerConfirmName');
+            if (confirmNameEl) {
+                confirmNameEl.textContent = name;
+            }
+
+            const removeForm = document.getElementById('modalRemovePlayerForm');
+            if (removeForm && currentPlayerId) {
+                removeForm.action = '/organizer/team/{{ team.id }}/player/' + currentPlayerId + '/delete/';
+            }
+
+            document.getElementById('deletePlayerModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeletePlayerModal(event) {
+            if (event && event.target !== document.getElementById('deletePlayerModal') && !event.target.classList.contains('modal-close-btn') && !event.target.classList.contains('btn-outline')) {
+                return;
+            }
+            document.getElementById('deletePlayerModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // --- OPEN & FETCH PLAYER DETAILS MODAL ---
         function openPlayerDetailModal(playerId) {
+            currentPlayerId = playerId;
+            currentPlayerObj = null;
+
             const modal = document.getElementById('playerDetailModal');
             if (!modal) return;
 
@@ -1511,6 +1848,9 @@
                     return res.json();
                 })
                 .then(data => {
+                    currentPlayerObj = data;
+                    currentPlayerObj.id = playerId;
+
                     document.getElementById('modalPlayerName').textContent = data.full_name || 'Player';
                     document.getElementById('modalPlayerTitle').textContent = data.full_name || 'Player Profile';
                     document.getElementById('modalJerseyBadge').textContent = '#' + (data.jersey_number ?? '');
@@ -1582,18 +1922,15 @@
             document.body.style.overflow = '';
         }
 
-        // Confirmation before removing player in stats modal
-        function confirmRemovePlayer() {
-            const name = document.getElementById('modalPlayerName').textContent || 'this player';
-            const num = document.getElementById('modalJerseyBadge').textContent || '';
-            return confirm(`Are you sure you want to remove ${name} (${num}) from {{ team.name|escapejs }}?`);
-        }
-
-        // Close on ESC key
+        // Close all modals on ESC key
         window.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 const addModal = document.getElementById('addPlayerModal');
                 if (addModal) addModal.classList.remove('open');
+                const editModal = document.getElementById('editPlayerModal');
+                if (editModal) editModal.classList.remove('open');
+                const deleteModal = document.getElementById('deletePlayerModal');
+                if (deleteModal) deleteModal.classList.remove('open');
                 const detailModal = document.getElementById('playerDetailModal');
                 if (detailModal) detailModal.classList.remove('open');
                 document.body.style.overflow = '';
@@ -1614,8 +1951,7 @@
                 }
             });
         }
-    
-        </script>
+    </script>
 </body>
 
 </html>

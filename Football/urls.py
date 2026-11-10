@@ -67,6 +67,7 @@ urlpatterns = [
     path('organizer/<int:comp_id>/team/add/', team_views.add_team_view, name='add_team'),
     path('organizer/team/<int:team_id>/', team_views.organizer_team_detail, name='organizer_team_detail'),
     path('organizer/team/<int:team_id>/player/add/', team_views.add_player_view, name='add_player'),
+    path('organizer/team/<int:team_id>/player/<int:player_id>/edit/', team_views.edit_player_view, name='edit_player'),
     path('organizer/team/<int:team_id>/player/<int:player_id>/delete/', team_views.delete_player_view, name='delete_player'),
     path('organizer/<int:comp_id>/recalculate-standings/', standing_views.recalculate_standings_view, name='recalculate_standings'),
     path('organizer/<int:comp_id>/invite-organizer/', league_views.invite_co_organizer_view, name='invite_co_organizer'),

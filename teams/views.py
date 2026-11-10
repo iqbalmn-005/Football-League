@@ -249,6 +249,7 @@ def organizer_team_detail(request, team_id):
 def add_player_view(request, team_id):
     """
     Django backend view: Registers a new player to a team roster.
+    Enforces unique jersey numbers and required position selection.
     """
     team = get_object_or_404(Team, id=team_id)
 
@@ -258,8 +259,8 @@ def add_player_view(request, team_id):
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
-        jersey_number = request.POST.get('jersey_number', 0)
-        position = request.POST.get('position', PositionChoice.FWD)
+        jersey_number = request.POST.get('jersey_number', '').strip()
+        position = request.POST.get('position', '').strip()
         photo_file = request.FILES.get('photo')
         photo_url = request.POST.get('photo_url', '').strip()
 
@@ -267,14 +268,21 @@ def add_player_view(request, team_id):
             messages.error(request, "Player name is required.")
             return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
 
+        if not position:
+            messages.error(request, "Please select a player position.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
         try:
             jersey_number = int(jersey_number)
-        except ValueError:
-            jersey_number = 1
+            if jersey_number <= 0 or jersey_number > 99:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, "Please enter a valid jersey number between 1 and 99.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
 
         # Check if jersey number already exists in this team
         if Player.objects.filter(team=team, jersey_number=jersey_number).exists():
-            messages.error(request, f"Jersey #{jersey_number} is already taken in {team.name}. Please select a different number.")
+            messages.error(request, f"Jersey #{jersey_number} is already assigned to a player in {team.name}. Player not submitted.")
             return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
 
         Player.objects.create(
@@ -286,6 +294,59 @@ def add_player_view(request, team_id):
             photo_url=photo_url
         )
         messages.success(request, f"✓ Player '{full_name}' (#{jersey_number}) added to {team.name} successfully!")
+
+    return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+
+@approved_organizer_required
+def edit_player_view(request, team_id, player_id):
+    """
+    Django backend view: Edits an existing player.
+    Only allows modifying name, position, jersey number, and photo.
+    Enforces unique jersey numbers within the team.
+    """
+    team = get_object_or_404(Team, id=team_id)
+    player = get_object_or_404(Player, id=player_id, team=team)
+
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        jersey_number = request.POST.get('jersey_number', '').strip()
+        position = request.POST.get('position', '').strip()
+        photo_file = request.FILES.get('photo')
+
+        if not full_name:
+            messages.error(request, "Player name is required.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+        if not position:
+            messages.error(request, "Please select a player position.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+        try:
+            jersey_number = int(jersey_number)
+            if jersey_number <= 0 or jersey_number > 99:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, "Please enter a valid jersey number between 1 and 99.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+        # Check if jersey number already exists for another player in this team
+        if Player.objects.filter(team=team, jersey_number=jersey_number).exclude(id=player.id).exists():
+            messages.error(request, f"Jersey #{jersey_number} is already assigned to another player in {team.name}. Player not updated.")
+            return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+        player.full_name = full_name
+        player.jersey_number = jersey_number
+        player.position = position
+        if photo_file:
+            player.photo = photo_file
+        player.save()
+
+        messages.success(request, f"✓ Player '{player.full_name}' (#{player.jersey_number}) updated successfully!")
 
     return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
 
