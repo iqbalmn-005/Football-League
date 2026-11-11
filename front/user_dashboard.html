@@ -1442,15 +1442,15 @@
             }
 
             .mobile-bottom-nav {
-                display: none !important;
+                display: flex !important;
             }
 
             body {
-                padding-bottom: 0 !important;
+                padding-bottom: calc(var(--bnav-h) + 16px + env(safe-area-inset-bottom, 0px)) !important;
             }
 
             .site-footer {
-                margin-bottom: 0 !important;
+                margin-bottom: calc(var(--bnav-h) + 10px + env(safe-area-inset-bottom, 0px)) !important;
             }
 
             .nav-links {
