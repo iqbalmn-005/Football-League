@@ -192,13 +192,16 @@
             width: min(300px, 80vw);
             background: var(--dark);
             border-left: 1px solid var(--border-dark);
-            z-index: 2000;
+            z-index: 1000001;
             padding: 24px 20px;
             flex-direction: column;
             justify-content: space-between;
             box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
             transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
 
         .mobile-drawer.open {
@@ -211,7 +214,7 @@
             inset: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(2px);
-            z-index: 1999;
+            z-index: 1000000;
             opacity: 0;
             transition: opacity 0.2s ease;
         }
