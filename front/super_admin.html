@@ -1111,19 +1111,6 @@
                 display: block;
             }
 
-            /* Left sidebar is replaced by fixed bottom navigation on mobile */
-            .sidebar {
-                display: none !important;
-            }
-
-            .sidebar-backdrop {
-                display: none !important;
-            }
-
-            .menu-toggle-btn {
-                display: none !important;
-            }
-
             .main {
                 margin-left: 0 !important;
                 width: 100% !important;
@@ -1230,7 +1217,8 @@
                 pointer-events: none;
             }
 
-            .sidebar-backdrop.active {
+            .sidebar-backdrop.active,
+            .sidebar-backdrop.open {
                 display: block !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
@@ -1257,13 +1245,14 @@
                 padding-bottom: 24px !important;
             }
 
-            .sidebar.mobile-open {
+            .sidebar.mobile-open,
+            .sidebar.open {
                 transform: translateX(0) !important;
                 box-shadow: 12px 0 36px rgba(0, 0, 0, 0.55) !important;
             }
 
             .sidebar-close-btn {
-                display: flex;
+                display: flex !important;
             }
 
             /* Topbar */
@@ -1277,7 +1266,9 @@
             }
 
             .menu-toggle-btn {
-                display: flex;
+                display: flex !important;
+                cursor: pointer !important;
+                pointer-events: auto !important;
             }
 
             .breadcrumb-prefix,
@@ -2929,15 +2920,27 @@
         function toggleMobileMenu() {
             const sidebar = document.getElementById("sidebar");
             const backdrop = document.querySelector(".sidebar-backdrop");
-            if (sidebar) sidebar.classList.toggle("open");
-            if (backdrop) backdrop.classList.toggle("open");
+            if (sidebar) {
+                sidebar.classList.toggle("open");
+                sidebar.classList.toggle("mobile-open");
+            }
+            if (backdrop) {
+                backdrop.classList.toggle("open");
+                backdrop.classList.toggle("active");
+            }
         }
 
         function closeMobileMenu() {
             const sidebar = document.getElementById("sidebar");
             const backdrop = document.querySelector(".sidebar-backdrop");
-            if (sidebar) sidebar.classList.remove("open");
-            if (backdrop) backdrop.classList.remove("open");
+            if (sidebar) {
+                sidebar.classList.remove("open");
+                sidebar.classList.remove("mobile-open");
+            }
+            if (backdrop) {
+                backdrop.classList.remove("open");
+                backdrop.classList.remove("active");
+            }
         }
 
         function openCreateLeagueModal() {
@@ -3098,6 +3101,10 @@
 
         // Initialize mobile bottom nav & active tab indicator
         function initMobileNav() {
+            document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+
             const params = new URLSearchParams(window.location.search);
             const currentTab = params.get('tab') || 'overview';
             const bnavId = "bnav" + currentTab.charAt(0).toUpperCase() + currentTab.slice(1);

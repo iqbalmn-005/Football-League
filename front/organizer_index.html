@@ -5766,7 +5766,58 @@
 
                 <!-- TAB 2: FIXTURES & SCHEDULING -->
                 <section class="tab-content {% if active_tab == 'fixtures' %}active{% endif %}" id="fixtures">
-                    {% if next_match %}
+                    {% if active_competition.is_completed and active_competition.winner %}
+                    <!-- OFFICIAL LEAGUE WINNER SHOWCASE IN MATCHES & FIXTURES -->
+                    <section class="match-fixture-poster" style="background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.22), transparent 70%), linear-gradient(135deg, #0e1712 0%, #172a1e 50%, #0d1510 100%);border-radius:16px;padding:32px 24px;margin-bottom:24px;border:1px solid rgba(180,245,107,0.4);box-shadow:0 12px 36px rgba(0,0,0,0.4), 0 0 30px rgba(180,245,107,0.15);text-align:center;cursor:default;">
+                        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(180,245,107,0.18);border:1px solid rgba(180,245,107,0.4);padding:4px 14px;border-radius:100px;margin-bottom:14px;">
+                            <span style="font-size:14px;">🏆</span>
+                            <span style="font-family:var(--font-heading);font-size:11px;font-weight:900;color:#B4F56B;letter-spacing:1px;text-transform:uppercase;">Official League Winner</span>
+                            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;">COMPLETED</span>
+                        </div>
+
+                        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px;">
+                            <div style="width:84px;height:84px;border-radius:50%;background:#142019;border:3px solid #B4F56B;box-shadow:0 0 24px rgba(180,245,107,0.45);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;">
+                                {% if active_competition.winner.get_logo_url %}
+                                <img src="{{ active_competition.winner.get_logo_url }}" alt="{{ active_competition.winner.name }}" style="width:60px;height:60px;object-fit:contain;">
+                                {% else %}
+                                <span style="font-size:38px;">🏆</span>
+                                {% endif %}
+                            </div>
+                            <h2 style="font-family:var(--font-heading);font-size:28px;font-weight:900;color:#ffffff;margin:0 0 4px;letter-spacing:0.5px;text-transform:uppercase;">{{ active_competition.winner.name }}</h2>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.85);max-width:520px;margin:0 auto;">
+                                Winner of <strong>{{ active_competition.name }}</strong> ({{ active_competition.season }}) topping the league with <strong>{{ active_competition.winner_entry.points }}</strong> points!
+                            </p>
+                        </div>
+
+                        <div style="display:inline-flex;gap:12px;align-items:center;background:rgba(0,0,0,0.3);padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);margin-bottom:16px;flex-wrap:wrap;justify-content:center;">
+                            <div style="text-align:center;min-width:60px;">
+                                <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Matches</div>
+                                <div style="font-size:17px;font-weight:900;color:#fff;">{{ active_competition.winner_entry.played }}</div>
+                            </div>
+                            <div style="width:1px;height:20px;background:rgba(255,255,255,0.15);"></div>
+                            <div style="text-align:center;min-width:60px;">
+                                <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Won</div>
+                                <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ active_competition.winner_entry.won }}</div>
+                            </div>
+                            <div style="width:1px;height:20px;background:rgba(255,255,255,0.15);"></div>
+                            <div style="text-align:center;min-width:60px;">
+                                <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Goal Diff</div>
+                                <div style="font-size:17px;font-weight:900;color:#fff;">{{ active_competition.winner_entry.goal_difference }}</div>
+                            </div>
+                            <div style="width:1px;height:20px;background:rgba(255,255,255,0.15);"></div>
+                            <div style="text-align:center;min-width:60px;">
+                                <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Points</div>
+                                <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ active_competition.winner_entry.points }}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-primary" style="font-weight:900;padding:7px 18px;border-radius:20px;font-size:11.5px;cursor:pointer;" onclick="openTab('standings')">
+                                View Full Standings Table →
+                            </button>
+                        </div>
+                    </section>
+                    {% elif next_match %}
                     <!-- NEXT MATCH FIXTURE POSTER (LIKE USER REFERENCE IMAGE) -->
                     <section class="match-fixture-poster next-match-hero-poster" style="cursor:default;">
                         <div class="poster-top-header">
@@ -5880,6 +5931,17 @@
                                     {% empty %}
                                     <tr>
                                         <td colspan="4" style="text-align:center;padding:40px 20px;color:var(--muted)">
+                                            {% if active_competition.is_completed and active_competition.winner %}
+                                            <div style="font-size:36px;margin-bottom:8px;">🏆</div>
+                                            <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
+                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!</p>
+                                            <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-right:6px;">
+                                                View Match Results →
+                                            </button>
+                                            <button class="btn btn-outline" type="button" onclick="openTab('standings')" style="font-size:13px;padding:8px 18px;">
+                                                View Points Table →
+                                            </button>
+                                            {% else %}
                                             <div style="font-size:36px;margin-bottom:8px;">📅</div>
                                             <strong
                                                 style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
@@ -5890,6 +5952,7 @@
                                                 class="btn btn-primary" style="font-size:13px;padding:9px 20px;">
                                                 ⚡ Open Fixture Generation Wizard →
                                             </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -5975,6 +6038,14 @@
                             </div>
                             {% empty %}
                             <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+                                {% if active_competition.is_completed and active_competition.winner %}
+                                <div style="font-size:36px;margin-bottom:8px;">🏆</div>
+                                <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
+                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!</p>
+                                <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-bottom:8px;">
+                                    View Match Results →
+                                </button>
+                                {% else %}
                                 <div style="font-size:36px;margin-bottom:8px;">📅</div>
                                 <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
                                     upcoming fixtures scheduled</strong>
@@ -5984,6 +6055,7 @@
                                     class="btn btn-primary" style="font-size:13px;padding:9px 20px;">
                                     ⚡ Open Fixture Generation Wizard →
                                 </a>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -6047,24 +6119,6 @@
                                 <div class="poster-result-team-name">{{ last_match.away_team.name }}</div>
                             </a>
                         </div>
-                        {% if last_match.home_highlights or last_match.away_highlights %}
-                        <div class="poster-highlights" style="display:flex;justify-content:space-between;gap:20px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15);font-size:12px;color:rgba(255,255,255,0.9);width:100%;max-width:700px;margin-left:auto;margin-right:auto;">
-                            <div style="flex:1;text-align:left;display:flex;flex-direction:column;gap:4px;">
-                                {% for h in last_match.home_highlights %}
-                                <div style="display:inline-flex;align-items:center;gap:4px;">
-                                    <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <div style="flex:1;text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
-                                {% for h in last_match.away_highlights %}
-                                <div style="display:inline-flex;align-items:center;gap:4px;">
-                                    <span>{{ h.text }}</span> <span>{{ h.icon }}</span>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
                     </section>
                     {% endif %}
                     <div class="card">
@@ -6109,30 +6163,6 @@
                                                 <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
                                                     style="color:var(--dark);text-decoration:none;font-weight:700;">{{ m.away_team.name }}</a>
                                             </div>
-                                            {% if m.home_highlights or m.away_highlights %}
-                                            <div style="margin-top:6px;display:flex;gap:14px;font-size:11px;color:#475569;flex-wrap:wrap;line-height:1.4;">
-                                                {% if m.home_highlights %}
-                                                <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;">{{ m.home_team.short_name|default:"HOME" }}:</span>
-                                                    {% for h in m.home_highlights %}
-                                                    <span style="display:inline-flex;align-items:center;gap:3px;background:#f1f5f9;padding:1px 6px;border-radius:4px;">
-                                                        <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
-                                                    </span>
-                                                    {% endfor %}
-                                                </div>
-                                                {% endif %}
-                                                {% if m.away_highlights %}
-                                                <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                                                    <span style="font-weight:700;color:var(--dark);font-size:10px;text-transform:uppercase;">{{ m.away_team.short_name|default:"AWAY" }}:</span>
-                                                    {% for h in m.away_highlights %}
-                                                    <span style="display:inline-flex;align-items:center;gap:3px;background:#f1f5f9;padding:1px 6px;border-radius:4px;">
-                                                        <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
-                                                    </span>
-                                                    {% endfor %}
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                            {% endif %}
                                         </td>
                                         <td style="font-size:14px;font-weight:900;cursor:pointer;"
                                             onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
@@ -6232,36 +6262,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Match Highlights (Scorers & Red Cards) -->
-                                {% if m.home_highlights or m.away_highlights %}
-                                <div class="rmc-highlights" style="padding:8px 12px;background:#f8fafc;border-top:1px dashed #e2e8f0;font-size:11px;display:flex;flex-direction:column;gap:5px;" onclick="openMatchModal('{{ m.id }}')">
-                                    {% if m.home_highlights %}
-                                    <div style="display:flex;gap:6px;align-items:flex-start;">
-                                        <span style="font-weight:700;color:var(--dark);min-width:42px;font-size:10px;text-transform:uppercase;">{{ m.home_team.short_name|default:"HOME" }}:</span>
-                                        <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
-                                            {% for h in m.home_highlights %}
-                                            <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
-                                                <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
-                                            </span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                    {% if m.away_highlights %}
-                                    <div style="display:flex;gap:6px;align-items:flex-start;">
-                                        <span style="font-weight:700;color:var(--dark);min-width:42px;font-size:10px;text-transform:uppercase;">{{ m.away_team.short_name|default:"AWAY" }}:</span>
-                                        <div style="display:flex;flex-wrap:wrap;gap:4px 6px;color:#334155;">
-                                            {% for h in m.away_highlights %}
-                                            <span style="display:inline-flex;align-items:center;gap:3px;background:#fff;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">
-                                                <span>{{ h.icon }}</span> <span>{{ h.text }}</span>
-                                            </span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
 
                                 <!-- Events Hint -->
                                 {% if m.events.count > 0 %}
@@ -6982,6 +6982,51 @@
                         </div>
                     </div>
 
+                    <!-- CLEAN SHEET SELECTION (SHOWN ONLY WHEN OPPONENT SCORE IS 0 AND TEAM HAS >= 2 KEEPERS) -->
+                    <div id="homeCleanSheetSection"
+                        style="display:none;background:#f0faf2;border:1px solid #c2e9cf;border-left:4px solid #10b981;border-radius:6px;padding:12px 14px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            <span style="font-size:16px;">🧤</span>
+                            <div>
+                                <strong style="font-size:13px;color:#065f46;">Clean Sheet Award — <span
+                                        id="homeCleanSheetTeamName">Home Team</span></strong>
+                                <div style="font-size:11px;color:#047857;">This team kept a clean sheet and has multiple goalkeepers. Select which goalkeeper played:</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <label
+                                style="display:block;font-size:10px;font-weight:800;color:#065f46;text-transform:uppercase;margin-bottom:4px;">
+                                Clean Sheet Goalkeeper <span style="color:#d93838;">*</span>
+                            </label>
+                            <select name="home_clean_sheet_keeper" id="homeCleanSheetSelect" class="field"
+                                style="width:100%;font-size:12px;padding:7px 10px;background:#fff;">
+                                <option value="">-- Select Goalkeeper for Clean Sheet (Required) --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="awayCleanSheetSection"
+                        style="display:none;background:#f0faf2;border:1px solid #c2e9cf;border-left:4px solid #10b981;border-radius:6px;padding:12px 14px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            <span style="font-size:16px;">🧤</span>
+                            <div>
+                                <strong style="font-size:13px;color:#065f46;">Clean Sheet Award — <span
+                                        id="awayCleanSheetTeamName">Away Team</span></strong>
+                                <div style="font-size:11px;color:#047857;">This team kept a clean sheet and has multiple goalkeepers. Select which goalkeeper played:</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <label
+                                style="display:block;font-size:10px;font-weight:800;color:#065f46;text-transform:uppercase;margin-bottom:4px;">
+                                Clean Sheet Goalkeeper <span style="color:#d93838;">*</span>
+                            </label>
+                            <select name="away_clean_sheet_keeper" id="awayCleanSheetSelect" class="field"
+                                style="width:100%;font-size:12px;padding:7px 10px;background:#fff;">
+                                <option value="">-- Select Goalkeeper for Clean Sheet (Required) --</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- DISCIPLINARY CARDS SECTION -->
                     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -7405,6 +7450,15 @@
             if (aCont) aCont.innerHTML = '';
             if (cCont) cCont.innerHTML = '';
 
+            const homeCSSection = document.getElementById("homeCleanSheetSection");
+            const awayCSSection = document.getElementById("awayCleanSheetSection");
+            const homeCSSelect = document.getElementById("homeCleanSheetSelect");
+            const awayCSSelect = document.getElementById("awayCleanSheetSelect");
+            if (homeCSSection) homeCSSection.style.display = 'none';
+            if (awayCSSection) awayCSSection.style.display = 'none';
+            if (homeCSSelect) { homeCSSelect.required = false; homeCSSelect.value = ''; }
+            if (awayCSSelect) { awayCSSelect.required = false; awayCSSelect.value = ''; }
+
             const modal = document.getElementById("recordResultModal");
             if (modal) modal.classList.add("active");
 
@@ -7419,6 +7473,7 @@
 
                     renderGoalPortions('home', hScore, data.home_events);
                     renderGoalPortions('away', aScore, data.away_events);
+                    updateCleanSheetUI(data.home_events, data.away_events);
 
                     // Populate existing cards if any
                     const cards = [];
@@ -7438,17 +7493,92 @@
                     console.error("Failed to fetch match details:", err);
                     renderGoalPortions('home', parseInt(document.getElementById("resultHomeScore").value, 10) || 0);
                     renderGoalPortions('away', parseInt(document.getElementById("resultAwayScore").value, 10) || 0);
+                    updateCleanSheetUI();
                 });
         }
 
         function onHomeScoreChange(val) {
             const count = Math.max(0, parseInt(val, 10) || 0);
             renderGoalPortions('home', count);
+            updateCleanSheetUI();
         }
 
         function onAwayScoreChange(val) {
             const count = Math.max(0, parseInt(val, 10) || 0);
             renderGoalPortions('away', count);
+            updateCleanSheetUI();
+        }
+
+        function updateCleanSheetUI(existingHomeEvents, existingAwayEvents) {
+            if (!currentMatchData) return;
+
+            const hScore = parseInt(document.getElementById("resultHomeScore").value, 10) || 0;
+            const aScore = parseInt(document.getElementById("resultAwayScore").value, 10) || 0;
+
+            const homeEvents = existingHomeEvents || (currentMatchData ? currentMatchData.home_events : []);
+            const awayEvents = existingAwayEvents || (currentMatchData ? currentMatchData.away_events : []);
+
+            // 1. Home Clean Sheet (occurs when opponent / away score is 0)
+            const homeSection = document.getElementById("homeCleanSheetSection");
+            const homeSelect = document.getElementById("homeCleanSheetSelect");
+            const homeTeam = currentMatchData.home_team;
+            const homeGks = (homeTeam && homeTeam.players) ? homeTeam.players.filter(p => p.position === 'GK') : [];
+
+            if (homeSection && homeSelect) {
+                if (aScore === 0 && homeGks.length >= 2) {
+                    let selectedKeeperId = homeSelect.value;
+                    if (!selectedKeeperId && homeEvents) {
+                        const csEvt = homeEvents.find(e => e.event_type === 'CLEAN_SHEET');
+                        if (csEvt) selectedKeeperId = csEvt.player_id;
+                    }
+
+                    let opts = '<option value="">-- Select Goalkeeper for Clean Sheet (Required) --</option>';
+                    homeGks.forEach(gk => {
+                        const isSel = String(gk.id) === String(selectedKeeperId) ? 'selected' : '';
+                        opts += `<option value="${gk.id}" ${isSel}>#${gk.number} ${escapeHtml(gk.name)} (GK)</option>`;
+                    });
+                    homeSelect.innerHTML = opts;
+                    homeSelect.required = true;
+                    homeSection.style.display = 'block';
+                    const titleEl = document.getElementById("homeCleanSheetTeamName");
+                    if (titleEl) titleEl.textContent = homeTeam ? homeTeam.name : 'Home Team';
+                } else {
+                    homeSection.style.display = 'none';
+                    homeSelect.required = false;
+                    homeSelect.value = '';
+                }
+            }
+
+            // 2. Away Clean Sheet (occurs when opponent / home score is 0)
+            const awaySection = document.getElementById("awayCleanSheetSection");
+            const awaySelect = document.getElementById("awayCleanSheetSelect");
+            const awayTeam = currentMatchData.away_team;
+            const awayGks = (awayTeam && awayTeam.players) ? awayTeam.players.filter(p => p.position === 'GK') : [];
+
+            if (awaySection && awaySelect) {
+                if (hScore === 0 && awayGks.length >= 2) {
+                    let selectedKeeperId = awaySelect.value;
+                    if (!selectedKeeperId && awayEvents) {
+                        const csEvt = awayEvents.find(e => e.event_type === 'CLEAN_SHEET');
+                        if (csEvt) selectedKeeperId = csEvt.player_id;
+                    }
+
+                    let opts = '<option value="">-- Select Goalkeeper for Clean Sheet (Required) --</option>';
+                    awayGks.forEach(gk => {
+                        const isSel = String(gk.id) === String(selectedKeeperId) ? 'selected' : '';
+                        opts += `<option value="${gk.id}" ${isSel}>#${gk.number} ${escapeHtml(gk.name)} (GK)</option>`;
+                    });
+                    awaySelect.innerHTML = opts;
+                    awaySelect.required = true;
+                    awaySection.style.display = 'block';
+                    const titleEl = document.getElementById("awayCleanSheetTeamName");
+                    if (titleEl) titleEl.textContent = awayTeam ? awayTeam.name : 'Away Team';
+                } else {
+                    awaySection.style.display = 'none';
+                    awaySelect.required = false;
+                    awaySelect.value = '';
+                }
+            }
         }
 
         function renderGoalPortions(side, count, existingEvents) {
@@ -7701,7 +7831,46 @@
                         if (statusPill) statusPill.textContent = (data.status || 'COMPLETED').toUpperCase();
                     }
 
-                    // Scorers & timeline removed per specification
+                    // Populate match highlights (goal scorers & red cards)
+                    const detailsBox = document.getElementById('matchModalDetails');
+                    const hHigh = document.getElementById('matchModalHomeHighlights');
+                    const aHigh = document.getElementById('matchModalAwayHighlights');
+                    if (detailsBox && hHigh && aHigh) {
+                        hHigh.innerHTML = '';
+                        aHigh.innerHTML = '';
+                        const hasHome = data.home_highlights && data.home_highlights.length > 0;
+                        const hasAway = data.away_highlights && data.away_highlights.length > 0;
+                        if (!isUpcoming && (hasHome || hasAway)) {
+                            detailsBox.style.display = 'block';
+                            if (hasHome) {
+                                data.home_highlights.forEach(h => {
+                                    const item = document.createElement('div');
+                                    item.style.display = 'inline-flex';
+                                    item.style.alignItems = 'center';
+                                    item.style.gap = '6px';
+                                    item.innerHTML = `<span style="font-size:14px;">${h.icon}</span> <span>${h.text}</span>`;
+                                    hHigh.appendChild(item);
+                                });
+                            } else {
+                                hHigh.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:11px;">No goals or red cards</span>';
+                            }
+                            if (hasAway) {
+                                data.away_highlights.forEach(h => {
+                                    const item = document.createElement('div');
+                                    item.style.display = 'inline-flex';
+                                    item.style.alignItems = 'center';
+                                    item.style.gap = '6px';
+                                    item.innerHTML = `<span>${h.text}</span> <span style="font-size:14px;">${h.icon}</span>`;
+                                    aHigh.appendChild(item);
+                                });
+                            } else {
+                                aHigh.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:11px;">No goals or red cards</span>';
+                            }
+                        } else {
+                            detailsBox.style.display = 'none';
+                        }
+                    }
+
                     const modal = document.getElementById('matchModal');
                     if (modal) {
                         modal.classList.add('active');
@@ -7838,7 +8007,20 @@
                     </div>
                 </div>
 
-                <!-- Match Details Timeline removed per specification -->
+                <!-- MATCH DETAILS (GOAL SCORERS & RED CARDS) -->
+                <div id="matchModalDetails" style="margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);display:none;">
+                    <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#B4F56B;margin-bottom:12px;text-align:center;">
+                        MATCH DETAILS &amp; EVENTS
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:20px;align-items:flex-start;">
+                        <!-- Home Team Highlights -->
+                        <div id="matchModalHomeHighlights" style="flex:1;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);">
+                        </div>
+                        <!-- Away Team Highlights -->
+                        <div id="matchModalAwayHighlights" style="flex:1;text-align:right;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);align-items:flex-end;">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- FOOTER -->

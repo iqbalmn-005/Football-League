@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from accounts.decorators import approved_organizer_required
 from matches.models import Match, MatchStatus, MatchEvent, MatchEventType
-from teams.models import Player
+from teams.models import Player, PositionChoice
 from standings.services import recalculate_competition_standings
 from datetime import datetime
 
@@ -307,6 +307,55 @@ def enter_match_result_view(request, match_id):
                     player=player,
                     event_type=c_type,
                     minute=minute
+                )
+
+        # 4. Process Clean Sheets (MatchEventType.CLEAN_SHEET)
+        # If opponent scored 0, the keeping team kept a clean sheet.
+        # When team has multiple GKs, organizer selects which keeper earned the clean sheet.
+        # If team has exactly 1 GK, it is assigned automatically to that keeper.
+
+        # Home team clean sheet (away_score == 0)
+        if away_score == 0:
+            home_gks = list(match.home_team.players.filter(position=PositionChoice.GK))
+            home_cs_keeper_id = request.POST.get('home_clean_sheet_keeper')
+            keeper = None
+            if home_cs_keeper_id:
+                try:
+                    keeper = match.home_team.players.get(id=int(home_cs_keeper_id))
+                except (ValueError, Player.DoesNotExist):
+                    keeper = None
+            if not keeper and len(home_gks) == 1:
+                keeper = home_gks[0]
+            if keeper:
+                MatchEvent.objects.create(
+                    match=match,
+                    team=match.home_team,
+                    player=keeper,
+                    event_type=MatchEventType.CLEAN_SHEET,
+                    minute=90,
+                    description=f"Clean sheet kept by {keeper.full_name}"
+                )
+
+        # Away team clean sheet (home_score == 0)
+        if home_score == 0:
+            away_gks = list(match.away_team.players.filter(position=PositionChoice.GK))
+            away_cs_keeper_id = request.POST.get('away_clean_sheet_keeper')
+            keeper = None
+            if away_cs_keeper_id:
+                try:
+                    keeper = match.away_team.players.get(id=int(away_cs_keeper_id))
+                except (ValueError, Player.DoesNotExist):
+                    keeper = None
+            if not keeper and len(away_gks) == 1:
+                keeper = away_gks[0]
+            if keeper:
+                MatchEvent.objects.create(
+                    match=match,
+                    team=match.away_team,
+                    player=keeper,
+                    event_type=MatchEventType.CLEAN_SHEET,
+                    minute=90,
+                    description=f"Clean sheet kept by {keeper.full_name}"
                 )
 
         # Trigger automatic standings recomputation

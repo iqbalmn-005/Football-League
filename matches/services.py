@@ -143,20 +143,42 @@ def get_competition_statistics(competition):
             'red_cards': c['reds']
         })
 
-    # Clean sheets: count for goalkeepers / teams where opponent score was 0
+    # Clean sheets: count for goalkeepers where opponent score was 0
     teams = competition.teams.all()
     clean_sheets = []
     for t in teams:
-        home_cs = completed_matches.filter(home_team=t, away_score=0).count()
-        away_cs = completed_matches.filter(away_team=t, home_score=0).count()
-        total_cs = home_cs + away_cs
-        if total_cs > 0:
-            gk = t.players.filter(position='GK').first()
-            clean_sheets.append({
-                'team': t,
-                'clean_sheets': total_cs,
-                'goalkeeper_name': gk.full_name if gk else f"{t.name} Goalkeeper"
-            })
+        gks = list(t.players.filter(position='GK'))
+        if not gks:
+            home_cs = completed_matches.filter(home_team=t, away_score=0).count()
+            away_cs = completed_matches.filter(away_team=t, home_score=0).count()
+            total_cs = home_cs + away_cs
+            if total_cs > 0:
+                clean_sheets.append({
+                    'team': t,
+                    'clean_sheets': total_cs,
+                    'goalkeeper_name': f"{t.name} Goalkeeper"
+                })
+        else:
+            for gk in gks:
+                explicit = MatchEvent.objects.filter(
+                    match__in=completed_matches,
+                    team=t,
+                    player=gk,
+                    event_type=MatchEventType.CLEAN_SHEET
+                ).count()
+                if len(gks) == 1:
+                    unassigned_home = completed_matches.filter(home_team=t, away_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET, events__team=t).count()
+                    unassigned_away = completed_matches.filter(away_team=t, home_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET, events__team=t).count()
+                    total = explicit + unassigned_home + unassigned_away
+                else:
+                    total = explicit
+
+                if total > 0:
+                    clean_sheets.append({
+                        'team': t,
+                        'clean_sheets': total,
+                        'goalkeeper_name': gk.full_name
+                    })
     clean_sheets = sorted(clean_sheets, key=lambda x: -x['clean_sheets'])[:8]
     for rank, cs in enumerate(clean_sheets, start=1):
         cs['rank'] = rank

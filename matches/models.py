@@ -19,6 +19,7 @@ class MatchEventType(models.TextChoices):
     YELLOW_CARD = 'YELLOW_CARD', 'Yellow Card'
     RED_CARD = 'RED_CARD', 'Red Card'
     SUB_ON = 'SUB_ON', 'Substituted On'
+    CLEAN_SHEET = 'CLEAN_SHEET', 'Clean Sheet'
 
 
 class Match(models.Model):

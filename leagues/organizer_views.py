@@ -428,6 +428,49 @@ def enter_match_result_view(request, match_id):
         parse_and_record_scorers(home_scorers_text, match_obj.home_team, match_obj.away_team)
         parse_and_record_scorers(away_scorers_text, match_obj.away_team, match_obj.home_team)
 
+        # Clean sheet events recording
+        if away_score == 0:
+            home_gks = list(match_obj.home_team.players.filter(position=PositionChoice.GK))
+            home_cs_keeper_id = request.POST.get('home_clean_sheet_keeper')
+            keeper = None
+            if home_cs_keeper_id:
+                try:
+                    keeper = match_obj.home_team.players.get(id=int(home_cs_keeper_id))
+                except (ValueError, Player.DoesNotExist):
+                    keeper = None
+            if not keeper and len(home_gks) == 1:
+                keeper = home_gks[0]
+            if keeper:
+                MatchEvent.objects.create(
+                    match=match_obj,
+                    team=match_obj.home_team,
+                    player=keeper,
+                    event_type=MatchEventType.CLEAN_SHEET,
+                    minute=90,
+                    description=f"Clean sheet kept by {keeper.full_name}"
+                )
+
+        if home_score == 0:
+            away_gks = list(match_obj.away_team.players.filter(position=PositionChoice.GK))
+            away_cs_keeper_id = request.POST.get('away_clean_sheet_keeper')
+            keeper = None
+            if away_cs_keeper_id:
+                try:
+                    keeper = match_obj.away_team.players.get(id=int(away_cs_keeper_id))
+                except (ValueError, Player.DoesNotExist):
+                    keeper = None
+            if not keeper and len(away_gks) == 1:
+                keeper = away_gks[0]
+            if keeper:
+                MatchEvent.objects.create(
+                    match=match_obj,
+                    team=match_obj.away_team,
+                    player=keeper,
+                    event_type=MatchEventType.CLEAN_SHEET,
+                    minute=90,
+                    description=f"Clean sheet kept by {keeper.full_name}"
+                )
+
         # Automatically recalculate standings!
         recalculate_competition_standings(match_obj.competition)
 

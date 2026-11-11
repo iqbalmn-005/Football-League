@@ -106,6 +106,11 @@ class Player(models.Model):
     def clean_sheets(self):
         if self.position != PositionChoice.GK:
             return 0
-        home_cs = self.team.home_matches.filter(status='COMPLETED', away_score=0).count()
-        away_cs = self.team.away_matches.filter(status='COMPLETED', home_score=0).count()
-        return home_cs + away_cs
+        from matches.models import MatchEventType
+        explicit_cs = self.match_events.filter(event_type=MatchEventType.CLEAN_SHEET).count()
+        other_gks = self.team.players.filter(position=PositionChoice.GK).exclude(id=self.id)
+        if not other_gks.exists():
+            home_unassigned = self.team.home_matches.filter(status='COMPLETED', away_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET).count()
+            away_unassigned = self.team.away_matches.filter(status='COMPLETED', home_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET).count()
+            return explicit_cs + home_unassigned + away_unassigned
+        return explicit_cs
