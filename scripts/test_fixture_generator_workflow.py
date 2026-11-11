@@ -32,6 +32,7 @@ comp.save()
 
 # Ensure 4 teams in competition
 all_teams = list(Team.objects.all()[:4])
+CompetitionTeam.objects.filter(competition=comp).exclude(team__in=all_teams).delete()
 for t in all_teams:
     CompetitionTeam.objects.get_or_create(competition=comp, team=t)
 

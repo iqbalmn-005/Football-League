@@ -845,6 +845,13 @@
                             <div class="format-card-desc">Single or double elimination bracket where winners advance to
                                 the final.</div>
                         </label>
+
+                        <label class="format-card" id="cardPageMcIntyre" onclick="selectFormat('PAGE_MCINTYRE')">
+                            <input type="radio" name="tournament_format" value="PAGE_MCINTYRE">
+                            <div class="format-card-icon">🛡️</div>
+                            <div class="format-card-title">Page–McIntyre System</div>
+                            <div class="format-card-desc">Final Four playoff system: 1st vs 2nd (double chance) &amp; 3rd vs 4th (sudden death), Preliminary Final &amp; Grand Final.</div>
+                        </label>
                     </div>
                 </div>
 
@@ -900,7 +907,7 @@
                         <span class="input-hint">Every club competes in 1 single league table before knockouts.</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" id="qualifiersContainer">
                         <label class="form-label">
                             Teams Qualifying for Knockout <span class="badge-req">*</span>
                         </label>
@@ -908,9 +915,21 @@
                             onchange="updateGroupEqualDivisionInfo(); updateSummaryKpis();">
                             <option value="1">Top 1 Team Advances directly</option>
                             <option value="2">Top 2 Teams Advance (Championship Final)</option>
-                            <option value="4" selected>Top 4 Teams Advance (Semi-Finals &amp; Final)</option>
+                            <option value="4" selected>Top 4 Teams Advance (Semi-Finals / Playoffs)</option>
                             <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
+                    </div>
+
+                    <div class="form-group" id="knockoutSystemContainer" style="display:none;">
+                        <label class="form-label">
+                            Knockout / Playoff System <span class="badge-req">*</span>
+                        </label>
+                        <select class="form-control" name="knockout_system" id="knockoutSystemSelect"
+                            onchange="updateGroupEqualDivisionInfo(); updateSummaryKpis();">
+                            <option value="single_elimination" selected>Standard Single Elimination Bracket</option>
+                            <option value="page_mcintyre">Page–McIntyre Playoff System (Final 4)</option>
+                        </select>
+                        <span class="input-hint" id="knockoutSystemHint">Top 4 qualify: 1st vs 2nd (Qualifying Final, double chance) and 3rd vs 4th (Elimination Final).</span>
                     </div>
                 </div>
 
@@ -1119,20 +1138,28 @@
             if (fmt === 'LEAGUE_KNOCKOUT') document.getElementById('cardLeagueKnockout').classList.add('selected');
             if (fmt === 'GROUP_KNOCKOUT') document.getElementById('cardGroupKnockout').classList.add('selected');
             if (fmt === 'KNOCKOUT') document.getElementById('cardKnockout').classList.add('selected');
+            if (fmt === 'PAGE_MCINTYRE') document.getElementById('cardPageMcIntyre').classList.add('selected');
 
             const groupSec = document.getElementById('sectionGroupSettings');
             const roundRobinGroup = document.getElementById('roundRobinTypeGroup');
             const numGroupsContainer = document.getElementById('numGroupsContainer');
             const singleGroupInfoContainer = document.getElementById('singleGroupInfoContainer');
+            const qualifiersContainer = document.getElementById('qualifiersContainer');
+            const knockoutSystemContainer = document.getElementById('knockoutSystemContainer');
             const groupTitle = document.getElementById('groupSectionTitle');
             const groupHint = document.getElementById('groupSectionHint');
             const groupBadge = document.getElementById('groupSectionBadge');
+
+            const radio = document.querySelector(`input[name="tournament_format"][value="${fmt}"]`);
+            if (radio) radio.checked = true;
 
             if (fmt === 'LEAGUE_KNOCKOUT') {
                 groupSec.style.display = 'block';
                 roundRobinGroup.style.display = 'block';
                 if (numGroupsContainer) numGroupsContainer.style.display = 'none';
                 if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'block';
+                if (qualifiersContainer) qualifiersContainer.style.display = 'block';
+                if (knockoutSystemContainer) knockoutSystemContainer.style.display = 'block';
                 document.getElementById('numGroupsSelect').value = "1";
                 if (groupTitle) groupTitle.innerText = "Single League Table + Knockout Qualifiers";
                 if (groupHint) groupHint.innerText = "All clubs compete in 1 single league group; top qualifiers advance to Knockout rounds.";
@@ -1144,6 +1171,8 @@
                 roundRobinGroup.style.display = 'block';
                 if (numGroupsContainer) numGroupsContainer.style.display = 'block';
                 if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'none';
+                if (qualifiersContainer) qualifiersContainer.style.display = 'block';
+                if (knockoutSystemContainer) knockoutSystemContainer.style.display = 'block';
                 if (document.getElementById('numGroupsSelect').value === "1") {
                     document.getElementById('numGroupsSelect').value = "2";
                 }
@@ -1153,9 +1182,29 @@
                 document.getElementById('summaryFormat').innerText = "Group + Knockout";
                 updateGroupEqualDivisionInfo();
             } else if (fmt === 'KNOCKOUT') {
-                groupSec.style.display = 'none';
+                groupSec.style.display = 'block';
                 roundRobinGroup.style.display = 'none';
+                if (numGroupsContainer) numGroupsContainer.style.display = 'none';
+                if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'none';
+                if (qualifiersContainer) qualifiersContainer.style.display = 'none';
+                if (knockoutSystemContainer) knockoutSystemContainer.style.display = 'block';
+                if (groupTitle) groupTitle.innerText = "Knockout Elimination Playoff Format";
+                if (groupHint) groupHint.innerText = "Choose single elimination bracket or the Page–McIntyre Final Four double-chance playoff system.";
+                if (groupBadge) groupBadge.innerText = "KNOCKOUT PLAYS";
                 document.getElementById('summaryFormat').innerText = "Knockout Bracket";
+                updateGroupEqualDivisionInfo();
+            } else if (fmt === 'PAGE_MCINTYRE') {
+                groupSec.style.display = 'block';
+                roundRobinGroup.style.display = 'none';
+                if (numGroupsContainer) numGroupsContainer.style.display = 'none';
+                if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'none';
+                if (qualifiersContainer) qualifiersContainer.style.display = 'none';
+                if (knockoutSystemContainer) knockoutSystemContainer.style.display = 'none';
+                if (groupTitle) groupTitle.innerText = "Page–McIntyre Playoff System (Final 4)";
+                if (groupHint) groupHint.innerText = "Top 4 seeded clubs compete across 4 high-stakes playoff fixtures.";
+                if (groupBadge) groupBadge.innerText = "PAGE–MCINTYRE FINAL 4";
+                document.getElementById('summaryFormat').innerText = "Page–McIntyre System";
+                updateGroupEqualDivisionInfo();
             } else {
                 groupSec.style.display = 'none';
                 roundRobinGroup.style.display = 'block';
@@ -1166,6 +1215,42 @@
 
         // DYNAMIC EQUAL DIVISION INFO FOR GROUPS
         function updateGroupEqualDivisionInfo() {
+            const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
+            const knockoutSys = document.getElementById('knockoutSystemSelect') ? document.getElementById('knockoutSystemSelect').value : 'single_elimination';
+
+            if (fmt === 'PAGE_MCINTYRE') {
+                document.getElementById('equalDivisionNoticeText').innerHTML = `
+                    <div style="font-size:13px;font-weight:700;color:var(--green-dark);">🛡️ Page–McIntyre Playoff System (4 Fixtures Total):</div>
+                    <div style="margin-top:6px;font-size:12px;color:var(--dark);line-height:1.6;">
+                        • <strong>Qualifying Final:</strong> 1st Place vs 2nd Place <em>(Double chance: Winner ➔ Grand Final, Loser ➔ Preliminary Final)</em><br>
+                        • <strong>Elimination Final:</strong> 3rd Place vs 4th Place <em>(Sudden death: Winner ➔ Preliminary Final, Loser eliminated 4th)</em><br>
+                        • <strong>Preliminary Final:</strong> Loser QF vs Winner EF <em>(Winner ➔ Grand Final, Loser eliminated 3rd)</em><br>
+                        • <strong>Grand Final:</strong> Winner QF vs Winner Preliminary Final <em>(Winner is crowned Champion! 🏆)</em>
+                    </div>
+                `;
+                return;
+            }
+
+            if (fmt === 'KNOCKOUT') {
+                if (knockoutSys === 'page_mcintyre') {
+                    document.getElementById('equalDivisionNoticeText').innerHTML = `
+                        <div style="font-size:13px;font-weight:700;color:var(--green-dark);">🛡️ Page–McIntyre System Selected for Knockout Plays (Top 4 Seeds):</div>
+                        <div style="margin-top:6px;font-size:12px;color:var(--dark);line-height:1.6;">
+                            • <strong>Qualifying Final:</strong> Seed 1 vs Seed 2 <em>(Double chance: Winner ➔ Grand Final, Loser ➔ Preliminary Final)</em><br>
+                            • <strong>Elimination Final:</strong> Seed 3 vs Seed 4 <em>(Sudden death: Winner ➔ Preliminary Final, Loser eliminated)</em><br>
+                            • <strong>Preliminary Final:</strong> Loser QF vs Winner EF <em>(Winner ➔ Grand Final)</em><br>
+                            • <strong>Grand Final:</strong> Winner QF vs Winner Preliminary Final <em>(Winner is Champion! 🏆)</em>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('equalDivisionNoticeText').innerHTML = `
+                        <div style="font-size:13px;font-weight:700;color:var(--green-dark);">⚔️ Single Elimination Knockout Bracket:</div>
+                        <div style="margin-top:4px;font-size:12px;color:var(--dark);">All registered clubs are paired into an elimination bracket where winners advance each round to the Grand Final.</div>
+                    `;
+                }
+                return;
+            }
+
             const numGroups = parseInt(document.getElementById('numGroupsSelect').value) || 2;
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || 2;
             const perGroup = Math.ceil(totalTeamsCount / numGroups);
@@ -1183,7 +1268,10 @@
 
             const totalQualifiers = numGroups * qPerGroup;
             let knockoutPath = '';
-            if (numGroups === 1) {
+
+            if (knockoutSys === 'page_mcintyre' && totalQualifiers === 4) {
+                knockoutPath = `🛡️ Knockout Stage: Top 4 qualify for Page–McIntyre Playoff System (1st vs 2nd Qualifying Final, 3rd vs 4th Elimination Final ➔ Preliminary Final ➔ Grand Final)`;
+            } else if (numGroups === 1) {
                 if (totalQualifiers <= 2) {
                     knockoutPath = `🏆 Knockout Stage: Top 2 clubs in the league advance ➔ Grand Championship Final (1 match)`;
                 } else if (totalQualifiers === 4) {
@@ -1267,6 +1355,7 @@
         function updateSummaryKpis() {
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
             const isDouble = document.getElementById('roundRobinTypeSelect').value === 'double';
+            const knockoutSys = document.getElementById('knockoutSystemSelect') ? document.getElementById('knockoutSystemSelect').value : 'single_elimination';
 
             if (totalTeamsCount < 2) {
                 document.getElementById('summaryEstMatches').innerText = "0";
@@ -1288,13 +1377,36 @@
                 const groupMatches = gRounds * gMatchesPerRound;
 
                 const totalQualifiers = numGroups * qPerGroup;
-                const knockoutMatches = Math.max(1, totalQualifiers - 1);
+                let knockoutMatches = Math.max(1, totalQualifiers - 1);
+                if (totalQualifiers === 4 && knockoutSys === 'page_mcintyre') {
+                    knockoutMatches = 4;
+                }
                 estMatches = groupMatches + knockoutMatches;
             } else if (fmt === 'KNOCKOUT') {
-                estMatches = totalTeamsCount - 1;
+                if (knockoutSys === 'page_mcintyre') {
+                    estMatches = 4;
+                } else {
+                    estMatches = Math.max(1, totalTeamsCount - 1);
+                }
+            } else if (fmt === 'PAGE_MCINTYRE') {
+                estMatches = 4;
             }
 
             document.getElementById('summaryEstMatches').innerText = estMatches;
+
+            // Format summary label
+            if (fmt === 'PAGE_MCINTYRE') {
+                document.getElementById('summaryFormat').innerText = "Page–McIntyre System";
+            } else if (fmt === 'KNOCKOUT') {
+                document.getElementById('summaryFormat').innerText = knockoutSys === 'page_mcintyre' ? "Knockout (Page–McIntyre)" : "Knockout Bracket";
+            } else if (fmt === 'LEAGUE_KNOCKOUT') {
+                const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || 4;
+                document.getElementById('summaryFormat').innerText = (qPerGroup === 4 && knockoutSys === 'page_mcintyre') ? "League + Page–McIntyre" : "League + Knockout";
+            } else if (fmt === 'GROUP_KNOCKOUT') {
+                document.getElementById('summaryFormat').innerText = "Group + Knockout";
+            } else {
+                document.getElementById('summaryFormat').innerText = "Round Robin";
+            }
         }
 
         // GENERATE FIXTURE PREVIEW AJAX
@@ -1332,11 +1444,13 @@
             const dailyKickoffTimes = slotInputs.map(input => input.value || "15:00");
 
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
+            const knockoutSys = document.getElementById('knockoutSystemSelect') ? document.getElementById('knockoutSystemSelect').value : 'single_elimination';
             const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
 
             const payload = {
                 tournament_format: fmt,
+                knockout_system: knockoutSys,
                 round_robin_type: document.getElementById('roundRobinTypeSelect').value,
                 start_date: startDate,
                 end_date: endDate,
@@ -1482,6 +1596,9 @@
             btn.disabled = true;
             btn.innerText = "⏳ Publishing to League...";
 
+            const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
+            const knockoutSys = document.getElementById('knockoutSystemSelect') ? document.getElementById('knockoutSystemSelect').value : 'single_elimination';
+
             fetch(`/organizer/${compId}/api/publish-fixtures/`, {
                 method: 'POST',
                 headers: {
@@ -1489,6 +1606,8 @@
                     'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
+                    tournament_format: fmt,
+                    knockout_system: knockoutSys,
                     matches: generatedMatches,
                     groups: generatedGroups
                 })

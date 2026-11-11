@@ -8,6 +8,7 @@ from accounts.decorators import approved_organizer_required
 from matches.models import Match, MatchStatus, MatchEvent, MatchEventType
 from teams.models import Player, PositionChoice
 from standings.services import recalculate_competition_standings
+from fixtures.services import advance_knockout_bracket
 from datetime import datetime
 
 
@@ -360,6 +361,9 @@ def enter_match_result_view(request, match_id):
 
         # Trigger automatic standings recomputation
         recalculate_competition_standings(match.competition)
+
+        # Advance knockout brackets (e.g. Page-McIntyre Preliminary & Grand Finals)
+        advance_knockout_bracket(match.competition)
 
         messages.success(
             request,

@@ -80,6 +80,7 @@ def generate_smart_fixtures(competition, config):
     3. Schedules by daily match capacity and user-input kickoff times.
     """
     format_type = config.get('tournament_format', TournamentFormat.ROUND_ROBIN)
+    knockout_system = config.get('knockout_system', 'single_elimination')
 
     # Automatically use all registered teams in competition
     selected_team_ids = config.get('selected_team_ids')
@@ -138,7 +139,25 @@ def generate_smart_fixtures(competition, config):
     groups_info = {}
     scheduled_matches = []
 
-    if format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
+    if format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
+        if len(teams_qs) < 4:
+            return {
+                'success': False,
+                'errors': [f"Page–McIntyre Playoff System requires at least 4 participating teams (found {len(teams_qs)}). Please register 4 teams to generate fixtures."],
+                'matches': [],
+                'summary': {}
+            }
+        knockout_matches = _generate_page_mcintyre_fixtures(
+            teams=teams_qs[:4],
+            start_date=start_date,
+            preferred_weekdays=preferred_weekdays,
+            slot_times=slot_times,
+            venues=venues,
+            end_date=end_date
+        )
+        scheduled_matches.extend(knockout_matches)
+
+    elif format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
         raw_rounds = _build_round_robin_rounds(teams_qs, double_round=(round_robin_type == 'double'))
         scheduled_matches = _schedule_daily_slots(
             rounds=raw_rounds,
@@ -170,9 +189,13 @@ def generate_smart_fixtures(competition, config):
 
         merged_rounds = _merge_concurrent_group_rounds(all_group_rounds)
 
-        # Apportion timeline between group stage and knockout stage
         total_qualifiers = num_groups * q_per_group
-        if total_qualifiers <= 2:
+        use_page_mcintyre = (knockout_system == 'page_mcintyre' and total_qualifiers == 4)
+
+        # Apportion timeline between group stage and knockout stage
+        if use_page_mcintyre:
+            ko_rounds_count = 3  # Stage 1: QF & EF, Stage 2: Prelim Final, Stage 3: Grand Final
+        elif total_qualifiers <= 2:
             ko_rounds_count = 1
         elif total_qualifiers <= 4:
             ko_rounds_count = 2
@@ -215,16 +238,39 @@ def generate_smart_fixtures(competition, config):
         else:
             knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=7), preferred_weekdays)
 
-        knockout_matches = _generate_knockout_stage_for_groups(
-            groups_dict=groups_dict,
-            start_date=knockout_start_date,
-            preferred_weekdays=preferred_weekdays,
-            slot_times=slot_times,
-            venues=venues,
-            qualifiers_per_group=q_per_group,
-            end_date=end_date
-        )
-        scheduled_matches.extend(knockout_matches)
+        if use_page_mcintyre:
+            if num_groups == 1:
+                q_teams = groups_dict[list(groups_dict.keys())[0]][:4]
+            else:
+                g_keys = sorted(list(groups_dict.keys()))
+                gA = groups_dict[g_keys[0]]
+                gB = groups_dict[g_keys[1]]
+                q_teams = [
+                    gA[0] if len(gA) > 0 else None,
+                    gB[0] if len(gB) > 0 else None,
+                    gA[1] if len(gA) > 1 else None,
+                    gB[1] if len(gB) > 1 else None,
+                ]
+            knockout_matches = _generate_page_mcintyre_fixtures(
+                teams=q_teams,
+                start_date=knockout_start_date,
+                preferred_weekdays=preferred_weekdays,
+                slot_times=slot_times,
+                venues=venues,
+                end_date=end_date
+            )
+            scheduled_matches.extend(knockout_matches)
+        else:
+            knockout_matches = _generate_knockout_stage_for_groups(
+                groups_dict=groups_dict,
+                start_date=knockout_start_date,
+                preferred_weekdays=preferred_weekdays,
+                slot_times=slot_times,
+                venues=venues,
+                qualifiers_per_group=q_per_group,
+                end_date=end_date
+            )
+            scheduled_matches.extend(knockout_matches)
 
     elif format_type == TournamentFormat.SINGLE_ELIMINATION or format_type == 'KNOCKOUT':
         knockout_matches = _generate_single_elimination_bracket(
@@ -257,7 +303,7 @@ def generate_smart_fixtures(competition, config):
         'total_teams': len(teams_qs),
         'start_date': first_date.isoformat() if isinstance(first_date, date) else str(first_date),
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
-        'format_name': dict(TournamentFormat.choices).get(format_type, format_type),
+        'format_name': (dict(TournamentFormat.choices).get(format_type, format_type) + (" (Page–McIntyre Playoff)" if (knockout_system == 'page_mcintyre' and format_type != TournamentFormat.PAGE_MCINTYRE) else "")),
         'matches_per_day': matches_per_day,
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
@@ -944,11 +990,220 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
     return matches
 
 
-def commit_generated_fixtures(competition, matches_data, groups_data=None):
+def _normalize_team_seed(t, default_label, default_short):
+    """
+    Normalizes a team object or seed dictionary into a uniform dictionary
+    with id, team_name, seed_label, short_name, logo getter, and venue.
+    """
+    if t is None:
+        return {
+            'id': None,
+            'name': default_label,
+            'team_name': default_label,
+            'short_name': default_short,
+            'seed_label': default_label,
+            'get_logo_url': lambda: '',
+            'home_venue': ''
+        }
+    if isinstance(t, dict):
+        return {
+            'id': t.get('id'),
+            'name': t.get('name') or default_label,
+            'team_name': t.get('team_name') or t.get('name') or default_label,
+            'short_name': t.get('short_name') or default_short,
+            'seed_label': t.get('seed_label') or default_label,
+            'get_logo_url': t.get('get_logo_url', lambda: ''),
+            'home_venue': t.get('home_venue', '')
+        }
+    return {
+        'id': getattr(t, 'id', None),
+        'name': f"{default_label} ({t.name})" if getattr(t, 'name', None) else default_label,
+        'team_name': getattr(t, 'name', default_label),
+        'short_name': getattr(t, 'short_name', default_short),
+        'seed_label': default_label,
+        'get_logo_url': getattr(t, 'get_logo_url', lambda: ''),
+        'home_venue': getattr(t, 'home_venue', '')
+    }
+
+
+def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot_times, venues, end_date=None, prefix=""):
+    """
+    Generates the authentic Page–McIntyre Playoff System (Final Four) fixtures:
+    Requires 4 teams (Seed 1 to 4).
+    1. Qualifying Final (Major Semi-Final): Seed 1 vs Seed 2. Winner straight to Grand Final, Loser to Preliminary Final.
+    2. Elimination Final (Minor Semi-Final): Seed 3 vs Seed 4. Winner to Preliminary Final, Loser eliminated.
+    3. Preliminary Final: Loser QF vs Winner EF. Winner to Grand Final, Loser eliminated (3rd place).
+    4. Grand Final: Winner QF vs Winner PF. Winner is crowned Champion!
+    """
+    if len(teams) < 4:
+        return []
+
+    cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
+    if end_date and cur_date > end_date:
+        cur_date = end_date
+
+    seed1 = _normalize_team_seed(teams[0], "1st Place", "1st")
+    seed2 = _normalize_team_seed(teams[1], "2nd Place", "2nd")
+    seed3 = _normalize_team_seed(teams[2], "3rd Place", "3rd")
+    seed4 = _normalize_team_seed(teams[3], "4th Place", "4th")
+
+    matches = []
+
+    # STAGE 1 (Matchday 1):
+    # Match 1: Qualifying Final (1st vs 2nd)
+    qf_venue = seed1.get('home_venue') or venues[0]
+    matches.append({
+        'round_name': f"{prefix}Qualifying Final (1st vs 2nd)".strip(),
+        'round_number': 100,
+        'group_name': "Knockout",
+        'home_team': seed1,
+        'away_team': seed2,
+        'match_date': min(cur_date, end_date) if end_date else cur_date,
+        'kickoff_time': slot_times[0],
+        'venue': qf_venue,
+        'is_knockout': True
+    })
+
+    # Match 2: Elimination Final (3rd vs 4th)
+    ef_venue = seed3.get('home_venue') or venues[1 % len(venues)]
+    matches.append({
+        'round_name': f"{prefix}Elimination Final (3rd vs 4th)".strip(),
+        'round_number': 100,
+        'group_name': "Knockout",
+        'home_team': seed3,
+        'away_team': seed4,
+        'match_date': min(cur_date, end_date) if end_date else cur_date,
+        'kickoff_time': slot_times[1 % len(slot_times)] if len(slot_times) > 1 else slot_times[0],
+        'venue': ef_venue,
+        'is_knockout': True
+    })
+
+    # STAGE 2 (Matchday 2):
+    # Match 3: Preliminary Final (Loser QF vs Winner EF)
+    prelim_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+    prelim_home = {
+        'id': seed2['id'],
+        'name': f"Loser Qualifying Final ({seed2['team_name']})",
+        'short_name': "L-QF",
+        'seed_label': "Loser QF",
+        'get_logo_url': seed2['get_logo_url']
+    }
+    prelim_away = {
+        'id': seed3['id'],
+        'name': f"Winner Elimination Final ({seed3['team_name']})",
+        'short_name': "W-EF",
+        'seed_label': "Winner EF",
+        'get_logo_url': seed3['get_logo_url']
+    }
+    matches.append({
+        'round_name': f"{prefix}Preliminary Final".strip(),
+        'round_number': 101,
+        'group_name': "Knockout",
+        'home_team': prelim_home,
+        'away_team': prelim_away,
+        'match_date': min(prelim_date, end_date) if end_date else prelim_date,
+        'kickoff_time': slot_times[0],
+        'venue': venues[0],
+        'is_knockout': True
+    })
+
+    # STAGE 3 (Matchday 3):
+    # Match 4: Grand Final (Winner QF vs Winner PF)
+    final_date = _calc_next_stage_date(prelim_date, 1, end_date, preferred_weekdays)
+    final_home = {
+        'id': seed1['id'],
+        'name': f"Winner Qualifying Final ({seed1['team_name']})",
+        'short_name': "W-QF",
+        'seed_label': "Winner QF",
+        'get_logo_url': seed1['get_logo_url']
+    }
+    final_away = {
+        'id': seed2['id'],
+        'name': f"Winner Preliminary Final ({seed2['team_name']})",
+        'short_name': "W-PF",
+        'seed_label': "Winner PF",
+        'get_logo_url': seed2['get_logo_url']
+    }
+    matches.append({
+        'round_name': f"{prefix}Grand Final".strip(),
+        'round_number': 102,
+        'group_name': "Knockout",
+        'home_team': final_home,
+        'away_team': final_away,
+        'match_date': min(final_date, end_date) if end_date else final_date,
+        'kickoff_time': slot_times[0],
+        'venue': venues[0],
+        'is_knockout': True
+    })
+
+    return matches
+
+
+def advance_knockout_bracket(competition):
+    """
+    Automatically advances winners and losers into subsequent knockout / playoff rounds
+    (e.g., Page-McIntyre Preliminary Final & Grand Final, or Single Elimination Finals).
+    Only updates matches that are currently SCHEDULED (not yet played).
+    """
+    matches = list(competition.matches.all())
+
+    # 1. Page-McIntyre Playoff Progression
+    qf = next((m for m in matches if 'Qualifying Final' in m.tournament_round), None)
+    ef = next((m for m in matches if 'Elimination Final' in m.tournament_round), None)
+    pf = next((m for m in matches if 'Preliminary Final' in m.tournament_round), None)
+    gf = next((m for m in matches if any(k in m.tournament_round for k in ['Grand Final', 'Grand Championship Final']) or m.tournament_round.strip() == 'Final'), None)
+
+    if qf and qf.status == MatchStatus.COMPLETED and qf.winner:
+        qf_winner = qf.winner
+        qf_loser = qf.home_team if qf_winner.id == qf.away_team_id else qf.away_team
+
+        # Winner of QF advances directly to Grand Final (Home)
+        if gf and gf.status == MatchStatus.SCHEDULED and gf.home_team_id != qf_winner.id:
+            gf.home_team = qf_winner
+            gf.save(update_fields=['home_team'])
+
+        # Loser of QF advances to Preliminary Final (Home)
+        if pf and pf.status == MatchStatus.SCHEDULED and pf.home_team_id != qf_loser.id:
+            pf.home_team = qf_loser
+            pf.save(update_fields=['home_team'])
+
+    if ef and ef.status == MatchStatus.COMPLETED and ef.winner:
+        ef_winner = ef.winner
+        # Winner of EF advances to Preliminary Final (Away)
+        if pf and pf.status == MatchStatus.SCHEDULED and pf.away_team_id != ef_winner.id:
+            pf.away_team = ef_winner
+            pf.save(update_fields=['away_team'])
+
+    if pf and pf.status == MatchStatus.COMPLETED and pf.winner:
+        pf_winner = pf.winner
+        # Winner of PF advances to Grand Final (Away)
+        if gf and gf.status == MatchStatus.SCHEDULED and gf.away_team_id != pf_winner.id:
+            gf.away_team = pf_winner
+            gf.save(update_fields=['away_team'])
+
+    # 2. Standard Single Elimination Progression (Semi-Finals -> Grand Final)
+    sfs = [m for m in matches if 'Semi-Final' in m.tournament_round and 'Qualifying' not in m.tournament_round and 'Elimination' not in m.tournament_round]
+    if len(sfs) >= 2 and gf and gf.status == MatchStatus.SCHEDULED:
+        sf1, sf2 = sfs[0], sfs[1]
+        if sf1.status == MatchStatus.COMPLETED and sf1.winner:
+            if gf.home_team_id != sf1.winner.id:
+                gf.home_team = sf1.winner
+                gf.save(update_fields=['home_team'])
+        if sf2.status == MatchStatus.COMPLETED and sf2.winner:
+            if gf.away_team_id != sf2.winner.id:
+                gf.away_team = sf2.winner
+                gf.save(update_fields=['away_team'])
+
+
+def commit_generated_fixtures(competition, matches_data, groups_data=None, tournament_format=None):
     """
     Atomically writes previewed/edited fixtures into database Match and TournamentGroup records.
     """
     with transaction.atomic():
+        if tournament_format and tournament_format in dict(TournamentFormat.choices):
+            competition.tournament_format = tournament_format
+            competition.save(update_fields=['tournament_format'])
+
         competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
 
         group_objects_map = {}

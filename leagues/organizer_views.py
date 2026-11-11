@@ -12,7 +12,7 @@ from teams.models import Team, Player, PositionChoice
 from matches.models import Match, MatchEvent, MatchEventType, MatchStatus
 from standings.models import StandingEntry
 from standings.services import recalculate_competition_standings
-from fixtures.services import generate_round_robin_fixtures
+from fixtures.services import generate_round_robin_fixtures, advance_knockout_bracket
 from matches.services import get_competition_statistics
 
 
@@ -473,6 +473,9 @@ def enter_match_result_view(request, match_id):
 
         # Automatically recalculate standings!
         recalculate_competition_standings(match_obj.competition)
+
+        # Automatically advance knockout brackets
+        advance_knockout_bracket(match_obj.competition)
 
         ActivityLog.log(
             'MATCH_RESULT_ENTERED',

@@ -69,6 +69,11 @@ class Match(models.Model):
             return self.home_team
         elif self.away_score > self.home_score:
             return self.away_team
+        if self.penalties and self.home_penalties is not None and self.away_penalties is not None:
+            if self.home_penalties > self.away_penalties:
+                return self.home_team
+            elif self.away_penalties > self.home_penalties:
+                return self.away_team
         return None  # Draw
 
     def _get_team_highlights(self, team):

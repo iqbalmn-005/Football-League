@@ -14,6 +14,7 @@ class TournamentFormat(models.TextChoices):
     LEAGUE_KNOCKOUT = 'LEAGUE_KNOCKOUT', 'League + Knockout'
     GROUP_KNOCKOUT = 'GROUP_KNOCKOUT', 'Group Stage + Knockout'
     SINGLE_ELIMINATION = 'SINGLE_ELIMINATION', 'Single Elimination / Knockout'
+    PAGE_MCINTYRE = 'PAGE_MCINTYRE', 'Page–McIntyre System (Final 4)'
 
 
 class CompetitionCategory(models.TextChoices):
@@ -103,6 +104,11 @@ class Competition(models.Model):
     def winner_entry(self):
         if not self.is_completed:
             return None
+        w_team = self.winner
+        if w_team:
+            entry = self.standings.filter(team=w_team).first()
+            if entry:
+                return entry
         return self.standings.order_by('position').first()
 
     @property
@@ -110,9 +116,13 @@ class Competition(models.Model):
         if not self.is_completed:
             return None
         final_match = self.matches.filter(
-            tournament_round__iexact='Final',
+            models.Q(tournament_round__iexact='Final') |
+            models.Q(tournament_round__iexact='Grand Final') |
+            models.Q(tournament_round__iexact='Grand Championship Final') |
+            models.Q(tournament_round__icontains='Grand Final') |
+            (models.Q(tournament_round__iendswith='Final') & ~models.Q(tournament_round__icontains='Semi') & ~models.Q(tournament_round__icontains='Preliminary') & ~models.Q(tournament_round__icontains='Elimination') & ~models.Q(tournament_round__icontains='Qualifying')),
             status='COMPLETED'
-        ).first()
+        ).order_by('-round_number', '-match_date').first()
         if final_match and final_match.winner:
             return final_match.winner
 

@@ -85,6 +85,7 @@ def api_publish_fixtures(request, comp_id):
 
     matches_data = data.get('matches', [])
     groups_data = data.get('groups', {})
+    tournament_format = data.get('tournament_format')
 
     if not matches_data:
         return JsonResponse({'success': False, 'errors': ["No fixtures to publish. Please generate fixtures first."]}, status=400)
@@ -92,7 +93,8 @@ def api_publish_fixtures(request, comp_id):
     created_matches = commit_generated_fixtures(
         competition=comp,
         matches_data=matches_data,
-        groups_data=groups_data
+        groups_data=groups_data,
+        tournament_format=tournament_format
     )
 
     messages.success(request, f"✓ Successfully generated and published {len(created_matches)} fixtures for {comp.name}!")
