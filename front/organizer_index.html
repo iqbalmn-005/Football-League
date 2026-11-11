@@ -1332,13 +1332,12 @@
                 grid-column: span 3 !important;
             }
 
-            /* Topbar */
+            /* Topbar (Static on phone, not movable / not floating on scroll) */
             .topbar {
                 height: 58px;
                 padding: 0 14px;
-                position: sticky;
-                top: 0;
-                z-index: 1000 !important;
+                position: static !important;
+                z-index: auto !important;
                 box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
             }
 
@@ -1421,15 +1420,14 @@
                 display: none;
             }
 
-            /* Bottom Nav */
+            /* Bottom Nav (Hidden on phone: navigation is accessed via hamburger menu) */
             .mobile-bottom-nav {
-                display: grid;
+                display: none !important;
             }
 
             /* Content Container */
             .content {
-                padding: 16px 12px 85px;
-                /* bottom clearance for fixed nav */
+                padding: 16px 12px 30px !important;
             }
 
             .page-heading {
@@ -3226,9 +3224,7 @@
 
         /* Grid template for 6-column mobile bottom nav */
         .mobile-bottom-nav {
-            grid-template-columns: repeat(6, 1fr) !important;
-            height: 60px !important;
-            padding: 3px 2px !important;
+            display: none !important;
         }
 
         .bottom-nav-item {

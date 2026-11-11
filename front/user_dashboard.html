@@ -1433,20 +1433,24 @@
                 width: calc(100% - 24px);
             }
 
+            .navbar {
+                position: static !important;
+            }
+
             .tabs-container {
                 display: none !important;
             }
 
             .mobile-bottom-nav {
-                display: flex;
+                display: none !important;
             }
 
             body {
-                padding-bottom: calc(var(--bnav-h) + 16px + env(safe-area-inset-bottom, 0px)) !important;
+                padding-bottom: 0 !important;
             }
 
             .site-footer {
-                margin-bottom: calc(var(--bnav-h) + 10px + env(safe-area-inset-bottom, 0px));
+                margin-bottom: 0 !important;
             }
 
             .nav-links {
@@ -2738,6 +2742,20 @@
             <div class="mobile-drawer-top">
                 <span class="logo"><span class="logo-mark">//</span>TOUCHLINE</span>
                 <button class="modal-close-btn" style="position:static;" onclick="toggleMobileMenu()">✕</button>
+            </div>
+            <div style="margin:14px 0 8px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--green);">
+                Tournament Navigation
+            </div>
+            <nav class="mobile-drawer-links" style="margin-bottom:14px;">
+                <a href="?tab=upcoming" class="mobile-drawer-link {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" onclick="toggleMobileMenu()">📅 Upcoming Fixtures</a>
+                <a href="?tab=results" class="mobile-drawer-link {% if active_tab == 'results' %}active{% endif %}" onclick="toggleMobileMenu()">🏆 Match Results</a>
+                <a href="?tab=table" class="mobile-drawer-link {% if active_tab == 'table' %}active{% endif %}" onclick="toggleMobileMenu()">📊 Standings Table</a>
+                <a href="?tab=stats" class="mobile-drawer-link {% if active_tab == 'stats' %}active{% endif %}" onclick="toggleMobileMenu()">📈 Player Statistics</a>
+                <a href="?tab=teams" class="mobile-drawer-link {% if active_tab == 'teams' %}active{% endif %}" onclick="toggleMobileMenu()">🛡️ Teams &amp; Squads</a>
+            </nav>
+
+            <div style="margin:8px 0;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8c9e92;">
+                Platform Menu
             </div>
             <nav class="mobile-drawer-links">
                 <a href="/" class="mobile-drawer-link">Home <span>↗</span></a>
