@@ -27,8 +27,10 @@ class Match(models.Model):
     tournament_round = models.CharField(max_length=60, default="Matchweek 1")
     round_number = models.PositiveIntegerField(default=1)
     group = models.ForeignKey(TournamentGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches')
-    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')
-    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_matches')
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='home_matches')
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='away_matches')
+    placeholder_home = models.CharField(max_length=150, blank=True, default='')
+    placeholder_away = models.CharField(max_length=150, blank=True, default='')
     match_date = models.DateField()
     kickoff_time = models.TimeField()
     venue = models.CharField(max_length=150, default="Central Stadium")
@@ -47,9 +49,23 @@ class Match(models.Model):
     class Meta:
         ordering = ['match_date', 'kickoff_time']
 
+    @property
+    def home_display_name(self):
+        if self.home_team:
+            return self.home_team.name
+        return self.placeholder_home or "TBD"
+
+    @property
+    def away_display_name(self):
+        if self.away_team:
+            return self.away_team.name
+        return self.placeholder_away or "TBD"
+
     def __str__(self):
         score = f"{self.home_score} - {self.away_score}" if self.home_score is not None and self.away_score is not None else "vs"
-        return f"{self.home_team.name} {score} {self.away_team.name} ({self.tournament_round})"
+        h = self.home_team.name if self.home_team else (self.placeholder_home or "TBD")
+        a = self.away_team.name if self.away_team else (self.placeholder_away or "TBD")
+        return f"{h} {score} {a} ({self.tournament_round})"
 
     @property
     def is_finished(self):
@@ -132,10 +148,14 @@ class Match(models.Model):
 
     @property
     def home_highlights(self):
+        if not self.home_team:
+            return []
         return self._get_team_highlights(self.home_team)
 
     @property
     def away_highlights(self):
+        if not self.away_team:
+            return []
         return self._get_team_highlights(self.away_team)
 
 

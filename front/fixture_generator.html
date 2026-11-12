@@ -1547,7 +1547,7 @@
             list.innerHTML = '';
 
             document.getElementById('previewStatsText').innerText =
-                `${summary.total_matches} Total Matches | ${summary.matches_per_day} Matches/Day | From ${summary.start_date} to ${summary.end_date}`;
+                `${summary.total_matches} ${summary.total_matches === 1 ? 'Match' : 'Matches'} | ${summary.matches_per_day} ${summary.matches_per_day === 1 ? 'Match/Day' : 'Matches/Day'} | From ${summary.start_date} to ${summary.end_date}`;
 
             const grouped = {};
             matches.forEach(m => {
@@ -1589,7 +1589,7 @@
                 block.innerHTML = `
                     <div class="matchweek-header">
                         <span>📅 ${roundName}</span>
-                        <span style="font-size:11px;font-weight:600;text-transform:none;">${rMatches.length} Matches</span>
+                        <span style="font-size:11px;font-weight:600;text-transform:none;">${rMatches.length} ${rMatches.length === 1 ? 'Match' : 'Matches'}</span>
                     </div>
                     <table class="preview-table">
                         <thead>

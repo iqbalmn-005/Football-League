@@ -5656,7 +5656,7 @@
                                             {% endif %}>
                                             <td>
                                                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                    <strong>{{ m.home_team.short_name }} vs {{ m.away_team.short_name }}</strong>
+                                                    <strong>{{ m.home_display_name }} vs {{ m.away_display_name }}</strong>
                                                     {% if next_match and m.id == next_match.id %}
                                                     <span class="badge-next-match">&#9889; NEXT MATCH</span>
                                                     {% endif %}
@@ -5666,10 +5666,16 @@
                                             <td>{{ m.match_date|date:"D, d M" }} &middot; {{ m.kickoff_time|time:"H:i" }}</td>
                                             <td>{{ m.venue }}</td>
                                             <td>
+                                                {% if m.home_team and m.away_team %}
                                                 <button class="btn btn-primary" style="padding:4px 8px;font-size:11px"
-                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}')">
+                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_display_name|escapejs }}', '{{ m.away_display_name|escapejs }}', '{{ m.tournament_round }}')">
                                                     Enter Score
                                                 </button>
+                                                {% else %}
+                                                <span style="font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;background:#f1f5f9;border-radius:4px;">
+                                                    Pending Finalists
+                                                </span>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         {% empty %}
@@ -5700,16 +5706,16 @@
                                     <div class="um-matchup-row">
                                         <!-- Home Team -->
                                         <div class="um-team-side um-home">
-                                            <div class="um-crest-wrap" title="{{ m.home_team.name }}">
-                                                {% if m.home_team.get_logo_url %}
-                                                <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_team.name }}">
+                                            <div class="um-crest-wrap" title="{{ m.home_display_name }}">
+                                                {% if m.home_team and m.home_team.get_logo_url %}
+                                                <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_display_name }}">
                                                 {% else %}
-                                                <span>{{ m.home_team.short_name|default:m.home_team.name|slice:":3"|upper }}</span>
+                                                <span>{{ m.home_display_name|slice:":3"|upper }}</span>
                                                 {% endif %}
                                             </div>
                                             <div class="um-team-info">
-                                                <span class="um-team-name">{{ m.home_team.name }}</span>
-                                                <span class="um-team-code">{{ m.home_team.short_name }}</span>
+                                                <span class="um-team-name">{{ m.home_display_name }}</span>
+                                                <span class="um-team-code">{% if m.home_team %}{{ m.home_team.short_name }}{% else %}TBD{% endif %}</span>
                                             </div>
                                         </div>
 
@@ -5718,14 +5724,14 @@
                                         <!-- Away Team -->
                                         <div class="um-team-side um-away">
                                             <div class="um-team-info um-info-right">
-                                                <span class="um-team-name">{{ m.away_team.name }}</span>
-                                                <span class="um-team-code">{{ m.away_team.short_name }}</span>
+                                                <span class="um-team-name">{{ m.away_display_name }}</span>
+                                                <span class="um-team-code">{% if m.away_team %}{{ m.away_team.short_name }}{% else %}TBD{% endif %}</span>
                                             </div>
-                                            <div class="um-crest-wrap" title="{{ m.away_team.name }}">
-                                                {% if m.away_team.get_logo_url %}
-                                                <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_team.name }}">
+                                            <div class="um-crest-wrap" title="{{ m.away_display_name }}">
+                                                {% if m.away_team and m.away_team.get_logo_url %}
+                                                <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_display_name }}">
                                                 {% else %}
-                                                <span>{{ m.away_team.short_name|default:m.away_team.name|slice:":3"|upper }}</span>
+                                                <span>{{ m.away_display_name|slice:":3"|upper }}</span>
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -5850,6 +5856,7 @@
                         </div>
 
                         <div class="poster-matchup">
+                            {% if next_match.home_team %}
                             <a href="/organizer/team/{{ next_match.home_team.id }}/?competition={{ active_competition.id }}"
                                 class="poster-team poster-team-home" onclick="event.stopPropagation()"
                                 style="color:inherit;text-decoration:none;cursor:pointer;"
@@ -5864,11 +5871,20 @@
                                 </div>
                                 <div class="poster-team-name">{{ next_match.home_team.name }}</div>
                             </a>
+                            {% else %}
+                            <div class="poster-team poster-team-home" style="cursor:default;">
+                                <div class="poster-crest-wrap" title="{{ next_match.home_display_name }}">
+                                    <span class="poster-crest-fallback">TBD</span>
+                                </div>
+                                <div class="poster-team-name">{{ next_match.home_display_name }}</div>
+                            </div>
+                            {% endif %}
 
                             <div class="poster-vs-wrap">
                                 <span class="poster-vs-text">VS</span>
                             </div>
 
+                            {% if next_match.away_team %}
                             <a href="/organizer/team/{{ next_match.away_team.id }}/?competition={{ active_competition.id }}"
                                 class="poster-team poster-team-away" onclick="event.stopPropagation()"
                                 style="color:inherit;text-decoration:none;cursor:pointer;"
@@ -5883,6 +5899,14 @@
                                     {% endif %}
                                 </div>
                             </a>
+                            {% else %}
+                            <div class="poster-team poster-team-away" style="cursor:default;">
+                                <div class="poster-team-name">{{ next_match.away_display_name }}</div>
+                                <div class="poster-crest-wrap" title="{{ next_match.away_display_name }}">
+                                    <span class="poster-crest-fallback">TBD</span>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="poster-info-pill" style="cursor:default;">
@@ -5933,22 +5957,36 @@
                                         </td>
                                         <td>{{ m.match_date|date:"D, d M Y" }} · {{ m.kickoff_time|time:"H:i" }}</td>
                                         <td>
+                                            {% if m.home_team %}
                                             <a href="/organizer/team/{{ m.home_team.id }}/?competition={{ active_competition.id }}"
                                                 style="color:inherit;text-decoration:none;font-weight:700;">{{ m.home_team.name }}</a>
+                                            {% else %}
+                                            <span style="font-weight:700;color:var(--muted);">{{ m.home_display_name }}</span>
+                                            {% endif %}
                                             <span style="color:var(--muted);font-weight:600;margin:0 4px;">vs</span>
+                                            {% if m.away_team %}
                                             <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
                                                 style="color:inherit;text-decoration:none;font-weight:700;">{{ m.away_team.name }}</a>
+                                            {% else %}
+                                            <span style="font-weight:700;color:var(--muted);">{{ m.away_display_name }}</span>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:6px;">
                                                 <button class="btn btn-outline" style="padding:4px 8px;font-size:11px"
-                                                    onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_team.name|escapejs }} vs {{ m.away_team.name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
+                                                    onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_display_name|escapejs }} vs {{ m.away_display_name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
                                                     Reschedule
                                                 </button>
+                                                {% if m.home_team and m.away_team %}
                                                 <button class="btn btn-primary" style="padding:4px 8px;font-size:11px"
-                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}')">
+                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_display_name|escapejs }}', '{{ m.away_display_name|escapejs }}', '{{ m.tournament_round }}')">
                                                     Enter Score
                                                 </button>
+                                                {% else %}
+                                                <span style="font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;background:#f1f5f9;border-radius:4px;display:inline-flex;align-items:center;">
+                                                    ⏳ Pending Finalists
+                                                </span>
+                                                {% endif %}
                                             </div>
                                         </td>
                                     </tr>
@@ -6013,16 +6051,16 @@
                                 <div class="fmc-matchup">
                                     <!-- Home Team -->
                                     <div class="fmc-team fmc-home">
-                                        <div class="fmc-crest" title="{{ m.home_team.name }}">
-                                            {% if m.home_team.get_logo_url %}
-                                            <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_team.name }}">
+                                        <div class="fmc-crest" title="{{ m.home_display_name }}">
+                                            {% if m.home_team and m.home_team.get_logo_url %}
+                                            <img src="{{ m.home_team.get_logo_url }}" alt="{{ m.home_display_name }}">
                                             {% else %}
-                                            <span>{{ m.home_team.short_name|default:m.home_team.name|slice:":3"|upper }}</span>
+                                            <span>{{ m.home_display_name|slice:":3"|upper }}</span>
                                             {% endif %}
                                         </div>
                                         <div class="fmc-team-info">
-                                            <span class="fmc-name">{{ m.home_team.name }}</span>
-                                            <span class="fmc-code">{{ m.home_team.short_name }}</span>
+                                            <span class="fmc-name">{{ m.home_display_name }}</span>
+                                            <span class="fmc-code">{% if m.home_team %}{{ m.home_team.short_name }}{% else %}TBD{% endif %}</span>
                                         </div>
                                     </div>
 
@@ -6031,14 +6069,14 @@
                                     <!-- Away Team -->
                                     <div class="fmc-team fmc-away">
                                         <div class="fmc-team-info fmc-info-right">
-                                            <span class="fmc-name">{{ m.away_team.name }}</span>
-                                            <span class="fmc-code">{{ m.away_team.short_name }}</span>
+                                            <span class="fmc-name">{{ m.away_display_name }}</span>
+                                            <span class="fmc-code">{% if m.away_team %}{{ m.away_team.short_name }}{% else %}TBD{% endif %}</span>
                                         </div>
-                                        <div class="fmc-crest" title="{{ m.away_team.name }}">
-                                            {% if m.away_team.get_logo_url %}
-                                            <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_team.name }}">
+                                        <div class="fmc-crest" title="{{ m.away_display_name }}">
+                                            {% if m.away_team and m.away_team.get_logo_url %}
+                                            <img src="{{ m.away_team.get_logo_url }}" alt="{{ m.away_display_name }}">
                                             {% else %}
-                                            <span>{{ m.away_team.short_name|default:m.away_team.name|slice:":3"|upper }}</span>
+                                            <span>{{ m.away_display_name|slice:":3"|upper }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -6051,13 +6089,19 @@
 
                                 <div class="fmc-actions">
                                     <button class="btn btn-outline fmc-btn" type="button"
-                                        onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_team.name|escapejs }} vs {{ m.away_team.name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
+                                        onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_display_name|escapejs }} vs {{ m.away_display_name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
                                         📅 Reschedule
                                     </button>
+                                    {% if m.home_team and m.away_team %}
                                     <button class="btn btn-primary fmc-btn" type="button"
-                                        onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}')">
+                                        onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_display_name|escapejs }}', '{{ m.away_display_name|escapejs }}', '{{ m.tournament_round }}')">
                                         ⚡ Enter Score
                                     </button>
+                                    {% else %}
+                                    <span style="font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;background:#f1f5f9;border-radius:4px;display:inline-flex;align-items:center;">
+                                        ⏳ Pending Finalists
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% empty %}

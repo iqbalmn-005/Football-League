@@ -367,6 +367,11 @@ def enter_match_result_view(request, match_id):
     if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
         messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
         return redirect(f"/competition/{comp_id}/")
+
+    if not match_obj.home_team or not match_obj.away_team:
+        messages.error(request, "Cannot record results for a match where participating teams are not yet determined.")
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
+
     if request.method == 'POST':
         comp_id = match_obj.competition_id
 
@@ -479,11 +484,11 @@ def enter_match_result_view(request, match_id):
 
         ActivityLog.log(
             'MATCH_RESULT_ENTERED',
-            f"Entered result: {match_obj.home_team.name} {home_score}-{away_score} {match_obj.away_team.name}.",
+            f"Entered result: {match_obj.home_display_name} {home_score}-{away_score} {match_obj.away_display_name}.",
             user=request.user
         )
 
-        messages.success(request, f"Result recorded: {match_obj.home_team.short_name} {home_score} - {away_score} {match_obj.away_team.short_name}. Points table updated!")
+        messages.success(request, f"Result recorded: {match_obj.home_display_name} {home_score} - {away_score} {match_obj.away_display_name}. Points table updated!")
         return redirect(f"/organizer/{comp_id}/?tab=fixtures")
     return redirect('organizer_dashboard')
 

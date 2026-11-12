@@ -142,7 +142,7 @@ def update_match_view(request, match_id):
             match.status = status
 
         match.save()
-        messages.success(request, f"✓ Match {match.home_team.short_name} vs {match.away_team.short_name} updated successfully.")
+        messages.success(request, f"✓ Match {match.home_display_name} vs {match.away_display_name} updated successfully.")
 
     return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
 
@@ -154,6 +154,10 @@ def enter_match_result_view(request, match_id):
     and disciplinary cards. Automatically triggers standings recalculation in Django.
     """
     match = get_object_or_404(Match, id=match_id)
+
+    if not match.home_team or not match.away_team:
+        messages.error(request, "Cannot record results for a match where participating teams are not yet determined.")
+        return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
 
     if request.method == 'POST':
         try:
@@ -367,7 +371,7 @@ def enter_match_result_view(request, match_id):
 
         messages.success(
             request,
-            f"✓ Official Result Confirmed: {match.home_team.name} {home_score} - {away_score} {match.away_team.name}. Goals, assists, penalties, and cards updated!"
+            f"✓ Official Result Confirmed: {match.home_display_name} {home_score} - {away_score} {match.away_display_name}. Goals, assists, penalties, and cards updated!"
         )
 
     return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
