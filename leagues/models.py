@@ -10,10 +10,10 @@ class CompetitionType(models.TextChoices):
 
 
 class TournamentFormat(models.TextChoices):
-    ROUND_ROBIN = 'ROUND_ROBIN', 'Round Robin / League'
-    LEAGUE_KNOCKOUT = 'LEAGUE_KNOCKOUT', 'League + Knockout'
-    GROUP_KNOCKOUT = 'GROUP_KNOCKOUT', 'Group Stage + Knockout'
-    SINGLE_ELIMINATION = 'SINGLE_ELIMINATION', 'Single Elimination / Knockout'
+    ROUND_ROBIN = 'ROUND_ROBIN', 'Round Robin (League)'
+    LEAGUE_KNOCKOUT = 'LEAGUE_KNOCKOUT', 'League + Tournament'
+    GROUP_KNOCKOUT = 'GROUP_KNOCKOUT', 'Group Mode + Tournament'
+    SINGLE_ELIMINATION = 'SINGLE_ELIMINATION', 'Tournament / Knockout'
     PAGE_MCINTYRE = 'PAGE_MCINTYRE', 'Page–McIntyre System (Final 4)'
 
 

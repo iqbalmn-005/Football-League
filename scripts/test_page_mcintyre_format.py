@@ -147,10 +147,10 @@ assert comp.is_completed, "Competition should be marked completed when all match
 assert comp.winner.id == t1.id, f"Champion should be Grand Final winner (Team 1: {t1.name}), got {comp.winner.name}"
 print(f"✓ Verified: Grand Final concluded! Competition is completed with Champion: {comp.winner.name}")
 
-# 6. Test League + Knockout with Page-McIntyre playoff choice
+# 6. Test League + Tournament with Page-McIntyre playoff choice
 config_league_pm = {
     'tournament_format': 'LEAGUE_KNOCKOUT',
-    'knockout_system': 'page_mcintyre',
+    'tournament_type': 'page_mcintyre',
     'num_groups': 1,
     'qualifiers_per_group': 4,
     'round_robin_type': 'single',
@@ -170,12 +170,95 @@ assert any("Qualifying Final" in r for r in l_rounds)
 assert any("Elimination Final" in r for r in l_rounds)
 assert any("Preliminary Final" in r for r in l_rounds)
 assert any("Grand Final" in r for r in l_rounds)
-print(f"✓ Verified: League + Knockout (Page-McIntyre) generated {len(l_matches)} matches (6 league + 4 Page-McIntyre playoff matches)!")
+print(f"✓ Verified: League + Tournament (Page-McIntyre) generated {len(l_matches)} matches (6 league + 4 Page-McIntyre playoff matches)!")
 
-# 7. Test Knockout format with Page-McIntyre choice
+# 7. Test League + Tournament with Single-Elimination (Single Leg)
+config_league_se_single = {
+    'tournament_format': 'LEAGUE_KNOCKOUT',
+    'tournament_type': 'single_elimination',
+    'knockout_legs': 'single',
+    'num_groups': 1,
+    'qualifiers_per_group': 4,
+    'round_robin_type': 'single',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=60),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_league_se_single = generate_smart_fixtures(comp, config_league_se_single)
+assert res_league_se_single['success']
+# 6 league matches + 3 playoff matches (2 SF + 1 Final) = 9 matches total
+assert len(res_league_se_single['matches']) == 9, f"Expected 9 matches, got {len(res_league_se_single['matches'])}"
+print("✓ Verified: League + Tournament (Single Elimination Single Leg) generated 9 matches (6 league + 3 playoff)!")
+
+# 8. Test League + Tournament with Single-Elimination (Double Leg)
+config_league_se_double = {
+    'tournament_format': 'LEAGUE_KNOCKOUT',
+    'tournament_type': 'single_elimination',
+    'knockout_legs': 'double',
+    'num_groups': 1,
+    'qualifiers_per_group': 4,
+    'round_robin_type': 'single',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=60),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_league_se_double = generate_smart_fixtures(comp, config_league_se_double)
+assert res_league_se_double['success']
+# 6 league matches + 5 playoff matches (2 SF Leg 1 + 2 SF Leg 2 + 1 Final) = 11 matches total
+assert len(res_league_se_double['matches']) == 11, f"Expected 11 matches, got {len(res_league_se_double['matches'])}"
+se_rounds = [m['round_name'] for m in res_league_se_double['matches']]
+assert any("Semi-Finals (Leg 1)" in r for r in se_rounds)
+assert any("Semi-Finals (Leg 2)" in r for r in se_rounds)
+assert any("Grand Championship Final" in r for r in se_rounds)
+print("✓ Verified: League + Tournament (Single Elimination Double Leg) generated 11 matches (6 league + 4 SF legs + 1 Final)!")
+
+# 9. Test Group Mode + Tournament with Page-McIntyre
+config_group_pm = {
+    'tournament_format': 'GROUP_KNOCKOUT',
+    'tournament_type': 'page_mcintyre',
+    'num_groups': 2,
+    'qualifiers_per_group': 2,
+    'round_robin_type': 'single',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=60),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_group_pm = generate_smart_fixtures(comp, config_group_pm)
+assert res_group_pm['success']
+# 4 teams in 2 groups of 2: 1 match per group = 2 group matches + 4 Page-McIntyre = 6 matches total
+assert len(res_group_pm['matches']) == 6, f"Expected 6 matches, got {len(res_group_pm['matches'])}"
+print("✓ Verified: Group Mode + Tournament (Page-McIntyre) generated 6 matches (2 group + 4 Page-McIntyre)!")
+
+# 10. Test Group Mode + Tournament with Double Leg Single-Elimination
+config_group_double = {
+    'tournament_format': 'GROUP_KNOCKOUT',
+    'tournament_type': 'single_elimination',
+    'knockout_legs': 'double',
+    'num_groups': 2,
+    'qualifiers_per_group': 2,
+    'round_robin_type': 'single',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=60),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_group_double = generate_smart_fixtures(comp, config_group_double)
+assert res_group_double['success']
+# 2 group matches + 5 knockout matches (2 SF Leg 1 + 2 SF Leg 2 + 1 Final) = 7 matches total
+assert len(res_group_double['matches']) == 7, f"Expected 7 matches, got {len(res_group_double['matches'])}"
+print("✓ Verified: Group Mode + Tournament (Double Leg Knockout) generated 7 matches (2 group + 5 knockout)!")
+
+# 11. Test Knockout format with Page-McIntyre choice
 config_ko_pm = {
     'tournament_format': 'KNOCKOUT',
-    'knockout_system': 'page_mcintyre',
+    'tournament_type': 'page_mcintyre',
     'start_date': date.today() + timedelta(days=7),
     'end_date': date.today() + timedelta(days=30),
     'matches_per_day': 2,
@@ -185,6 +268,40 @@ config_ko_pm = {
 res_ko_pm = generate_smart_fixtures(comp, config_ko_pm)
 assert res_ko_pm['success']
 assert len(res_ko_pm['matches']) == 4
-print("✓ Verified: Knockout format with knockout_system='page_mcintyre' generates 4 Page-McIntyre matches!")
+print("✓ Verified: Knockout format with tournament_type='page_mcintyre' generates 4 Page-McIntyre matches!")
 
-print("=== ALL PAGE-MCINTYRE PLAYOFF SYSTEM TESTS PASSED SUCCESSFULLY! ===")
+# 12. Test Knockout format with Single-Elimination Single Leg
+config_ko_single = {
+    'tournament_format': 'KNOCKOUT',
+    'tournament_type': 'single_elimination',
+    'knockout_legs': 'single',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=30),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_ko_single = generate_smart_fixtures(comp, config_ko_single)
+assert res_ko_single['success']
+# 4 teams in pure single elimination = 2 SF + 1 Final = 3 matches
+assert len(res_ko_single['matches']) == 3, f"Expected 3 matches, got {len(res_ko_single['matches'])}"
+print("✓ Verified: Knockout format with single leg generates 3 matches (2 SF + 1 Final)!")
+
+# 13. Test Knockout format with Single-Elimination Double Leg
+config_ko_double = {
+    'tournament_format': 'KNOCKOUT',
+    'tournament_type': 'single_elimination',
+    'knockout_legs': 'double',
+    'start_date': date.today() + timedelta(days=7),
+    'end_date': date.today() + timedelta(days=30),
+    'matches_per_day': 2,
+    'daily_kickoff_times': ["15:00", "17:30"],
+    'preferred_days': ['Saturday', 'Sunday'],
+}
+res_ko_double = generate_smart_fixtures(comp, config_ko_double)
+assert res_ko_double['success']
+# 4 teams in double leg elimination = 2 SF Leg 1 + 2 SF Leg 2 + 1 Final = 5 matches
+assert len(res_ko_double['matches']) == 5, f"Expected 5 matches, got {len(res_ko_double['matches'])}"
+print("✓ Verified: Knockout format with double leg generates 5 matches (4 SF legs + 1 Final)!")
+
+print("=== ALL PAGE-MCINTYRE & TOURNAMENT TYPE TESTS PASSED SUCCESSFULLY! ===")

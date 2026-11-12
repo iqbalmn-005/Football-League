@@ -80,7 +80,10 @@ def generate_smart_fixtures(competition, config):
     3. Schedules by daily match capacity and user-input kickoff times.
     """
     format_type = config.get('tournament_format', TournamentFormat.ROUND_ROBIN)
-    knockout_system = config.get('knockout_system', 'single_elimination')
+    tournament_type = config.get('tournament_type') or config.get('knockout_system', 'single_elimination')
+    knockout_system = tournament_type
+    knockout_legs = config.get('knockout_legs', 'single')
+    two_legged_ko = (knockout_legs == 'double') or (config.get('round_robin_type') == 'double' and 'knockout_legs' not in config)
 
     # Automatically use all registered teams in competition
     selected_team_ids = config.get('selected_team_ids')
@@ -190,7 +193,7 @@ def generate_smart_fixtures(competition, config):
         merged_rounds = _merge_concurrent_group_rounds(all_group_rounds)
 
         total_qualifiers = num_groups * q_per_group
-        use_page_mcintyre = (knockout_system == 'page_mcintyre' and total_qualifiers == 4)
+        use_page_mcintyre = (knockout_system == 'page_mcintyre')
 
         # Apportion timeline between group stage and knockout stage
         if use_page_mcintyre:
@@ -198,11 +201,11 @@ def generate_smart_fixtures(competition, config):
         elif total_qualifiers <= 2:
             ko_rounds_count = 1
         elif total_qualifiers <= 4:
-            ko_rounds_count = 2
+            ko_rounds_count = 3 if two_legged_ko else 2
         elif total_qualifiers <= 8:
-            ko_rounds_count = 3
+            ko_rounds_count = 5 if two_legged_ko else 3
         else:
-            ko_rounds_count = 4
+            ko_rounds_count = 7 if two_legged_ko else 4
 
         num_group_rounds = len(merged_rounds)
         total_stages = num_group_rounds + ko_rounds_count
@@ -241,7 +244,7 @@ def generate_smart_fixtures(competition, config):
         if use_page_mcintyre:
             if num_groups == 1:
                 q_teams = groups_dict[list(groups_dict.keys())[0]][:4]
-            else:
+            elif num_groups == 2:
                 g_keys = sorted(list(groups_dict.keys()))
                 gA = groups_dict[g_keys[0]]
                 gB = groups_dict[g_keys[1]]
@@ -251,6 +254,9 @@ def generate_smart_fixtures(competition, config):
                     gA[1] if len(gA) > 1 else None,
                     gB[1] if len(gB) > 1 else None,
                 ]
+            else:
+                g_keys = sorted(list(groups_dict.keys()))
+                q_teams = [groups_dict[g_keys[i]][0] if len(groups_dict[g_keys[i]]) > 0 else None for i in range(min(4, len(g_keys)))]
             knockout_matches = _generate_page_mcintyre_fixtures(
                 teams=q_teams,
                 start_date=knockout_start_date,
@@ -268,6 +274,7 @@ def generate_smart_fixtures(competition, config):
                 slot_times=slot_times,
                 venues=venues,
                 qualifiers_per_group=q_per_group,
+                two_legged=two_legged_ko,
                 end_date=end_date
             )
             scheduled_matches.extend(knockout_matches)
@@ -279,7 +286,7 @@ def generate_smart_fixtures(competition, config):
             preferred_weekdays=preferred_weekdays,
             slot_times=slot_times,
             venues=venues,
-            two_legged=(round_robin_type == 'double'),
+            two_legged=two_legged_ko,
             end_date=end_date
         )
         scheduled_matches.extend(knockout_matches)
@@ -297,13 +304,28 @@ def generate_smart_fixtures(competition, config):
     first_date = min(all_dates, default=start_date)
     final_date = max(all_dates, default=start_date)
 
+    if format_type in [TournamentFormat.ROUND_ROBIN, 'ROUND_ROBIN']:
+        fmt_label = "Round Robin (Double Round)" if round_robin_type == 'double' else "Round Robin (League)"
+    elif format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE']:
+        fmt_label = "Page–McIntyre System"
+    else:
+        ko_type_label = "Page–McIntyre System" if knockout_system == 'page_mcintyre' else ("Single-Elimination (Double Leg)" if two_legged_ko else "Single-Elimination (Single Leg)")
+        if format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
+            fmt_label = f"League + Tournament ({ko_type_label})"
+        elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT']:
+            fmt_label = f"Group Mode + Tournament ({ko_type_label})"
+        elif format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT']:
+            fmt_label = f"Tournament / Knockout ({ko_type_label})"
+        else:
+            fmt_label = dict(TournamentFormat.choices).get(format_type, format_type)
+
     summary = {
         'total_matches': total_matches,
         'total_rounds': total_rounds,
         'total_teams': len(teams_qs),
         'start_date': first_date.isoformat() if isinstance(first_date, date) else str(first_date),
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
-        'format_name': (dict(TournamentFormat.choices).get(format_type, format_type) + (" (Page–McIntyre Playoff)" if (knockout_system == 'page_mcintyre' and format_type != TournamentFormat.PAGE_MCINTYRE) else "")),
+        'format_name': fmt_label,
         'matches_per_day': matches_per_day,
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
@@ -574,7 +596,7 @@ def _extract_team_val(team_obj, key, default=''):
     return default
 
 
-def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekdays, slot_times, venues, qualifiers_per_group=2, end_date=None):
+def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekdays, slot_times, venues, qualifiers_per_group=2, two_legged=False, end_date=None):
     """
     Generates single-elimination knockout fixtures tailored strictly to Teams Qualifying Per Group
     and the Number of Groups.
@@ -582,10 +604,10 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     
     Structure:
     - 2 total qualifiers: Grand Championship Final (1 match)
-    - 4 total qualifiers: Semi-Finals (2 matches) -> Grand Championship Final (1 match)
-    - 6 total qualifiers: Play-In / Quarter-Finals (2 matches) -> Semi-Finals (2 matches) -> Grand Championship Final (1 match)
-    - 8 total qualifiers: Quarter-Finals (4 matches) -> Semi-Finals (2 matches) -> Grand Championship Final (1 match)
-    - 16 total qualifiers: Round of 16 (8 matches) -> Quarter-Finals (4 matches) -> Semi-Finals (2 matches) -> Grand Championship Final (1 match)
+    - 4 total qualifiers: Semi-Finals (Single or 2 Legs) -> Grand Championship Final (1 match)
+    - 6 total qualifiers: Play-In / Quarter-Finals -> Semi-Finals -> Grand Championship Final (1 match)
+    - 8 total qualifiers: Quarter-Finals -> Semi-Finals -> Grand Championship Final (1 match)
+    - 16 total qualifiers: Round of 16 -> Quarter-Finals -> Semi-Finals -> Grand Championship Final (1 match)
     """
     knockout_matches = []
     group_names = sorted(list(groups_dict.keys()))
@@ -666,7 +688,7 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         sf_pairs = [sf1, sf2]
         for idx, (h, a) in enumerate(sf_pairs):
             knockout_matches.append({
-                'round_name': "Semi-Finals",
+                'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
                 'home_team': h,
@@ -677,7 +699,24 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        final_date = _calc_next_stage_date(cur_date, 1, end_date, preferred_weekdays)
+        if two_legged:
+            leg2_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+            for idx, (h, a) in enumerate(sf_pairs):
+                knockout_matches.append({
+                    'round_name': "Semi-Finals (Leg 2)",
+                    'round_number': 100,
+                    'group_name': "Knockout",
+                    'home_team': a,
+                    'away_team': h,
+                    'match_date': min(leg2_date, end_date) if end_date else leg2_date,
+                    'kickoff_time': slot_times[idx % len(slot_times)],
+                    'venue': venues[(idx + 1) % len(venues)],
+                    'is_knockout': True
+                })
+            final_date = _calc_next_stage_date(leg2_date, 1, end_date, preferred_weekdays)
+        else:
+            final_date = _calc_next_stage_date(cur_date, 1, end_date, preferred_weekdays)
+
         final_home = {
             'id': sf1[0]['id'],
             'name': f"Winner Semi-Final 1 ({sf1[0]['seed_label']})",
@@ -717,9 +756,10 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             bye1 = seeds['Group A'][0]
             bye2 = seeds['Group A'][1]
 
-        for idx, (h, a) in enumerate([qf1, qf2]):
+        qf_pairs = [qf1, qf2]
+        for idx, (h, a) in enumerate(qf_pairs):
             knockout_matches.append({
-                'round_name': "Play-In / Quarter-Finals",
+                'round_name': "Play-In / Quarter-Finals" if not two_legged else "Play-In / Quarter-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
                 'home_team': h,
@@ -730,7 +770,24 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+        if two_legged:
+            qf_leg2_date = _calc_next_stage_date(cur_date, 4, end_date, preferred_weekdays)
+            for idx, (h, a) in enumerate(qf_pairs):
+                knockout_matches.append({
+                    'round_name': "Play-In / Quarter-Finals (Leg 2)",
+                    'round_number': 100,
+                    'group_name': "Knockout",
+                    'home_team': a,
+                    'away_team': h,
+                    'match_date': min(qf_leg2_date, end_date) if end_date else qf_leg2_date,
+                    'kickoff_time': slot_times[idx % len(slot_times)],
+                    'venue': venues[(idx + 1) % len(venues)],
+                    'is_knockout': True
+                })
+            sf_date = _calc_next_stage_date(qf_leg2_date, 3, end_date, preferred_weekdays)
+        else:
+            sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+
         sf1_away = {
             'id': qf1[0]['id'],
             'name': f"Winner QF 1 ({qf1[0]['seed_label']})",
@@ -743,30 +800,39 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             'short_name': "W-QF2",
             'get_logo_url': qf2[0]['get_logo_url']
         }
-        knockout_matches.append({
-            'round_name': "Semi-Finals",
-            'round_number': 101,
-            'group_name': "Knockout",
-            'home_team': bye1,
-            'away_team': sf1_away,
-            'match_date': min(sf_date, end_date) if end_date else sf_date,
-            'kickoff_time': slot_times[0],
-            'venue': venues[0],
-            'is_knockout': True
-        })
-        knockout_matches.append({
-            'round_name': "Semi-Finals",
-            'round_number': 101,
-            'group_name': "Knockout",
-            'home_team': bye2,
-            'away_team': sf2_away,
-            'match_date': min(sf_date, end_date) if end_date else sf_date,
-            'kickoff_time': slot_times[1 % len(slot_times)],
-            'venue': venues[1 % len(venues)],
-            'is_knockout': True
-        })
+        sf_ties = [(bye1, sf1_away), (bye2, sf2_away)]
 
-        final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
+        for idx, (h, a) in enumerate(sf_ties):
+            knockout_matches.append({
+                'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
+                'round_number': 101,
+                'group_name': "Knockout",
+                'home_team': h,
+                'away_team': a,
+                'match_date': min(sf_date, end_date) if end_date else sf_date,
+                'kickoff_time': slot_times[idx % len(slot_times)],
+                'venue': venues[idx % len(venues)],
+                'is_knockout': True
+            })
+
+        if two_legged:
+            sf_leg2_date = _calc_next_stage_date(sf_date, 2, end_date, preferred_weekdays)
+            for idx, (h, a) in enumerate(sf_ties):
+                knockout_matches.append({
+                    'round_name': "Semi-Finals (Leg 2)",
+                    'round_number': 101,
+                    'group_name': "Knockout",
+                    'home_team': a,
+                    'away_team': h,
+                    'match_date': min(sf_leg2_date, end_date) if end_date else sf_leg2_date,
+                    'kickoff_time': slot_times[idx % len(slot_times)],
+                    'venue': venues[(idx + 1) % len(venues)],
+                    'is_knockout': True
+                })
+            final_date = _calc_next_stage_date(sf_leg2_date, 1, end_date, preferred_weekdays)
+        else:
+            final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
+
         final_home = {
             'id': bye1['id'],
             'name': f"Winner Semi-Final 1 ({bye1['seed_label']})",
@@ -818,7 +884,7 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
 
         for idx, (h, a) in enumerate(qfs):
             knockout_matches.append({
-                'round_name': "Quarter-Finals",
+                'round_name': "Quarter-Finals" if not two_legged else "Quarter-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
                 'home_team': h,
@@ -829,36 +895,61 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+        if two_legged:
+            qf_leg2_date = _calc_next_stage_date(cur_date, 4, end_date, preferred_weekdays)
+            for idx, (h, a) in enumerate(qfs):
+                knockout_matches.append({
+                    'round_name': "Quarter-Finals (Leg 2)",
+                    'round_number': 100,
+                    'group_name': "Knockout",
+                    'home_team': a,
+                    'away_team': h,
+                    'match_date': min(qf_leg2_date, end_date) if end_date else qf_leg2_date,
+                    'kickoff_time': slot_times[idx % len(slot_times)],
+                    'venue': venues[(idx + 1) % len(venues)],
+                    'is_knockout': True
+                })
+            sf_date = _calc_next_stage_date(qf_leg2_date, 3, end_date, preferred_weekdays)
+        else:
+            sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+
         sf1_home = {'id': qfs[0][0]['id'], 'name': f"Winner QF 1 ({qfs[0][0]['seed_label']})", 'short_name': "W-QF1", 'get_logo_url': qfs[0][0]['get_logo_url']}
         sf1_away = {'id': qfs[1][0]['id'], 'name': f"Winner QF 2 ({qfs[1][0]['seed_label']})", 'short_name': "W-QF2", 'get_logo_url': qfs[1][0]['get_logo_url']}
         sf2_home = {'id': qfs[2][0]['id'], 'name': f"Winner QF 3 ({qfs[2][0]['seed_label']})", 'short_name': "W-QF3", 'get_logo_url': qfs[2][0]['get_logo_url']}
         sf2_away = {'id': qfs[3][0]['id'], 'name': f"Winner QF 4 ({qfs[3][0]['seed_label']})", 'short_name': "W-QF4", 'get_logo_url': qfs[3][0]['get_logo_url']}
+        sf_ties = [(sf1_home, sf1_away), (sf2_home, sf2_away)]
 
-        knockout_matches.append({
-            'round_name': "Semi-Finals",
-            'round_number': 101,
-            'group_name': "Knockout",
-            'home_team': sf1_home,
-            'away_team': sf1_away,
-            'match_date': min(sf_date, end_date) if end_date else sf_date,
-            'kickoff_time': slot_times[0],
-            'venue': venues[0],
-            'is_knockout': True
-        })
-        knockout_matches.append({
-            'round_name': "Semi-Finals",
-            'round_number': 101,
-            'group_name': "Knockout",
-            'home_team': sf2_home,
-            'away_team': sf2_away,
-            'match_date': min(sf_date, end_date) if end_date else sf_date,
-            'kickoff_time': slot_times[1 % len(slot_times)],
-            'venue': venues[1 % len(venues)],
-            'is_knockout': True
-        })
+        for idx, (h, a) in enumerate(sf_ties):
+            knockout_matches.append({
+                'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
+                'round_number': 101,
+                'group_name': "Knockout",
+                'home_team': h,
+                'away_team': a,
+                'match_date': min(sf_date, end_date) if end_date else sf_date,
+                'kickoff_time': slot_times[idx % len(slot_times)],
+                'venue': venues[idx % len(venues)],
+                'is_knockout': True
+            })
 
-        final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
+        if two_legged:
+            sf_leg2_date = _calc_next_stage_date(sf_date, 2, end_date, preferred_weekdays)
+            for idx, (h, a) in enumerate(sf_ties):
+                knockout_matches.append({
+                    'round_name': "Semi-Finals (Leg 2)",
+                    'round_number': 101,
+                    'group_name': "Knockout",
+                    'home_team': a,
+                    'away_team': h,
+                    'match_date': min(sf_leg2_date, end_date) if end_date else sf_leg2_date,
+                    'kickoff_time': slot_times[idx % len(slot_times)],
+                    'venue': venues[(idx + 1) % len(venues)],
+                    'is_knockout': True
+                })
+            final_date = _calc_next_stage_date(sf_leg2_date, 1, end_date, preferred_weekdays)
+        else:
+            final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
+
         final_home = {'id': sf1_home['id'], 'name': "Winner Semi-Final 1", 'short_name': "W-SF1", 'get_logo_url': sf1_home['get_logo_url']}
         final_away = {'id': sf2_home['id'], 'name': "Winner Semi-Final 2", 'short_name': "W-SF2", 'get_logo_url': sf2_home['get_logo_url']}
         knockout_matches.append({
@@ -894,11 +985,14 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
 
         half = n // 2
         next_teams = []
+        is_final = (stage_name == "Grand Championship Final")
+        stage_two_legged = (two_legged and not is_final)
+
         for i in range(half):
             t1 = cur_teams[i]
             t2 = cur_teams[n - 1 - i]
             knockout_matches.append({
-                'round_name': stage_name,
+                'round_name': stage_name if not stage_two_legged else f"{stage_name} (Leg 1)",
                 'round_number': stage_idx,
                 'group_name': "Knockout",
                 'home_team': t1,
@@ -908,6 +1002,21 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'venue': venues[i % len(venues)],
                 'is_knockout': True
             })
+
+            if stage_two_legged:
+                leg2_date = _calc_next_stage_date(cur_date, max(1, half * 2), end_date, preferred_weekdays)
+                knockout_matches.append({
+                    'round_name': f"{stage_name} (Leg 2)",
+                    'round_number': stage_idx,
+                    'group_name': "Knockout",
+                    'home_team': t2,
+                    'away_team': t1,
+                    'match_date': min(leg2_date, end_date) if end_date else leg2_date,
+                    'kickoff_time': slot_times[i % len(slot_times)],
+                    'venue': venues[(i + 1) % len(venues)],
+                    'is_knockout': True
+                })
+
             t1_id = t1.get('id') if isinstance(t1, dict) else getattr(t1, 'id', None)
             t1_logo = t1.get('get_logo_url') if isinstance(t1, dict) else getattr(t1, 'get_logo_url', lambda: '')
             next_teams.append({
@@ -1183,16 +1292,43 @@ def advance_knockout_bracket(competition):
 
     # 2. Standard Single Elimination Progression (Semi-Finals -> Grand Final)
     sfs = [m for m in matches if 'Semi-Final' in m.tournament_round and 'Qualifying' not in m.tournament_round and 'Elimination' not in m.tournament_round]
-    if len(sfs) >= 2 and gf and gf.status == MatchStatus.SCHEDULED:
-        sf1, sf2 = sfs[0], sfs[1]
-        if sf1.status == MatchStatus.COMPLETED and sf1.winner:
-            if gf.home_team_id != sf1.winner.id:
-                gf.home_team = sf1.winner
+    if sfs and gf and gf.status == MatchStatus.SCHEDULED:
+        sf_leg2s = [m for m in sfs if 'Leg 2' in m.tournament_round]
+        if sf_leg2s and len(sf_leg2s) >= 2:
+            tie1_leg2 = sf_leg2s[0]
+            tie2_leg2 = sf_leg2s[1]
+            tie1_leg1 = next((m for m in sfs if 'Leg 1' in m.tournament_round and {m.home_team_id, m.away_team_id} == {tie1_leg2.home_team_id, tie1_leg2.away_team_id}), None)
+            tie2_leg1 = next((m for m in sfs if 'Leg 1' in m.tournament_round and {m.home_team_id, m.away_team_id} == {tie2_leg2.home_team_id, tie2_leg2.away_team_id}), None)
+
+            def get_aggregate_winner(leg1, leg2):
+                if not leg1 or not leg2: return None
+                if leg1.status != MatchStatus.COMPLETED or leg2.status != MatchStatus.COMPLETED: return None
+                team_a = leg1.home_team
+                team_b = leg1.away_team
+                score_a = (leg1.home_score or 0) + (leg2.away_score or 0)
+                score_b = (leg1.away_score or 0) + (leg2.home_score or 0)
+                if score_a > score_b: return team_a
+                if score_b > score_a: return team_b
+                return leg2.winner or leg1.winner or team_a
+
+            w1 = get_aggregate_winner(tie1_leg1, tie1_leg2)
+            w2 = get_aggregate_winner(tie2_leg1, tie2_leg2)
+            if w1 and gf.home_team_id != w1.id:
+                gf.home_team = w1
                 gf.save(update_fields=['home_team'])
-        if sf2.status == MatchStatus.COMPLETED and sf2.winner:
-            if gf.away_team_id != sf2.winner.id:
-                gf.away_team = sf2.winner
+            if w2 and gf.away_team_id != w2.id:
+                gf.away_team = w2
                 gf.save(update_fields=['away_team'])
+        elif len(sfs) >= 2:
+            sf1, sf2 = sfs[0], sfs[1]
+            if sf1.status == MatchStatus.COMPLETED and sf1.winner:
+                if gf.home_team_id != sf1.winner.id:
+                    gf.home_team = sf1.winner
+                    gf.save(update_fields=['home_team'])
+            if sf2.status == MatchStatus.COMPLETED and sf2.winner:
+                if gf.away_team_id != sf2.winner.id:
+                    gf.away_team = sf2.winner
+                    gf.save(update_fields=['away_team'])
 
 
 def commit_generated_fixtures(competition, matches_data, groups_data=None, tournament_format=None):
@@ -1200,9 +1336,13 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
     Atomically writes previewed/edited fixtures into database Match and TournamentGroup records.
     """
     with transaction.atomic():
-        if tournament_format and tournament_format in dict(TournamentFormat.choices):
-            competition.tournament_format = tournament_format
-            competition.save(update_fields=['tournament_format'])
+        if tournament_format:
+            if tournament_format in dict(TournamentFormat.choices):
+                competition.tournament_format = tournament_format
+                competition.save(update_fields=['tournament_format'])
+            elif tournament_format == 'KNOCKOUT':
+                competition.tournament_format = TournamentFormat.SINGLE_ELIMINATION
+                competition.save(update_fields=['tournament_format'])
 
         competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
 
