@@ -3648,46 +3648,6 @@
             opacity: 1;
         }
 
-        .organizer-team-card-wrap {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .organizer-team-card-wrap .organizer-team-card {
-            height: 100%;
-            flex: 1;
-        }
-
-        .team-card-delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: rgba(220, 38, 38, 0.08);
-            border: 1px solid rgba(220, 38, 38, 0.22);
-            color: #dc2626;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 5;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .team-card-delete-btn:hover {
-            background: #dc2626;
-            color: #ffffff;
-            border-color: #dc2626;
-            transform: scale(1.12);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
-        }
-
         .team-card-crest {
             width: 80px;
             height: 80px;
@@ -6540,24 +6500,17 @@
 
                         <div class="teams-cards-grid">
                             {% for t in comp_teams %}
-                            <div class="organizer-team-card-wrap">
-                                <a href="/organizer/team/{{ t.id }}/?competition={{ active_competition.id }}"
-                                    class="organizer-team-card" title="Click to view player cards & squad for {{ t.name }}">
-                                    <div class="team-card-crest">
-                                        {% if t.get_logo_url %}
-                                        <img src="{{ t.get_logo_url }}" alt="{{ t.name }}" loading="lazy">
-                                        {% else %}
-                                        <span class="team-crest-fallback">{{ t.short_name|default:t.name|slice:":3"|upper }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="team-card-title">{{ t.name }}</div>
-                                </a>
-                                <button type="button" class="team-card-delete-btn"
-                                    title="Delete {{ t.name }} from league"
-                                    onclick="event.stopPropagation(); event.preventDefault(); openDeleteTeamModal('{{ t.id }}', '{{ t.name|escapejs }}', '{{ active_competition.id }}');">
-                                    🗑️
-                                </button>
-                            </div>
+                            <a href="/organizer/team/{{ t.id }}/?competition={{ active_competition.id }}"
+                                class="organizer-team-card" title="Click to view player cards & squad for {{ t.name }}">
+                                <div class="team-card-crest">
+                                    {% if t.get_logo_url %}
+                                    <img src="{{ t.get_logo_url }}" alt="{{ t.name }}" loading="lazy">
+                                    {% else %}
+                                    <span class="team-crest-fallback">{{ t.short_name|default:t.name|slice:":3"|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="team-card-title">{{ t.name }}</div>
+                            </a>
                             {% empty %}
                             <div class="team-empty-state">
                                 <div style="font-size:42px;margin-bottom:10px;">🛡️</div>
@@ -7225,37 +7178,6 @@
         </div>
     </div>
 
-    <!-- MODAL: DELETE TEAM -->
-    <div class="modal-backdrop" id="deleteTeamModal" onclick="closeDeleteTeamModal(event)">
-        <div class="modal-card" style="max-width:460px;" onclick="event.stopPropagation()">
-            <div class="modal-header" style="border-bottom:1px solid #fee2e2;background:#fff5f5;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:22px;">🗑️</span>
-                    <h3 style="margin:0;font-size:18px;color:#991b1b;">Delete Team</h3>
-                </div>
-                <button class="modal-close-btn" type="button" onclick="closeDeleteTeamModal()">✕</button>
-            </div>
-            <form id="deleteTeamForm" method="post" action="">
-                {% csrf_token %}
-                <input type="hidden" name="competition_id" id="deleteTeamCompId" value="{{ active_competition.id }}">
-                <div class="modal-body" style="padding:22px 24px;">
-                    <p style="font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.5;">
-                        Are you sure you want to delete <strong id="deleteTeamNameText" style="color:var(--dark);"></strong> from <strong>{{ active_competition.name }}</strong>?
-                    </p>
-                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px;font-size:12px;color:#991b1b;line-height:1.45;">
-                        ⚠️ <strong>Warning:</strong> This will remove the team from the league and delete its scheduled fixtures. Teams with already completed matches cannot be deleted.
-                    </div>
-                </div>
-                <div class="modal-footer" style="padding:14px 24px;background:#fafbfa;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
-                    <button class="btn" type="button" onclick="closeDeleteTeamModal()">Cancel</button>
-                    <button class="btn" type="submit" style="background:#dc2626;color:#ffffff;font-weight:700;">
-                        🗑️ Yes, Delete Team
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL: ADD PLAYER -->
     <div class="modal-backdrop" id="addPlayerModal" onclick="closeAddPlayerModal(event)">
         <div class="modal-card" onclick="event.stopPropagation()">
@@ -7517,29 +7439,6 @@
         function closeAddTeamModal(event) {
             if (event && event.target !== event.currentTarget && !event.target.classList.contains("modal-close-btn")) return;
             const modal = document.getElementById("addTeamModal");
-            if (modal) modal.classList.remove("active");
-        }
-
-        function openDeleteTeamModal(teamId, teamName, compId) {
-            const modal = document.getElementById("deleteTeamModal");
-            const nameEl = document.getElementById("deleteTeamNameText");
-            const formEl = document.getElementById("deleteTeamForm");
-            const compIdEl = document.getElementById("deleteTeamCompId");
-
-            if (nameEl) nameEl.textContent = teamName;
-            if (compIdEl) compIdEl.value = compId || '';
-            if (formEl) {
-                if (compId) {
-                    formEl.action = "/organizer/" + compId + "/team/" + teamId + "/delete/";
-                } else {
-                    formEl.action = "/organizer/team/" + teamId + "/delete/";
-                }
-            }
-            if (modal) modal.classList.add("active");
-        }
-        function closeDeleteTeamModal(event) {
-            if (event && event.target !== event.currentTarget && !event.target.classList.contains("modal-close-btn")) return;
-            const modal = document.getElementById("deleteTeamModal");
             if (modal) modal.classList.remove("active");
         }
 
