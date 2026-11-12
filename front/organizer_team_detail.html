@@ -182,6 +182,20 @@
             color: var(--dark);
         }
 
+        .btn-danger-hero {
+            background: rgba(220, 38, 38, 0.16);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            font-weight: 700;
+        }
+
+        .btn-danger-hero:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
         /* MAIN CONTAINER */
         .container {
             max-width: 1320px;
@@ -1205,6 +1219,9 @@
                 <a href="/team/{{ team.id }}/" target="_blank" class="btn btn-outline" style="color:#ffffff;border-color:rgba(255,255,255,0.3);">
                     Public View ↗
                 </a>
+                <button type="button" class="btn btn-danger-hero" onclick="openDeleteTeamModal()" title="Delete team from competition">
+                    🗑️ Delete Team
+                </button>
             </div>
         </section>
 
@@ -1462,6 +1479,39 @@
                     {% csrf_token %}
                     <button type="submit" class="btn" style="background:#dc2626;color:#ffffff;font-weight:700;">
                         ✕ Yes, Delete Player
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DELETE TEAM CONFIRMATION (POP UP WINDOW, NO BROWSER ALERT) -->
+    <div class="modal-backdrop" id="deleteTeamModal" onclick="closeDeleteTeamModal(event)">
+        <div class="modal-card" style="max-width:460px;" onclick="event.stopPropagation()">
+            <div class="modal-header" style="border-bottom:1px solid #fee2e2;background:#fff5f5;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:22px;">🗑️</span>
+                    <h3 style="margin:0;font-size:18px;color:#991b1b;">Delete Team?</h3>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeDeleteTeamModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding:22px;">
+                <p style="font-size:14px;color:var(--text);margin:0 0 12px;line-height:1.5;">
+                    Are you sure you want to delete <strong style="color:var(--dark);">{{ team.name }}</strong>{% if active_competition %} from <strong>{{ active_competition.name }}</strong>{% endif %}?
+                </p>
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px;font-size:12px;color:#991b1b;line-height:1.45;">
+                    ⚠️ <strong>Warning:</strong> This will remove the team from this competition and delete its scheduled fixtures. Teams that have already played completed matches cannot be deleted.
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;background:#fafafa;padding:16px 22px;">
+                <button type="button" class="btn btn-outline" onclick="closeDeleteTeamModal()">Cancel</button>
+                <form method="post" action="{% if active_competition %}/organizer/{{ active_competition.id }}/team/{{ team.id }}/delete/{% else %}/organizer/team/{{ team.id }}/delete/{% endif %}" style="margin:0;">
+                    {% csrf_token %}
+                    {% if active_competition %}
+                    <input type="hidden" name="competition_id" value="{{ active_competition.id }}">
+                    {% endif %}
+                    <button type="submit" class="btn" style="background:#dc2626;color:#ffffff;font-weight:700;">
+                        🗑️ Yes, Delete Team
                     </button>
                 </form>
             </div>
@@ -1823,6 +1873,26 @@
             document.body.style.overflow = '';
         }
 
+        // --- DELETE TEAM CONFIRMATION MODAL ---
+        function openDeleteTeamModal() {
+            const modal = document.getElementById('deleteTeamModal');
+            if (modal) {
+                modal.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeDeleteTeamModal(event) {
+            if (event && event.target !== document.getElementById('deleteTeamModal') && !event.target.classList.contains('modal-close-btn') && !event.target.classList.contains('btn-outline')) {
+                return;
+            }
+            const modal = document.getElementById('deleteTeamModal');
+            if (modal) {
+                modal.classList.remove('open');
+            }
+            document.body.style.overflow = '';
+        }
+
         // --- OPEN & FETCH PLAYER DETAILS MODAL ---
         function openPlayerDetailModal(playerId) {
             currentPlayerId = playerId;
@@ -1949,6 +2019,8 @@
                 if (editModal) editModal.classList.remove('open');
                 const deleteModal = document.getElementById('deletePlayerModal');
                 if (deleteModal) deleteModal.classList.remove('open');
+                const deleteTeamModal = document.getElementById('deleteTeamModal');
+                if (deleteTeamModal) deleteTeamModal.classList.remove('open');
                 const detailModal = document.getElementById('playerDetailModal');
                 if (detailModal) detailModal.classList.remove('open');
                 document.body.style.overflow = '';

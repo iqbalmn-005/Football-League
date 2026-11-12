@@ -5,10 +5,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from accounts.decorators import approved_organizer_required
+from accounts.models import ActivityLog
 from leagues.models import Competition, CompetitionTeam
 from teams.models import Team, Player, PositionChoice
-from matches.models import MatchStatus
+from matches.models import Match, MatchStatus
 from standings.models import StandingEntry
+from django.db.models import Q
 
 
 def _get_team_stats(team, active_competition=None):
@@ -370,3 +372,119 @@ def delete_player_view(request, team_id, player_id):
         messages.success(request, f"✓ Player '{name}' (#{num}) removed from {team.name}.")
 
     return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
+
+
+@approved_organizer_required
+def delete_team_view(request, team_id=None, comp_id=None):
+    """
+    Django backend view: Deletes/unregisters a team from a competition or the system.
+    Safety controls:
+    - Blocks platform super admins (oversight only).
+    - Blocks deletion if the team has already played completed matches in this tournament.
+    - Cleans up unplayed / scheduled fixtures involving the team in this tournament.
+    - Removes team from competition rosters and standing entries.
+    - Recalculates standings.
+    - If the team is not registered in any other competition, deletes the Team record completely.
+    """
+    if request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_super_admin):
+        messages.error(request, "Administrators have oversight access only and cannot edit tournament fixtures, teams, or players.")
+        return redirect(request.META.get('HTTP_REFERER', '/super-admin/?tab=leagues'))
+
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method for team deletion.")
+        if comp_id:
+            return redirect(f"/organizer/{comp_id}/?tab=teams")
+        return redirect(request.META.get('HTTP_REFERER', '/organizer/?tab=teams'))
+
+    team = get_object_or_404(Team, id=team_id)
+
+    target_comp_id = comp_id or request.POST.get('competition_id') or request.GET.get('competition')
+    comp = None
+    if target_comp_id:
+        comp = get_object_or_404(Competition, id=target_comp_id)
+
+    # Permission check if competition context exists
+    if comp:
+        is_allowed = (
+            request.user.is_staff or
+            comp.primary_organizer == request.user or
+            comp.created_by == request.user or
+            comp.assignments.filter(organizer=request.user).exists()
+        )
+        if not is_allowed:
+            messages.error(request, "You do not have permission to manage teams for this competition.")
+            return redirect(f"/organizer/{comp.id}/?tab=teams")
+
+    # Safety check: prevent deleting teams with completed matches
+    if comp:
+        completed_matches = Match.objects.filter(
+            competition=comp,
+            status=MatchStatus.COMPLETED
+        ).filter(Q(home_team=team) | Q(away_team=team))
+    else:
+        completed_matches = Match.objects.filter(
+            status=MatchStatus.COMPLETED
+        ).filter(Q(home_team=team) | Q(away_team=team))
+
+    if completed_matches.exists():
+        match_count = completed_matches.count()
+        comp_context = f" in '{comp.name}'" if comp else ""
+        messages.error(
+            request,
+            f"Cannot delete team '{team.name}' because it has already played {match_count} completed match(es){comp_context}. "
+            "To preserve official tournament records and statistics, please reset or remove those match results first."
+        )
+        if comp:
+            return redirect(f"/organizer/{comp.id}/?tab=teams")
+        return redirect(f"/organizer/team/{team.id}/")
+
+    team_name = team.name
+
+    if comp:
+        # Delete scheduled / unplayed fixtures for this team in this competition
+        Match.objects.filter(
+            competition=comp
+        ).filter(
+            Q(home_team=team) | Q(away_team=team)
+        ).delete()
+
+        # Remove from CompetitionTeam
+        CompetitionTeam.objects.filter(competition=comp, team=team).delete()
+
+        # Remove from Standings
+        StandingEntry.objects.filter(competition=comp, team=team).delete()
+
+        # Recalculate standings for this competition
+        try:
+            from standings.services import recalculate_competition_standings
+            recalculate_competition_standings(comp)
+        except Exception:
+            pass
+
+        # If team has no other competitions registered, delete the team object entirely
+        remaining_comps = CompetitionTeam.objects.filter(team=team).exists()
+        if not remaining_comps:
+            team.delete()
+
+        try:
+            ActivityLog.log('TEAM_DELETED', f"Organizer {request.user.username} deleted team '{team_name}' from '{comp.name}'.", user=request.user)
+        except Exception:
+            pass
+
+        messages.success(request, f"✓ Team '{team_name}' has been successfully deleted from {comp.name}.")
+        return redirect(f"/organizer/{comp.id}/?tab=teams")
+    else:
+        # Global deletion: delete unplayed matches across competitions
+        Match.objects.filter(Q(home_team=team) | Q(away_team=team)).delete()
+        CompetitionTeam.objects.filter(team=team).delete()
+        StandingEntry.objects.filter(team=team).delete()
+        team.delete()
+
+        try:
+            ActivityLog.log('TEAM_DELETED', f"Organizer {request.user.username} deleted team '{team_name}'.", user=request.user)
+        except Exception:
+            pass
+
+        messages.success(request, f"✓ Team '{team_name}' was successfully deleted.")
+        return redirect('/organizer/?tab=teams')
+

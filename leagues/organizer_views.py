@@ -14,6 +14,7 @@ from standings.models import StandingEntry
 from standings.services import recalculate_competition_standings
 from fixtures.services import generate_round_robin_fixtures, advance_knockout_bracket
 from matches.services import get_competition_statistics
+from teams.views import delete_team_view
 
 
 def get_organizer_competitions(user):
