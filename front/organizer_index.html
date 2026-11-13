@@ -5978,6 +5978,9 @@
                                         <td>
                                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                                 <strong>{{ m.tournament_round }}</strong>
+                                                {% if m.round_byes %}
+                                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
+                                                {% endif %}
                                                 {% if next_match and m.id == next_match.id %}
                                                 <span class="badge-next-match">⚡ NEXT MATCH</span>
                                                 {% endif %}
@@ -6060,6 +6063,9 @@
                                 <div class="fmc-top">
                                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                         <span class="fmc-round">{{ m.tournament_round|default:"Round"|upper }}</span>
+                                        {% if m.round_byes %}
+                                        <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE: {{ m.round_byes|join:', ' }}</span>
+                                        {% endif %}
                                         {% if next_match and m.id == next_match.id %}
                                         <span class="badge-next-match">⚡ NEXT MATCH</span>
                                         {% endif %}
@@ -6246,6 +6252,9 @@
                                         <td>
                                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                                 <strong>{{ m.tournament_round }}</strong>
+                                                {% if m.round_byes %}
+                                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
+                                                {% endif %}
                                                 {% if last_match and m.id == last_match.id %}
                                                 <span class="badge-last-match">🏆 LATEST RESULT</span>
                                                 {% endif %}

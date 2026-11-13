@@ -1586,11 +1586,25 @@
                     `;
                 });
 
+                // Find if there are round byes
+                const roundByes = (rMatches.find(m => m.round_byes && m.round_byes.length) || {}).round_byes || [];
+                let byesHtml = '';
+                if (roundByes && roundByes.length > 0) {
+                    const byeNames = roundByes.map(b => (typeof b === 'object' && b.name) ? b.name : b).join(', ');
+                    byesHtml = `
+                    <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; padding: 8px 14px; margin: 8px 12px 12px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #10b981; color: #fff; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">BYE</span>
+                        <span style="color: #065f46; font-weight: 600;"><strong>${byeNames}</strong> automatically advance to the next round.</span>
+                    </div>
+                    `;
+                }
+
                 block.innerHTML = `
                     <div class="matchweek-header">
                         <span>📅 ${roundName}</span>
                         <span style="font-size:11px;font-weight:600;text-transform:none;">${rMatches.length} ${rMatches.length === 1 ? 'Match' : 'Matches'}</span>
                     </div>
+                    ${byesHtml}
                     <table class="preview-table">
                         <thead>
                             <tr>

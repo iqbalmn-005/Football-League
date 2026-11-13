@@ -92,6 +92,25 @@ class Match(models.Model):
                 return self.away_team
         return None  # Draw
 
+    @property
+    def round_byes(self):
+        """
+        Returns list of team names that received BYEs in this match's tournament round,
+        parsed from the notes field (e.g. {"byes": ["Team A", "Team B"]}).
+        """
+        if not self.notes:
+            return []
+        try:
+            import json
+            data = json.loads(self.notes)
+            if isinstance(data, dict) and 'byes' in data:
+                return data['byes']
+        except Exception:
+            pass
+        if self.notes.startswith('BYE:'):
+            return [b.strip() for b in self.notes[4:].split(',') if b.strip()]
+        return []
+
     def _get_team_highlights(self, team):
         """Returns grouped goal scorers and red cards (no yellow cards, no assists)."""
         valid_types = [MatchEventType.GOAL, MatchEventType.PENALTY, MatchEventType.OWN_GOAL, MatchEventType.RED_CARD]

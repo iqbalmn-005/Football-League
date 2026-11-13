@@ -3117,7 +3117,12 @@
                         </div>
 
                         <div class="fixture-card-footer">
-                            <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                                {% if m.round_byes %}
+                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE: {{ m.round_byes|join:', ' }}</span>
+                                {% endif %}
+                            </div>
                             <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
                         </div>
                     </div>
@@ -3252,7 +3257,12 @@
                         </div>
 
                         <div class="fixture-card-footer">
-                            <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                                {% if m.round_byes %}
+                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE: {{ m.round_byes|join:', ' }}</span>
+                                {% endif %}
+                            </div>
                             <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
                         </div>
                     </div>

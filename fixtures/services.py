@@ -4,6 +4,7 @@ Automatically includes all league teams, divides groups equally, and schedules f
 by user-specified matches per day and daily slot kickoff times.
 """
 from datetime import timedelta, date, time, datetime
+import json
 from django.db import transaction
 from matches.models import Match, MatchStatus
 from leagues.models import Competition, TournamentGroup, CompetitionTeam, TournamentFormat, CompetitionStatus
@@ -342,6 +343,7 @@ def generate_smart_fixtures(competition, config):
         'matches_per_day': matches_per_day,
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
+        'byes_by_round': {m['round_name']: m['round_byes'] for m in scheduled_matches if m.get('round_byes')},
     }
 
     formatted_matches = []
@@ -372,7 +374,8 @@ def generate_smart_fixtures(competition, config):
             'match_date': m['match_date'].isoformat() if isinstance(m['match_date'], date) else str(m['match_date']),
             'kickoff_time': m['kickoff_time'].strftime('%H:%M') if isinstance(m['kickoff_time'], time) else str(m['kickoff_time'])[:5],
             'venue': m['venue'],
-            'is_knockout': m.get('is_knockout', False)
+            'is_knockout': m.get('is_knockout', False),
+            'round_byes': m.get('round_byes', [])
         })
 
     return {
@@ -1351,11 +1354,118 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     return knockout_matches
 
 
+def plan_knockout_byes(n):
+    """
+    Calculates the round-by-round tournament progression for single-elimination knockout tournaments.
+    - If n is a power of 2, generates standard rounds with 0 BYEs.
+    - If n is not a power of 2:
+        - BYEs start from Round 1.
+        - Maximum 3 BYEs per round, distributed across rounds.
+        - Strongly prefers 2 or 3 BYEs per round (2 if remaining teams even, 3 if odd).
+        - No BYEs in semi-finals (exactly 4 teams) or final (exactly 2 teams).
+        - Advancing teams = BYEs + (Teams - BYEs) / 2.
+        - Total actual matches = n - 1.
+    """
+    if n <= 1:
+        return []
+
+    # Power of 2 check
+    if (n & (n - 1)) == 0:
+        rounds = []
+        cur = n
+        while cur > 1:
+            m = cur // 2
+            rounds.append({'teams': cur, 'byes': 0, 'matches': m, 'advancing': m})
+            cur = m
+        return rounds
+
+    from collections import deque
+
+    def search(allowed_byes):
+        queue = deque([(n, [])])
+        visited = {n}
+        while queue:
+            cur, path = queue.popleft()
+            if cur == 4:
+                full = list(path)
+                full.append({'teams': 4, 'byes': 0, 'matches': 2, 'advancing': 2})
+                full.append({'teams': 2, 'byes': 0, 'matches': 1, 'advancing': 1})
+                return full
+
+            choices = []
+            for b in allowed_byes:
+                if b < cur and (cur - b) >= 2 and (cur - b) % 2 == 0:
+                    nxt = b + (cur - b) // 2
+                    if nxt >= 4:
+                        choices.append(b)
+
+            # Prioritize 2 if cur is even, 3 if cur is odd
+            choices.sort(key=lambda b: (0 if ((cur % 2 == 0 and b == 2) or (cur % 2 == 1 and b == 3)) else 1, -b))
+
+            for b in choices:
+                nxt = b + (cur - b) // 2
+                if nxt not in visited:
+                    visited.add(nxt)
+                    queue.append((nxt, path + [{'teams': cur, 'byes': b, 'matches': (cur - b) // 2, 'advancing': nxt}]))
+        return None
+
+    # Search prioritizing {2, 3}
+    for allowed in [[2, 3], [2, 3, 1], [2, 3, 1, 0]]:
+        res = search(allowed)
+        if res is not None:
+            return res
+
+    # Fallback for n < 4 (e.g. n = 3)
+    if n == 3:
+        return [
+            {'teams': 3, 'byes': 1, 'matches': 1, 'advancing': 2},
+            {'teams': 2, 'byes': 0, 'matches': 1, 'advancing': 1}
+        ]
+
+    return []
+
+
+def get_knockout_stage_names(n, plan):
+    """
+    Returns human-friendly stage names for knockout rounds.
+    For power-of-two brackets: Final, Semi-Finals, Quarter-Finals, Round of 16, Round of 32, etc.
+    For distributed-BYE brackets: Round 1, Round 2, ..., Semi-Finals, Final.
+    """
+    num_rounds = len(plan)
+    if num_rounds == 0:
+        return []
+    if (n & (n - 1)) == 0:
+        if num_rounds == 1:
+            return ["Final"]
+        elif num_rounds == 2:
+            return ["Semi-Finals", "Final"]
+        elif num_rounds == 3:
+            return ["Quarter-Finals", "Semi-Finals", "Final"]
+        elif num_rounds == 4:
+            return ["Round of 16", "Quarter-Finals", "Semi-Finals", "Final"]
+        elif num_rounds == 5:
+            return ["Round of 32", "Round of 16", "Quarter-Finals", "Semi-Finals", "Final"]
+        else:
+            names = [f"Round of {2**r}" for r in range(num_rounds, 2, -1)]
+            names.extend(["Quarter-Finals", "Semi-Finals", "Final"])
+            return names
+    else:
+        if num_rounds == 1:
+            return ["Final"]
+        elif num_rounds == 2:
+            return ["Semi-Finals", "Final"]
+        names = [f"Round {i+1}" for i in range(num_rounds - 2)]
+        names.extend(["Semi-Finals", "Final"])
+        return names
+
+
 def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, slot_times, venues, two_legged=False, end_date=None, booked_slots=None, matches_per_day=2):
     """
     Generates single elimination knockout bracket for pure knockout tournaments,
     guaranteed to conclude on or before end_date.
-    Ensures subsequent rounds (Finals, etc.) use placeholder seeds, conflict-free venues,
+    Implements a distributed BYE system (max 3 BYEs per round, starting from Round 1,
+    0 BYEs in SF/Final) when team count is not a power of 2.
+    Ensures subsequent rounds use placeholder seeds, conflict-free venues,
     and sequential timing adhering to matches_per_day capacity.
     """
     if booked_slots is None:
@@ -1363,29 +1473,38 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
 
     matches = []
     n = len(teams)
+    if n < 2:
+        return []
+
     cur_teams = list(teams)
     cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
     if end_date and cur_date > end_date:
         cur_date = end_date
 
-    if n > 8:
-        stage_names = ["Round of 16", "Quarter-Finals", "Semi-Finals", "Final"]
-    elif n > 4:
-        stage_names = ["Quarter-Finals", "Semi-Finals", "Final"]
-    elif n > 2:
-        stage_names = ["Semi-Finals", "Final"]
-    else:
-        stage_names = ["Final"]
+    plan = plan_knockout_byes(n)
+    stage_names = get_knockout_stage_names(n, plan)
 
-    stage_idx = 0
     prev_stage_date = None
     prev_stage_latest_time = None
 
-    while len(cur_teams) > 1 and stage_idx < len(stage_names):
+    for stage_idx, step in enumerate(plan):
         stage_name = stage_names[stage_idx]
-        half = len(cur_teams) // 2
-        is_final = (stage_name == "Final" or (half == 1 and stage_idx == len(stage_names) - 1))
+        b_count = step['byes']
+        m_count = step['matches']
+        is_final = (stage_name == "Final" or stage_idx == len(plan) - 1)
         stage_two_legged = (two_legged and not is_final)
+
+        # Distribute BYE teams and playing teams
+        bye_teams = cur_teams[:b_count]
+        playing_teams = cur_teams[b_count:]
+
+        bye_names = []
+        for b in bye_teams:
+            if isinstance(b, dict):
+                b_name = b.get('name') or b.get('team_name') or 'BYE Team'
+            else:
+                b_name = getattr(b, 'name', 'BYE Team')
+            bye_names.append(b_name)
 
         min_time = None
         if prev_stage_date and cur_date <= prev_stage_date and prev_stage_latest_time:
@@ -1394,16 +1513,16 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
         current_stage_times = []
         daily_match_count = 0
 
-        for i in range(half):
-            t1 = cur_teams[i]
-            t2 = cur_teams[len(cur_teams) - 1 - i]
+        for i in range(m_count):
+            t1 = playing_teams[i]
+            t2 = playing_teams[len(playing_teams) - 1 - i]
 
             # If daily match capacity reached, advance to next matchday if calendar permits
             if daily_match_count >= matches_per_day:
                 next_cand = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
                 if next_cand > cur_date:
                     days_avail = _count_preferred_days(next_cand, end_date, preferred_weekdays)
-                    rem_matches_this_stage = half - i
+                    rem_matches_this_stage = m_count - i
                     days_needed_this_stage = (rem_matches_this_stage + matches_per_day - 1) // matches_per_day
                     subsequent_stages_count = len(stage_names) - stage_idx - 1
                     days_needed_subsequent = subsequent_stages_count * (2 if stage_two_legged else 1)
@@ -1432,7 +1551,8 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
-                'is_knockout': True
+                'is_knockout': True,
+                'round_byes': bye_names if i == 0 else []
             })
 
             if stage_two_legged:
@@ -1451,11 +1571,13 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
-                    'is_knockout': True
+                    'is_knockout': True,
+                    'round_byes': []
                 })
 
-        next_teams = []
-        for i in range(half):
+        # Advance teams: BYE teams advance automatically, match winners advance via placeholder seeds
+        next_teams = list(bye_teams)
+        for i in range(m_count):
             match_no = i + 1
             if stage_name == "Semi-Finals":
                 next_label = f"Winner of Semi-Final {match_no}"
@@ -1463,12 +1585,12 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
             elif stage_name == "Quarter-Finals":
                 next_label = f"Winner of Quarter-Final {match_no}"
                 next_short = f"W-QF{match_no}"
-            elif stage_name == "Round of 16":
-                next_label = f"Winner of Round of 16 Match {match_no}"
-                next_short = f"W-R16-{match_no}"
+            elif stage_name.startswith("Round of"):
+                next_label = f"Winner of {stage_name} Match {match_no}"
+                next_short = f"W-R{stage_name.replace('Round of ', '')}-{match_no}"
             else:
-                next_label = f"Winner of {stage_name} {match_no}"
-                next_short = f"W-{stage_name[:2]}{match_no}"
+                next_label = f"Winner of {stage_name} Match {match_no}"
+                next_short = f"W-{stage_name.replace(' ', '')}-M{match_no}"
 
             next_teams.append({
                 'id': None,
@@ -1484,7 +1606,6 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
         cur_teams = next_teams
         prev_stage_date = cur_date
         prev_stage_latest_time = max(current_stage_times) if current_stage_times else time(15, 0)
-        stage_idx += 1
         cur_date = _calc_next_stage_date(cur_date, max(1, len(stage_names) - stage_idx), end_date, preferred_weekdays)
 
     return matches
@@ -1718,7 +1839,66 @@ def advance_knockout_bracket(competition):
             gf.placeholder_away = ''
             gf.save(update_fields=['away_team', 'placeholder_away'])
 
-    # 2. Standard Single Elimination Progression
+    # 2. General Knockout Progression by placeholder label matching across all rounds:
+    rounds_dict = {}
+    for m in matches:
+        rounds_dict.setdefault(m.tournament_round, []).append(m)
+
+    winner_labels = {}
+    for r_name, r_matches in rounds_dict.items():
+        sorted_m = sorted(r_matches, key=lambda x: (x.match_date, x.kickoff_time, x.id))
+        for idx, m in enumerate(sorted_m, 1):
+            if m.status == MatchStatus.COMPLETED and m.winner:
+                clean_r_name = r_name.replace(' (Leg 1)', '').replace(' (Leg 2)', '').strip()
+                lbls = [
+                    f"winner of {clean_r_name} match {idx}",
+                    f"winner of {clean_r_name} {idx}",
+                ]
+                if clean_r_name in ["Semi-Finals", "Semi-Final"]:
+                    lbls.extend([
+                        f"winner of semi-final {idx}",
+                        f"winner of semi-finals {idx}",
+                        f"winner of semi final {idx}",
+                    ])
+                elif clean_r_name in ["Quarter-Finals", "Quarter-Final"]:
+                    lbls.extend([
+                        f"winner of quarter-final {idx}",
+                        f"winner of quarter-finals {idx}",
+                        f"winner of quarter final {idx}",
+                    ])
+                elif clean_r_name.startswith("Round of"):
+                    suffix = clean_r_name.replace("Round of ", "").strip()
+                    lbls.extend([
+                        f"winner of round of {suffix} match {idx}",
+                        f"winner of round of {suffix} {idx}",
+                    ])
+
+                for l in lbls:
+                    winner_labels[l.lower()] = m.winner
+
+    for m in matches:
+        if m.status == MatchStatus.SCHEDULED:
+            updated_fields = []
+            if m.placeholder_home:
+                p_clean = m.placeholder_home.strip().lower()
+                p_base = p_clean.replace(' (knockout)', '').strip()
+                w = winner_labels.get(p_clean) or winner_labels.get(p_base)
+                if w and m.home_team_id != w.id:
+                    m.home_team = w
+                    m.placeholder_home = ''
+                    updated_fields.extend(['home_team', 'placeholder_home'])
+            if m.placeholder_away:
+                p_clean = m.placeholder_away.strip().lower()
+                p_base = p_clean.replace(' (knockout)', '').strip()
+                w = winner_labels.get(p_clean) or winner_labels.get(p_base)
+                if w and m.away_team_id != w.id:
+                    m.away_team = w
+                    m.placeholder_away = ''
+                    updated_fields.extend(['away_team', 'placeholder_away'])
+            if updated_fields:
+                m.save(update_fields=list(set(updated_fields)))
+
+    # 3. Standard Single Elimination Positional Fallback
     # Quarter-Finals -> Semi-Finals
     qfs = [m for m in matches if 'Quarter-Final' in m.tournament_round and 'Semi' not in m.tournament_round]
     sfs = [m for m in matches if 'Semi-Final' in m.tournament_round and 'Qualifying' not in m.tournament_round and 'Elimination' not in m.tournament_round]
@@ -1862,6 +2042,11 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
             grp_name = m.get('group_name', '')
             grp_obj = group_objects_map.get(grp_name) if grp_name else None
 
+            round_byes = m.get('round_byes', [])
+            notes_str = ""
+            if round_byes:
+                notes_str = json.dumps({'byes': [b if isinstance(b, str) else b.get('name', '') for b in round_byes]})
+
             match_obj = Match.objects.create(
                 competition=competition,
                 tournament_round=round_name,
@@ -1874,7 +2059,8 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
                 match_date=m_date,
                 kickoff_time=k_time,
                 venue=venue,
-                status=MatchStatus.SCHEDULED
+                status=MatchStatus.SCHEDULED,
+                notes=notes_str
             )
             created_matches.append(match_obj)
 
