@@ -52,6 +52,9 @@ def organizer_dashboard(request, comp_id=None):
                 messages.warning(request, f"'{active_competition.name}' is currently under review by platform administrators. Management tools will unlock once approved.")
                 return redirect('organizer_dashboard')
 
+        if request.method == 'POST':
+            return update_competition_view(request, comp_id)
+
         tab = request.GET.get('tab', 'overview')
 
         # Data for the active competition
@@ -727,8 +730,31 @@ def update_competition_view(request, comp_id):
             competition.logo_url = logo_url
 
         competition.save()
+
+        # Also update organizer user/profile fields if provided in request
+        org_user = competition.primary_organizer or competition.created_by
+        if org_user:
+            profile = getattr(org_user, 'profile', None)
+            if 'organization_name' in request.POST and profile:
+                profile.organization_name = request.POST.get('organization_name', '').strip()
+                profile.save()
+            if 'phone' in request.POST and profile:
+                profile.phone = request.POST.get('phone', '').strip()
+                profile.save()
+            if 'email' in request.POST:
+                org_user.email = request.POST.get('email', '').strip()
+                org_user.save()
+            if 'full_name' in request.POST or 'organizer_name' in request.POST:
+                fname = (request.POST.get('full_name') or request.POST.get('organizer_name') or '').strip()
+                if fname:
+                    parts = fname.split(None, 1)
+                    org_user.first_name = parts[0]
+                    org_user.last_name = parts[1] if len(parts) > 1 else ""
+                    org_user.save()
+
         ActivityLog.log('LEAGUE_UPDATED', f"Organizer {request.user.username} updated league '{competition.name}'.", user=request.user)
-        messages.success(request, f"League '{competition.name}' details and logo updated successfully!")
-    return redirect(f"/organizer/{competition.id}/?tab=settings")
+        messages.success(request, "Organizer details updated successfully!")
+        return redirect('/organizer/')
+    return redirect('/organizer/')
 
 

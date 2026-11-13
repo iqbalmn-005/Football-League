@@ -5402,6 +5402,11 @@
                     <span class="drawer-nav-icon">📊</span>
                     <span>Statistics</span>
                 </a>
+                <a href="javascript:void(0)" onclick="openTab('settings'); closeMobileMenu();"
+                    class="drawer-nav-link {% if active_tab == 'settings' %}active{% endif %}" id="mNavSettings">
+                    <span class="drawer-nav-icon">⚙</span>
+                    <span>Settings</span>
+                </a>
 
                 {% if active_competition %}
                 <a href="/competition/{{ active_competition.id }}/" class="drawer-nav-link" target="_blank"
@@ -5492,6 +5497,12 @@
                 <span>Statistics</span>
             </a>
 
+            <a href="/organizer/{{ active_competition.id }}/?tab=settings"
+                class="nav-link {% if active_tab == 'settings' %}active{% endif %}" id="navLinkSettings">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
             {% if active_competition %}
             <a href="/competition/{{ active_competition.id }}/" class="nav-link" target="_blank"
                 style="color:var(--green)">
@@ -5530,7 +5541,7 @@
                         <span class="hamburger-bar"></span>
                     </button>
                     <div class="breadcrumb">
-                        <span class="breadcrumb-parent">Organizer Console / </span>
+                        <span class="breadcrumb-parent"><a href="/organizer/" style="color:inherit;text-decoration:none;" title="Back to All Leagues">Organizer Console</a> / </span>
                         {% if active_competition.get_logo_url %}
                         <img src="{{ active_competition.get_logo_url }}" alt="Logo"
                             style="width:18px;height:18px;border-radius:3px;object-fit:cover;vertical-align:middle;margin:0 4px;flex-shrink:0;">
@@ -5634,6 +5645,7 @@
                                 View</a>
                             <button class="btn btn-primary" type="button" onclick="openAddFixtureModal()">+ Add
                                 Match</button>
+                            <button class="btn" type="button" onclick="openTab('settings')">⚙ Edit Details</button>
                         </div>
                     </section>
                     <div class="overview-grid {% if active_competition.is_pure_knockout %}single-col{% endif %}">
@@ -6826,8 +6838,10 @@
                                         style="width:100%;">{{ active_competition.description|default:'' }}</textarea>
                                 </div>
 
-                                <button class="btn btn-primary settings-submit-btn" type="submit">💾 Save League Details
-                                    &amp; Logo</button>
+                                <div style="display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap;">
+                                    <button class="btn btn-primary settings-submit-btn" type="submit" id="saveOrganizerBtn">💾 Save / Update Details</button>
+                                    <a href="/organizer/" class="btn" id="cancelEditBtn" role="button" style="text-decoration:none;" onclick="window.location.href='/organizer/';">Cancel</a>
+                                </div>
                             </form>
                         </div>
                     </div>

@@ -74,6 +74,7 @@ urlpatterns = [
     path('organizer/<int:comp_id>/recalculate-standings/', standing_views.recalculate_standings_view, name='recalculate_standings'),
     path('organizer/<int:comp_id>/invite-organizer/', league_views.invite_co_organizer_view, name='invite_co_organizer'),
     path('organizer/<int:comp_id>/update/', league_views.update_competition_view, name='update_competition'),
+    path('organizer/<int:comp_id>/edit/', league_views.update_competition_view, name='edit_competition'),
 ]
 
 if settings.DEBUG:
