@@ -86,6 +86,17 @@ def api_publish_fixtures(request, comp_id):
     matches_data = data.get('matches', [])
     groups_data = data.get('groups', {})
     tournament_format = data.get('tournament_format')
+    tournament_type = data.get('tournament_type') or data.get('knockout_system')
+
+    if tournament_format == 'KNOCKOUT':
+        if tournament_type == 'page_mcintyre':
+            tournament_format = TournamentFormat.PAGE_MCINTYRE
+        else:
+            tournament_format = TournamentFormat.SINGLE_ELIMINATION
+    elif tournament_format == 'LEAGUE_KNOCKOUT':
+        tournament_format = TournamentFormat.LEAGUE_KNOCKOUT
+    elif tournament_format == 'GROUP_KNOCKOUT':
+        tournament_format = TournamentFormat.GROUP_KNOCKOUT
 
     if not matches_data:
         return JsonResponse({'success': False, 'errors': ["No fixtures to publish. Please generate fixtures first."]}, status=400)

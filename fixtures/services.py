@@ -1811,6 +1811,11 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
                 competition.tournament_format = TournamentFormat.SINGLE_ELIMINATION
                 competition.save(update_fields=['tournament_format'])
 
+        # If pure knockout tournament, remove any existing standings entries
+        if competition.is_pure_knockout:
+            from standings.models import StandingEntry
+            StandingEntry.objects.filter(competition=competition).delete()
+
         competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
 
         group_objects_map = {}

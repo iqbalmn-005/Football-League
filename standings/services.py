@@ -10,7 +10,12 @@ def recalculate_competition_standings(competition):
     Points: Win = 3, Draw = 1, Loss = 0.
     Sorting: Points DESC, Goal Difference DESC, Goals For DESC, Team Name ASC.
     Computes Form (last 5 completed matches).
+    Knockout tournaments do not have a points table; standings entries are cleared.
     """
+    if getattr(competition, 'is_pure_knockout', False):
+        StandingEntry.objects.filter(competition=competition).delete()
+        return []
+
     with transaction.atomic():
         # Get all registered teams
         comp_teams = competition.competitionteam_set.select_related('team', 'group').all()

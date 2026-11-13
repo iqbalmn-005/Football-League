@@ -544,6 +544,10 @@
             margin-top: 24px;
         }
 
+        .overview-grid.single-col {
+            grid-template-columns: 1fr;
+        }
+
         /* TABS */
         .tabs {
             display: flex;
@@ -5381,11 +5385,13 @@
                     <span class="drawer-nav-icon">🏆</span>
                     <span>Enter Results</span>
                 </a>
+                {% if not active_competition.is_pure_knockout %}
                 <a href="javascript:void(0)" onclick="openTab('standings'); closeMobileMenu();"
                     class="drawer-nav-link {% if active_tab == 'standings' %}active{% endif %}" id="mNavStandings">
                     <span class="drawer-nav-icon">📊</span>
                     <span>Live Standings</span>
                 </a>
+                {% endif %}
                 <a href="javascript:void(0)" onclick="openTab('teams'); closeMobileMenu();"
                     class="drawer-nav-link {% if active_tab == 'teams' %}active{% endif %}" id="mNavTeams">
                     <span class="drawer-nav-icon">♟</span>
@@ -5466,11 +5472,13 @@
                 <span>Results</span>
             </a>
 
+            {% if not active_competition.is_pure_knockout %}
             <a href="/organizer/{{ active_competition.id }}/?tab=standings"
                 class="nav-link {% if active_tab == 'standings' %}active{% endif %}" id="navLinkStandings">
                 <span class="nav-icon">📊</span>
                 <span>Live Standings</span>
             </a>
+            {% endif %}
 
             <a href="/organizer/{{ active_competition.id }}/?tab=teams"
                 class="nav-link {% if active_tab == 'teams' %}active{% endif %}" id="navLinkTeams">
@@ -5628,7 +5636,7 @@
                                 Match</button>
                         </div>
                     </section>
-                    <div class="overview-grid">
+                    <div class="overview-grid {% if active_competition.is_pure_knockout %}single-col{% endif %}">
                         <!-- UPCOMING FIXTURES PREVIEW -->
                         <div class="card">
                             <div class="card-heading">
@@ -5746,6 +5754,7 @@
                             </div>
                         </div>
 
+                        {% if not active_competition.is_pure_knockout %}
                         <!-- LIVE STANDINGS PREVIEW -->
                         <div class="card">
                             <div class="card-heading">
@@ -5791,6 +5800,7 @@
                                 </table>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </section>
 
@@ -5815,10 +5825,15 @@
                             </div>
                             <h2 style="font-family:var(--font-heading);font-size:28px;font-weight:900;color:#ffffff;margin:0 0 4px;letter-spacing:0.5px;text-transform:uppercase;">{{ active_competition.winner.name }}</h2>
                             <p style="font-size:13px;color:rgba(255,255,255,0.85);max-width:520px;margin:0 auto;">
+                                {% if not active_competition.is_pure_knockout and active_competition.winner_entry %}
                                 Winner of <strong>{{ active_competition.name }}</strong> ({{ active_competition.season }}) topping the league with <strong>{{ active_competition.winner_entry.points }}</strong> points!
+                                {% else %}
+                                Winner of <strong>{{ active_competition.name }}</strong> ({{ active_competition.season }})!
+                                {% endif %}
                             </p>
                         </div>
 
+                        {% if not active_competition.is_pure_knockout and active_competition.winner_entry %}
                         <div style="display:inline-flex;gap:12px;align-items:center;background:rgba(0,0,0,0.3);padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);margin-bottom:16px;flex-wrap:wrap;justify-content:center;">
                             <div style="text-align:center;min-width:60px;">
                                 <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Matches</div>
@@ -5846,6 +5861,7 @@
                                 View Full Standings Table →
                             </button>
                         </div>
+                        {% endif %}
                     </section>
                     {% elif next_match %}
                     <!-- NEXT MATCH FIXTURE POSTER (LIKE USER REFERENCE IMAGE) -->
@@ -6000,9 +6016,11 @@
                                             <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-right:6px;">
                                                 View Match Results →
                                             </button>
+                                            {% if not active_competition.is_pure_knockout %}
                                             <button class="btn btn-outline" type="button" onclick="openTab('standings')" style="font-size:13px;padding:8px 18px;">
                                                 View Points Table →
                                             </button>
+                                            {% endif %}
                                             {% else %}
                                             <div style="font-size:36px;margin-bottom:8px;">📅</div>
                                             <strong
@@ -6364,6 +6382,7 @@
                     </div>
                 </section>
 
+                {% if not active_competition.is_pure_knockout %}
                 <!-- TAB 4: LIVE STANDINGS -->
                 <section class="tab-content {% if active_tab == 'standings' %}active{% endif %}" id="standings">
                     <div class="card">
@@ -6485,6 +6504,7 @@
                         </div>
                     </div>
                 </section>
+                {% endif %}
 
                 <!-- TAB 5: TEAMS & SQUADS -->
                 <section class="tab-content {% if active_tab == 'teams' %}active{% endif %}" id="teams">
@@ -7317,6 +7337,11 @@
 
     <script>
         function openTab(tabName, clickedBtn) {
+            {% if active_competition.is_pure_knockout %}
+            if (tabName === 'standings') {
+                tabName = 'fixtures';
+            }
+            {% endif %}
             closeMobileMenu();
 
             document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
@@ -7991,11 +8016,13 @@
             <span class="bottom-nav-icon">🏆</span>
             <span>Results</span>
         </a>
+        {% if not active_competition.is_pure_knockout %}
         <a href="/organizer/{{ active_competition.id }}/?tab=standings"
             class="bottom-nav-item {% if active_tab == 'standings' %}active{% endif %}" id="bnav-standings">
             <span class="bottom-nav-icon">📊</span>
             <span>Table</span>
         </a>
+        {% endif %}
         <a href="/organizer/{{ active_competition.id }}/?tab=teams"
             class="bottom-nav-item {% if active_tab == 'teams' %}active{% endif %}" id="bnav-teams">
             <span class="bottom-nav-icon">♟</span>

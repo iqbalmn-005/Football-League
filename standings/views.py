@@ -27,6 +27,10 @@ def recalculate_standings_view(request, comp_id):
     Django backend view: Explicitly triggers full recalculation of points, GD, GF, and 5-match form in Django.
     """
     comp = get_object_or_404(Competition, id=comp_id)
+    if comp.is_pure_knockout:
+        StandingEntry.objects.filter(competition=comp).delete()
+        messages.info(request, f"{comp.name} is a knockout tournament; points table is not applicable.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
     updated = recalculate_competition_standings(comp)
     messages.success(request, f"✓ Standings recomputed in Django: {len(updated)} team positions refreshed.")
     return redirect(f"/organizer/{comp.id}/?tab=standings")

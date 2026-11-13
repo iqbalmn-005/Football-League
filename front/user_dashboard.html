@@ -2891,9 +2891,11 @@
                 <button type="button" class="tab-btn {% if active_tab == 'results' %}active{% endif %}" data-tab="results" onclick="switchTab('results')">
                     Results
                 </button>
+                {% if not competition.is_pure_knockout %}
                 <button type="button" class="tab-btn {% if active_tab == 'table' %}active{% endif %}" data-tab="table" onclick="switchTab('table')">
                     Points Table
                 </button>
+                {% endif %}
                 <button type="button" class="tab-btn {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats" onclick="switchTab('stats')">
                     Statistics
                 </button>
@@ -2940,10 +2942,15 @@
                         </div>
                         <h2 style="font-family:var(--font-heading);font-size:32px;font-weight:900;color:#ffffff;margin:0 0 6px;letter-spacing:0.5px;text-transform:uppercase;">{{ competition.winner.name }}</h2>
                         <p style="font-size:14px;color:rgba(255,255,255,0.85);max-width:560px;margin:0 auto;">
+                            {% if not competition.is_pure_knockout and competition.winner_entry %}
                             Champions of <strong>{{ competition.name }}</strong> ({{ competition.season }}) topping the league with <strong>{{ competition.winner_entry.points }}</strong> points!
+                            {% else %}
+                            Champions of <strong>{{ competition.name }}</strong> ({{ competition.season }})!
+                            {% endif %}
                         </p>
                     </div>
 
+                    {% if not competition.is_pure_knockout and competition.winner_entry %}
                     <div style="display:inline-flex;gap:14px;align-items:center;background:rgba(0,0,0,0.3);padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-bottom:18px;flex-wrap:wrap;justify-content:center;">
                         <div style="text-align:center;min-width:65px;">
                             <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Matches</div>
@@ -2971,6 +2978,7 @@
                             View Full Standings Table →
                         </button>
                     </div>
+                    {% endif %}
                 </section>
                 {% elif next_match %}
                 <!-- FEATURED NEXT MATCH POSTER -->
@@ -3258,6 +3266,7 @@
                 </div>
             </div>
 
+            {% if not competition.is_pure_knockout %}
             <!-- TAB 3: POINTS TABLE -->
             <div class="tab-pane {% if active_tab == 'table' %}active{% endif %}" id="pane-table">
                 <div class="section-header-row">
@@ -3378,6 +3387,7 @@
                     </table>
                 </div>
             </div>
+            {% endif %}
 
             <!-- TAB 4: STATS -->
             <div class="tab-pane {% if active_tab == 'stats' %}active{% endif %}" id="pane-stats">
@@ -3687,12 +3697,14 @@
             <span class="bnav-label">Results</span>
         </a>
 
+        {% if not competition.is_pure_knockout %}
         <a href="?tab=table" class="bnav-tab {% if active_tab == 'table' %}active{% endif %}" data-tab="table">
             <div class="bnav-icon-wrap">
                 <span class="bnav-icon">📊</span>
             </div>
             <span class="bnav-label">Table</span>
         </a>
+        {% endif %}
 
         <a href="?tab=stats" class="bnav-tab {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats">
             <div class="bnav-icon-wrap">
@@ -3918,6 +3930,9 @@
         }
 
         function switchTab(tabId) {
+            {% if competition.is_pure_knockout %}
+            if (tabId === 'table') tabId = 'upcoming';
+            {% endif %}
             if (!tabId) tabId = 'upcoming';
 
             // Hide all tab panes

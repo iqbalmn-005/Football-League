@@ -89,6 +89,32 @@ class Competition(models.Model):
         return self.teams.count()
 
     @property
+    def is_pure_knockout(self):
+        if self.tournament_format in [
+            TournamentFormat.SINGLE_ELIMINATION,
+            TournamentFormat.PAGE_MCINTYRE,
+            'SINGLE_ELIMINATION',
+            'PAGE_MCINTYRE',
+            'KNOCKOUT'
+        ]:
+            return True
+        if self.tournament_format in [
+            TournamentFormat.ROUND_ROBIN,
+            TournamentFormat.LEAGUE_KNOCKOUT,
+            TournamentFormat.GROUP_KNOCKOUT,
+            'ROUND_ROBIN',
+            'LEAGUE_KNOCKOUT',
+            'GROUP_KNOCKOUT'
+        ]:
+            return False
+        # Fallback for legacy competitions where tournament_format was not explicitly set
+        if self.matches.exists() and not self.groups.exists():
+            rounds = list(self.matches.values_list('tournament_round', flat=True))
+            if rounds and all(any(kw in (r or '').lower() for kw in ['final', 'semi', 'quarter', 'round of', 'playoff', 'elimination', 'qualifying']) for r in rounds):
+                return True
+        return False
+
+    @property
     def spots_left(self):
         left = self.max_teams - self.total_teams_count
         return max(0, left)

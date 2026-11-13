@@ -68,7 +68,12 @@ def organizer_dashboard(request, comp_id=None):
         next_match = upcoming_matches.first()
         last_match = completed_matches.first()
 
-        standings = StandingEntry.objects.filter(competition=active_competition).select_related('team').order_by('position')
+        if active_competition.is_pure_knockout:
+            standings = []
+            if tab == 'standings':
+                tab = 'fixtures'
+        else:
+            standings = StandingEntry.objects.filter(competition=active_competition).select_related('team').order_by('position')
         stats = get_competition_statistics(active_competition)
         all_players = Player.objects.filter(team__in=comp_teams).select_related('team')
         groups = active_competition.groups.all()
@@ -636,8 +641,12 @@ def add_player_view(request, team_id):
 
 @approved_organizer_required
 def recalculate_standings_view(request, comp_id):
+    competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_pure_knockout:
+        StandingEntry.objects.filter(competition=competition).delete()
+        messages.info(request, f"{competition.name} is a knockout tournament; points table is not applicable.")
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
     if request.method == 'POST':
-        competition = get_object_or_404(Competition, id=comp_id)
         recalculate_competition_standings(competition)
         messages.success(request, f"Points table and goal difference recalculated for {competition.name}!")
     return redirect(f"/organizer/{comp_id}/?tab=standings")

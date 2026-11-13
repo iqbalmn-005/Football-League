@@ -101,7 +101,12 @@ def competition_viewer(request, comp_id):
     next_match = upcoming_matches.first()
     last_match = completed_matches.first()
 
-    standings = StandingEntry.objects.filter(competition=competition).select_related('team').order_by('position')
+    if competition.is_pure_knockout:
+        standings = []
+        if tab == 'table':
+            tab = 'upcoming'
+    else:
+        standings = StandingEntry.objects.filter(competition=competition).select_related('team').order_by('position')
     stats = get_competition_statistics(competition)
 
     context = {
