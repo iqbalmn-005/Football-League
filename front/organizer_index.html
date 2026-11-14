@@ -5187,6 +5187,120 @@
                 display: inline !important;
             }
         }
+
+        /* GROUP MANAGEMENT & FIXTURES STYLES */
+        .group-selector-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: thin;
+        }
+        .group-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-decoration: none;
+            background: #1D2A35;
+            color: #B5C0CB;
+            border: 1px solid #344451;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .group-pill:hover {
+            background: #293C49;
+            color: #F7FAFC;
+            border-color: #B8F34A;
+        }
+        .group-pill.active {
+            background: #B8F34A;
+            color: #101820;
+            border-color: #B8F34A;
+            font-weight: 900;
+        }
+        .group-dist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .group-dist-card {
+            background: #1D2A35;
+            border: 1px solid #344451;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .group-dist-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #344451;
+            margin-bottom: 12px;
+        }
+        .group-dist-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 900;
+            color: #F7FAFC;
+            letter-spacing: 0.5px;
+        }
+        .group-dist-count {
+            background: #293C49;
+            color: #B8F34A;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #344451;
+        }
+        .group-team-chip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #101820;
+            border: 1px solid #344451;
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #F7FAFC;
+        }
+        .group-unassigned-box {
+            background: rgba(181, 129, 5, 0.12);
+            border: 1px solid rgba(181, 129, 5, 0.35);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+        .group-qualify-pill {
+            background: rgba(184, 243, 74, 0.15);
+            color: #B8F34A;
+            border: 1px solid rgba(184, 243, 74, 0.35);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .group-eliminated-pill {
+            background: rgba(217, 56, 56, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(217, 56, 56, 0.25);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
 </style>
 </head>
 
@@ -5720,10 +5834,33 @@
                                     class="btn btn-primary fixtures-card-gen-btn">
                                     ⚡ Smart Fixture Generator Wizard
                                 </a>
+                                {% if active_competition.is_group_stage and groups.exists %}
+                                <button class="btn btn-primary" type="button" onclick="quickGenerateGroupFixtures({{ active_competition.id }})" style="background:#047857;border-color:#047857;color:#fff;">
+                                    ⚽ Generate Group Fixtures
+                                </button>
+                                {% endif %}
                                 <button class="btn btn-outline" type="button" onclick="openAddFixtureModal()">+ Add
                                     Match Manually</button>
                             </div>
                         </div>
+
+                        {% if groups.exists %}
+                        <!-- GROUP SELECTOR PILLS FOR FIXTURES -->
+                        <div class="group-selector-bar" style="padding:12px 18px;background:#17251e;border-bottom:1px solid #26342b;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span style="font-size:11px;font-weight:800;color:#B5C0CB;text-transform:uppercase;margin-right:4px;">Filter Group:</span>
+                            <a href="?tab=fixtures&group=all" class="group-pill {% if not selected_group or selected_group == 'all' %}active{% endif %}">
+                                🌐 All Fixtures
+                            </a>
+                            {% for grp in groups %}
+                            <a href="?tab=fixtures&group={{ grp.name }}" class="group-pill {% if selected_group == grp.name or selected_group == grp.id|stringformat:'s' %}active{% endif %}">
+                                🏆 {{ grp.name }}
+                            </a>
+                            {% endfor %}
+                            <a href="?tab=fixtures&group=knockout" class="group-pill {% if selected_group == 'knockout' %}active{% endif %}">
+                                ⚡ Knockout Stage
+                            </a>
+                        </div>
+                        {% endif %}
 
                         <!-- DESKTOP FIXTURES TABLE (Screens > 768px) -->
                         <div class="table-wrap fixtures-desktop-table">
@@ -5998,6 +6135,24 @@
                             </div>
                         </div>
 
+                        {% if groups.exists %}
+                        <!-- GROUP SELECTOR PILLS FOR RESULTS -->
+                        <div class="group-selector-bar" style="padding:12px 18px;background:#17251e;border-bottom:1px solid #26342b;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span style="font-size:11px;font-weight:800;color:#B5C0CB;text-transform:uppercase;margin-right:4px;">Filter Group:</span>
+                            <a href="?tab=results&group=all" class="group-pill {% if not selected_group or selected_group == 'all' %}active{% endif %}">
+                                🌐 All Results
+                            </a>
+                            {% for grp in groups %}
+                            <a href="?tab=results&group={{ grp.name }}" class="group-pill {% if selected_group == grp.name or selected_group == grp.id|stringformat:'s' %}active{% endif %}">
+                                🏆 {{ grp.name }}
+                            </a>
+                            {% endfor %}
+                            <a href="?tab=results&group=knockout" class="group-pill {% if selected_group == 'knockout' %}active{% endif %}">
+                                ⚡ Knockout Stage
+                            </a>
+                        </div>
+                        {% endif %}
+
                         <!-- DESKTOP RESULTS TABLE (Screens > 768px) -->
                         <div class="table-wrap results-desktop-table">
                             <table>
@@ -6237,6 +6392,146 @@
                         </div>
                         {% endif %}
 
+                        {% if group_tables %}
+                        <!-- GROUP-WISE STANDINGS & QUALIFICATION OVERVIEW -->
+                        <div style="background:#17251e;border:1px solid #26342b;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span style="font-size:18px;">🎯</span>
+                                        <h3 style="margin:0;font-size:16px;font-weight:900;color:#F7FAFC;letter-spacing:0.5px;">Knockout Stage Qualification Overview</h3>
+                                        {% if is_group_stage_completed %}
+                                        <span style="background:#047857;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">✓ GROUP STAGE CONCLUDED</span>
+                                        {% else %}
+                                        <span style="background:rgba(181, 129, 5, 0.2);color:#eab308;border:1px solid rgba(234, 179, 8, 0.3);font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">⏳ GROUP STAGE IN PROGRESS</span>
+                                        {% endif %}
+                                    </div>
+                                    <p style="margin:4px 0 0;font-size:12px;color:#B5C0CB;">
+                                        Top <strong>{{ active_competition.qualifiers_per_group }}</strong> teams from each group qualify for the Single-Elimination Knockout Stage.
+                                    </p>
+                                </div>
+
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    {% if is_group_stage_completed %}
+                                    <button class="btn btn-primary" type="button" onclick="triggerKnockoutGeneration({{ active_competition.id }})" style="font-weight:900;padding:8px 16px;">
+                                        ⚡ Generate Knockout Stage from Qualified Teams
+                                    </button>
+                                    {% else %}
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <label style="font-size:11px;color:#B5C0CB;font-weight:700;">Qualify per group:</label>
+                                        <select class="field" style="padding:4px 8px;font-size:11px;background:#101820;color:#fff;border-color:#344451;" onchange="updateQualifiersCount({{ active_competition.id }}, this.value)">
+                                            <option value="1" {% if active_competition.qualifiers_per_group == 1 %}selected{% endif %}>Top 1</option>
+                                            <option value="2" {% if active_competition.qualifiers_per_group == 2 %}selected{% endif %}>Top 2</option>
+                                            <option value="3" {% if active_competition.qualifiers_per_group == 3 %}selected{% endif %}>Top 3</option>
+                                            <option value="4" {% if active_competition.qualifiers_per_group == 4 %}selected{% endif %}>Top 4</option>
+                                        </select>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if qualified_teams %}
+                            <div>
+                                <span style="font-size:11px;font-weight:800;color:#B8F34A;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">
+                                    ✓ Qualified Teams for Knockout Bracket ({{ qualified_teams|length }} Teams):
+                                </span>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    {% for qt in qualified_teams %}
+                                    <div style="background:#101820;border:1px solid rgba(184,243,74,0.4);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;">
+                                        <span class="group-qualify-pill">{{ qt.group.name }} #{{ qt.rank_in_group }}</span>
+                                        <strong style="color:#F7FAFC;font-size:12px;">{{ qt.team.name }}</strong>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- INDEPENDENT GROUP POINTS TABLES -->
+                        {% for grp, rows in group_tables.items %}
+                        <div style="margin-bottom:28px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#142019;border:1px solid #26342b;border-top-left-radius:8px;border-top-right-radius:8px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:16px;">🏆</span>
+                                    <h3 style="margin:0;font-size:16px;font-weight:900;color:#B4F56B;text-transform:uppercase;letter-spacing:0.5px;">{{ grp.name }} Standings</h3>
+                                </div>
+                                <span class="group-qualify-pill">Top {{ active_competition.qualifiers_per_group }} Advance to Knockout</span>
+                            </div>
+
+                            <div class="table-wrap standings-table-wrap" style="border-top-left-radius:0;border-top-right-radius:0;">
+                                <table class="standings-table-organizer">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-pos" style="width:36px">#</th>
+                                            <th class="col-club">CLUB</th>
+                                            <th class="center col-p"><span class="desktop-text">PLAYED</span><span class="mobile-text">P</span></th>
+                                            <th class="center col-w"><span class="desktop-text">WON</span><span class="mobile-text">W</span></th>
+                                            <th class="center col-d"><span class="desktop-text">DRAWN</span><span class="mobile-text">D</span></th>
+                                            <th class="center col-l"><span class="desktop-text">LOST</span><span class="mobile-text">L</span></th>
+                                            <th class="center col-gf">GF</th>
+                                            <th class="center col-ga">GA</th>
+                                            <th class="center col-gd">GD</th>
+                                            <th class="center col-pts pts-col"><span class="desktop-text">POINTS</span><span class="mobile-text">PTS</span></th>
+                                            <th class="col-form">FORM</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in rows %}
+                                        <tr {% if row.is_qualified_position %}style="background:rgba(180,245,107,0.04);"{% endif %}>
+                                            <td class="col-pos">
+                                                <div style="display:flex;align-items:center;gap:6px;">
+                                                    <strong>{{ row.position }}</strong>
+                                                    {% if row.is_qualified_position %}
+                                                    <span style="width:6px;height:6px;border-radius:50%;background:#B4F56B;display:inline-block;" title="Qualifying Position"></span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td class="col-club">
+                                                <a href="/organizer/team/{{ row.team.id }}/?competition={{ active_competition.id }}" style="display:flex;align-items:center;gap:7px;color:inherit;text-decoration:none;" title="View {{ row.team.name }} Details">
+                                                    <div class="standings-mini-crest" style="width:22px;height:22px;min-width:22px;border-radius:50%;overflow:hidden;background:#142019;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                        {% if row.team.get_logo_url %}
+                                                        <img src="{{ row.team.get_logo_url }}" alt="{{ row.team.name }}" style="width:100%;height:100%;object-fit:contain;">
+                                                        {% else %}
+                                                        <span style="font-size:9px;font-weight:900;color:#B4F56B;">{{ row.team.short_name|default:row.team.name|slice:":3"|upper }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <strong class="standings-team-name">{{ row.team.name }}</strong>
+                                                    {% if row.is_qualified_position %}
+                                                    <span class="group-qualify-pill" style="margin-left:6px;font-size:9px;">Q</span>
+                                                    {% endif %}
+                                                </a>
+                                            </td>
+                                            <td class="center col-p">{{ row.played }}</td>
+                                            <td class="center col-w">{{ row.won }}</td>
+                                            <td class="center col-d">{{ row.drawn }}</td>
+                                            <td class="center col-l">{{ row.lost }}</td>
+                                            <td class="center col-gf">{{ row.goals_for }}</td>
+                                            <td class="center col-ga">{{ row.goals_against }}</td>
+                                            <td class="center col-gd"><strong>{{ row.goal_difference }}</strong></td>
+                                            <td class="center col-pts pts-col" style="font-size:14px;font-weight:900;color:var(--dark);">{{ row.points }}</td>
+                                            <td class="col-form">
+                                                {% for f in row.form_list %}
+                                                <span class="form-badge form-{{ f|lower }}">{{ f }}</span>
+                                                {% empty %}
+                                                <span style="color:var(--muted)">-</span>
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="11" style="text-align:center;padding:24px;color:var(--muted)">
+                                                No teams assigned to {{ grp.name }} yet.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% else %}
+                        <!-- STANDARD LEAGUE STANDINGS TABLE -->
                         <div class="table-wrap standings-table-wrap">
                             <table class="standings-table-organizer">
                                 <thead>
@@ -6308,6 +6603,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        {% endif %}
                     </div>
                 </section>
                 {% endif %}
@@ -6321,8 +6617,102 @@
                                 <p class="card-subtitle">Click on any team to view full squad details, player cards, and
                                     manage players.</p>
                             </div>
-                            <button class="btn btn-primary" onclick="openAddTeamModal()">+ Register New Team</button>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                {% if active_competition.is_group_stage and groups.exists %}
+                                <button class="btn btn-primary" type="button" onclick="runAutoDistribute({{ active_competition.id }})" style="background:#047857;border-color:#047857;color:#fff;">
+                                    ⚡ Auto Distribute Teams
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-primary" onclick="openAddTeamModal()">+ Register New Team</button>
+                            </div>
                         </div>
+
+                        {% if active_competition.is_group_stage and groups.exists %}
+                        <!-- GROUP ALLOCATION & TEAM DISTRIBUTION MANAGER -->
+                        <div style="background:#17251e;border:1px solid #26342b;border-radius:10px;padding:20px;margin-bottom:24px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span style="font-size:18px;">👥</span>
+                                        <h3 style="margin:0;font-size:16px;font-weight:900;color:#F7FAFC;letter-spacing:0.5px;">Group Allocation &amp; Team Distribution</h3>
+                                        {% if group_status.is_valid %}
+                                        <span style="background:#047857;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">✓ ALL TEAMS ASSIGNED</span>
+                                        {% else %}
+                                        <span style="background:rgba(217, 56, 56, 0.2);color:#f87171;border:1px solid rgba(217, 56, 56, 0.4);font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">⚠️ UNASSIGNED TEAMS</span>
+                                        {% endif %}
+                                    </div>
+                                    <p style="margin:4px 0 0;font-size:12px;color:#B5C0CB;">
+                                        Distribute registered clubs across <strong>{{ groups.count }} groups</strong>. You can distribute automatically or reassign teams manually.
+                                    </p>
+                                </div>
+
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <button class="btn btn-outline" type="button" onclick="runAutoDistribute({{ active_competition.id }})" style="font-size:11.5px;">
+                                        ⚡ Automatic Equal Distribution
+                                    </button>
+                                    <button class="btn btn-primary" type="button" onclick="confirmGroupAssignments({{ active_competition.id }})" style="font-size:11.5px;">
+                                        ✓ Confirm Group Assignments
+                                    </button>
+                                </div>
+                            </div>
+
+                            {% if group_status.unassigned_teams %}
+                            <!-- UNASSIGNED TEAMS WARNING POOL -->
+                            <div class="group-unassigned-box">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                    <span style="font-size:16px;">⚠️</span>
+                                    <strong style="color:#eab308;font-size:12.5px;">Unassigned Teams ({{ group_status.unassigned_teams|length }}):</strong>
+                                    <span style="font-size:11.5px;color:#cbd5e1;">Assign each team to a group before confirming the tournament schedule:</span>
+                                </div>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    {% for ut in group_status.unassigned_teams %}
+                                    <div style="background:#101820;border:1px solid #344451;border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;">
+                                        <strong style="color:#F7FAFC;font-size:12px;">{{ ut.name }}</strong>
+                                        <select class="field" style="padding:2px 6px;font-size:11px;background:#1D2A35;color:#B8F34A;border-color:#344451;" onchange="assignTeamToGroup({{ active_competition.id }}, {{ ut.id }}, this.value)">
+                                            <option value="">+ Assign Group...</option>
+                                            {% for grp in groups %}
+                                            <option value="{{ grp.id }}">{{ grp.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- GROUPS BUCKETS GRID -->
+                            <div class="group-dist-grid">
+                                {% for g_data in group_status.groups %}
+                                <div class="group-dist-card">
+                                    <div class="group-dist-header">
+                                        <span class="group-dist-title">🏆 {{ g_data.name }}</span>
+                                        <span class="group-dist-count">{{ g_data.count }} Teams</span>
+                                    </div>
+                                    <div style="flex:1;">
+                                        {% for t in g_data.teams %}
+                                        <div class="group-team-chip">
+                                            <span style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">{{ t.name }}</span>
+                                            <select style="background:transparent;border:0;color:#B5C0CB;font-size:10px;cursor:pointer;" onchange="assignTeamToGroup({{ active_competition.id }}, {{ t.id }}, this.value)">
+                                                <option value="{{ g_data.id }}" selected>Move →</option>
+                                                {% for target_g in groups %}
+                                                {% if target_g.id != g_data.id %}
+                                                <option value="{{ target_g.id }}">{{ target_g.name }}</option>
+                                                {% endif %}
+                                                {% endfor %}
+                                                <option value="unassign">Unassign</option>
+                                            </select>
+                                        </div>
+                                        {% empty %}
+                                        <div style="text-align:center;padding:18px 10px;color:var(--muted);font-size:11.5px;">
+                                            No teams in this group yet.
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <div class="teams-cards-grid">
                             {% for t in comp_teams %}
@@ -7151,12 +7541,64 @@
                         </div>
                         <div class="form-group">
                             <label>Format</label>
-                            <select class="field" name="tournament_format">
+                            <select class="field" name="tournament_format" id="createTournFormat" onchange="toggleGroupCreateSettings(this.value)">
                                 <option value="ROUND_ROBIN">Round Robin (League)</option>
-                                <option value="LEAGUE_KNOCKOUT">League + Tournament</option>
-                                <option value="GROUP_KNOCKOUT">Group Mode + Tournament</option>
+                                <option value="GROUP_KNOCKOUT">Group-wise League</option>
                                 <option value="SINGLE_ELIMINATION">Tournament / Knockout</option>
+                                <option value="LEAGUE_KNOCKOUT">League + Tournament</option>
+                                <option value="PAGE_MCINTYRE">Page–McIntyre System (Final 4)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- DYNAMIC GROUP-WISE LEAGUE SETTINGS -->
+                    <div id="groupCreateSettingsBlock" style="display:none;background:rgba(41,60,73,0.3);border:1px solid #344451;border-radius:8px;padding:14px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                            <span style="font-size:16px;">🏆</span>
+                            <strong style="color:#B8F34A;font-size:12.5px;text-transform:uppercase;letter-spacing:0.5px;">Group-wise League Configuration</strong>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                            <div class="form-group">
+                                <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Number of Groups *</label>
+                                <select class="field" name="num_groups" id="createNumGroupsSelect" onchange="updateGroupCreatePreview()">
+                                    <option value="2">2 Groups (Group A, Group B)</option>
+                                    <option value="3">3 Groups (Group A, B, C)</option>
+                                    <option value="4" selected>4 Groups (Group A, B, C, D)</option>
+                                    <option value="6">6 Groups (Group A through F)</option>
+                                    <option value="8">8 Groups (Group A through H)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Team Distribution Method *</label>
+                                <select class="field" name="distribution_method">
+                                    <option value="automatic" selected>Automatic Distribution (Equal Balance)</option>
+                                    <option value="manual">Manual Distribution (Organizer Selects)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                            <div class="form-group">
+                                <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Group Fixture Format *</label>
+                                <select class="field" name="fixture_format">
+                                    <option value="single" selected>Single Round-Robin (Each team plays once)</option>
+                                    <option value="double">Double Round-Robin (Home &amp; Away)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Qualifying Teams Per Group *</label>
+                                <select class="field" name="qualifiers_per_group" id="createQualifiersSelect" onchange="updateGroupCreatePreview()">
+                                    <option value="1">Top 1 team qualifies per group</option>
+                                    <option value="2" selected>Top 2 teams qualify per group</option>
+                                    <option value="3">Top 3 teams qualify per group</option>
+                                    <option value="4">Top 4 teams qualify per group</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="groupCreatePreviewHint" style="font-size:11.5px;color:#B5C0CB;background:#101820;padding:8px 12px;border-radius:6px;border:1px solid #344451;">
+                            ℹ️ <strong>4 Groups</strong> will be created (Group A, Group B, Group C, Group D). <strong>8 total teams</strong> will qualify for the Knockout Stage.
                         </div>
                     </div>
 
@@ -7839,6 +8281,183 @@
             if (event && event.target !== event.currentTarget && !event.target.classList.contains("modal-close-btn")) return;
             const modal = document.getElementById("createCompetitionModal");
             if (modal) modal.classList.remove("active");
+        }
+
+        /* GROUP-WISE TOURNAMENT MANAGEMENT FUNCTIONS */
+        function toggleGroupCreateSettings(fmt) {
+            const block = document.getElementById("groupCreateSettingsBlock");
+            if (block) {
+                block.style.display = (fmt === 'GROUP_KNOCKOUT') ? 'block' : 'none';
+                if (fmt === 'GROUP_KNOCKOUT') updateGroupCreatePreview();
+            }
+        }
+
+        function updateGroupCreatePreview() {
+            const numG = parseInt(document.getElementById("createNumGroupsSelect") ? document.getElementById("createNumGroupsSelect").value : 4) || 4;
+            const qCount = parseInt(document.getElementById("createQualifiersSelect") ? document.getElementById("createQualifiersSelect").value : 2) || 2;
+            const hint = document.getElementById("groupCreatePreviewHint");
+            if (hint) {
+                const groupNames = Array.from({length: numG}, (_, i) => "Group " + String.fromCharCode(65 + i)).join(", ");
+                const totalQ = numG * qCount;
+                hint.innerHTML = `ℹ️ <strong>${numG} Groups</strong> will be created (${groupNames}). <strong>${totalQ} total teams</strong> will qualify for the Knockout Stage.`;
+            }
+        }
+
+        function runAutoDistribute(compId) {
+            if (!confirm("Run automatic equal distribution of registered teams across groups?")) return;
+            fetch(`/organizer/${compId}/groups/distribute/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                },
+                body: JSON.stringify({ method: 'automatic' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/organizer/${compId}/?tab=teams`;
+                } else {
+                    alert("Error distributing teams: " + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function assignTeamToGroup(compId, teamId, targetGroupId) {
+            if (!targetGroupId) return;
+            fetch(`/api/competition/${compId}/groups/status/`)
+            .then(res => res.json())
+            .then(data => {
+                const currentGroups = data.distribution.groups || [];
+                const assignments = {};
+                currentGroups.forEach(g => {
+                    assignments[g.id] = g.teams.map(t => t.id).filter(id => id !== teamId);
+                });
+                if (targetGroupId !== 'unassign') {
+                    const gId = parseInt(targetGroupId);
+                    if (!assignments[gId]) assignments[gId] = [];
+                    assignments[gId].push(teamId);
+                }
+                return fetch(`/organizer/${compId}/groups/distribute/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    body: JSON.stringify({
+                        method: 'manual',
+                        assignments: assignments
+                    })
+                });
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/organizer/${compId}/?tab=teams`;
+                } else {
+                    alert("Failed to assign team: " + (data.error || 'Validation error'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function confirmGroupAssignments(compId) {
+            fetch(`/organizer/${compId}/groups/confirm/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✓ " + data.message);
+                    window.location.href = `/organizer/${compId}/?tab=teams`;
+                } else {
+                    alert("Cannot confirm groups: " + (data.error || 'Teams remain unassigned'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function quickGenerateGroupFixtures(compId) {
+            if (!confirm("Generate independent round-robin group fixtures for all groups now?")) return;
+            fetch(`/organizer/${compId}/groups/generate-fixtures/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                },
+                body: JSON.stringify({ double_round: false, matches_per_day: 2 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✓ " + data.message);
+                    window.location.href = `/organizer/${compId}/?tab=fixtures`;
+                } else {
+                    alert("Error: " + (data.error || 'Failed generating group fixtures'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function updateQualifiersCount(compId, count) {
+            fetch(`/organizer/${compId}/groups/qualification/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                },
+                body: JSON.stringify({ qualifiers_per_group: count })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/organizer/${compId}/?tab=standings`;
+                } else {
+                    alert("Error: " + (data.error || 'Invalid qualification count'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function triggerKnockoutGeneration(compId) {
+            if (!confirm("Generate the Single-Elimination Knockout bracket from qualified teams now?")) return;
+            fetch(`/organizer/${compId}/groups/generate-knockout/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✓ " + data.message);
+                    window.location.href = `/organizer/${compId}/?tab=fixtures&group=knockout`;
+                } else {
+                    alert("Error: " + (data.error || 'Failed generating knockout stage'));
+                }
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
 
         // Handle URL tab param

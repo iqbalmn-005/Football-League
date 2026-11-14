@@ -243,6 +243,10 @@ def create_competition(request):
         logo_url = request.POST.get('logo_url', '').strip()
         et_val = request.POST.get('extra_time_before_penalties', '0')
         extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
+        num_groups = int(request.POST.get('num_groups', 2) or 2)
+        qualifiers_per_group = int(request.POST.get('qualifiers_per_group', 2) or 2)
+        fixture_format = request.POST.get('fixture_format', 'single')
+        distribution_method = request.POST.get('distribution_method', 'automatic')
 
         if not name:
             messages.error(request, "Competition name is required.")
@@ -272,9 +276,17 @@ def create_competition(request):
             end_date=end_date,
             logo_url=logo_url or "/static/img/mfl.jpeg",
             extra_time_before_penalties=extra_time_before_penalties,
+            num_groups=num_groups,
+            qualifiers_per_group=qualifiers_per_group,
+            fixture_format=fixture_format,
+            distribution_method=distribution_method,
             status='ACTIVE',
             is_published=True
         )
+
+        if tourn_format == 'GROUP_KNOCKOUT':
+            from leagues.group_service import create_or_sync_groups
+            create_or_sync_groups(comp, num_groups)
 
         # Handle logo upload if provided
         if 'logo' in request.FILES:

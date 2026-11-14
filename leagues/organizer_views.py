@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Q
 from datetime import datetime, date, time
+import json
 
 from accounts.decorators import approved_organizer_required
 from accounts.models import ActivityLog, Notification, UserProfile, UserRole, OrganizerStatus, OrganizerApplication
@@ -71,6 +73,22 @@ def organizer_dashboard(request, comp_id=None):
         next_match = upcoming_matches.first()
         last_match = completed_matches.first()
 
+        # Group filtering for fixtures & results
+        selected_group = request.GET.get('group', 'all')
+        if selected_group and selected_group != 'all':
+            if selected_group.lower() == 'knockout':
+                upcoming_matches = upcoming_matches.filter(group__isnull=True)
+                completed_matches = completed_matches.filter(group__isnull=True)
+                all_matches = all_matches.filter(group__isnull=True)
+            elif selected_group.isdigit():
+                upcoming_matches = upcoming_matches.filter(group_id=int(selected_group))
+                completed_matches = completed_matches.filter(group_id=int(selected_group))
+                all_matches = all_matches.filter(group_id=int(selected_group))
+            else:
+                upcoming_matches = upcoming_matches.filter(group__name__iexact=selected_group)
+                completed_matches = completed_matches.filter(group__name__iexact=selected_group)
+                all_matches = all_matches.filter(group__name__iexact=selected_group)
+
         if active_competition.is_pure_knockout:
             standings = []
             if tab == 'standings':
@@ -79,7 +97,25 @@ def organizer_dashboard(request, comp_id=None):
             standings = StandingEntry.objects.filter(competition=active_competition).select_related('team').order_by('position')
         stats = get_competition_statistics(active_competition)
         all_players = Player.objects.filter(team__in=comp_teams).select_related('team')
-        groups = active_competition.groups.all()
+        groups = active_competition.groups.all().order_by('name')
+
+        # Group stage specific data
+        group_tables = {}
+        group_status = None
+        qualified_teams = []
+        is_group_stage_completed = False
+
+        if active_competition.is_group_stage or groups.exists():
+            from leagues.group_service import (
+                get_group_standings_data, get_group_distribution_status,
+                check_group_stage_completed, update_qualified_teams
+            )
+            group_tables = get_group_standings_data(active_competition)
+            group_status = get_group_distribution_status(active_competition)
+            is_group_stage_completed = check_group_stage_completed(active_competition)
+            if is_group_stage_completed:
+                update_qualified_teams(active_competition)
+            qualified_teams = list(active_competition.qualified_teams.select_related('team', 'group').order_by('group__name', 'rank_in_group'))
 
         # Eligible co-organizers to invite
         co_organizers = User.objects.filter(
@@ -95,6 +131,7 @@ def organizer_dashboard(request, comp_id=None):
             'user_competitions': user_competitions,
             'active_competition': active_competition,
             'active_tab': tab,
+            'selected_group': selected_group,
             'comp_teams': comp_teams,
             'upcoming_matches': upcoming_matches,
             'completed_matches': completed_matches,
@@ -102,6 +139,10 @@ def organizer_dashboard(request, comp_id=None):
             'next_match': next_match,
             'last_match': last_match,
             'standings': standings,
+            'group_tables': group_tables,
+            'group_status': group_status,
+            'qualified_teams': qualified_teams,
+            'is_group_stage_completed': is_group_stage_completed,
             'stats': stats,
             'all_players': all_players,
             'groups': groups,
@@ -168,6 +209,10 @@ def organizer_create_competition(request):
         logo_url = request.POST.get('logo_url', '').strip()
         et_raw = request.POST.get('extra_time_before_penalties', '0')
         extra_time_before_penalties = et_raw in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
+        num_groups = int(request.POST.get('num_groups', 2) or 2)
+        qualifiers_per_group = int(request.POST.get('qualifiers_per_group', 2) or 2)
+        fixture_format = request.POST.get('fixture_format', 'single')
+        distribution_method = request.POST.get('distribution_method', 'automatic')
 
         if not name:
             messages.error(request, "Competition name is required.")
@@ -193,9 +238,17 @@ def organizer_create_competition(request):
             end_date=end_date,
             logo_url=logo_url,
             extra_time_before_penalties=extra_time_before_penalties,
+            num_groups=num_groups,
+            qualifiers_per_group=qualifiers_per_group,
+            fixture_format=fixture_format,
+            distribution_method=distribution_method,
             status=comp_status,
             is_published=is_published
         )
+
+        if tourn_format == 'GROUP_KNOCKOUT':
+            from leagues.group_service import create_or_sync_groups
+            create_or_sync_groups(comp, num_groups)
 
         if 'logo' in request.FILES:
             comp.logo = request.FILES['logo']
@@ -491,6 +544,12 @@ def enter_match_result_view(request, match_id):
         # Automatically recalculate standings!
         recalculate_competition_standings(match_obj.competition)
 
+        # Automatically update qualified teams if group stage finishes
+        if match_obj.competition.is_group_stage:
+            from leagues.group_service import check_group_stage_completed, update_qualified_teams
+            if check_group_stage_completed(match_obj.competition):
+                update_qualified_teams(match_obj.competition)
+
         # Automatically advance knockout brackets
         advance_knockout_bracket(match_obj.competition)
 
@@ -728,6 +787,26 @@ def update_competition_view(request, comp_id):
         if 'extra_time_before_penalties' in request.POST:
             et_val = request.POST.get('extra_time_before_penalties')
             competition.extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
+        if 'tournament_format' in request.POST:
+            competition.tournament_format = request.POST.get('tournament_format')
+        if 'num_groups' in request.POST:
+            try:
+                new_num_groups = int(request.POST.get('num_groups') or 2)
+                competition.num_groups = new_num_groups
+                if competition.is_group_stage:
+                    from leagues.group_service import create_or_sync_groups
+                    create_or_sync_groups(competition, new_num_groups)
+            except (ValueError, TypeError):
+                pass
+        if 'qualifiers_per_group' in request.POST:
+            try:
+                competition.qualifiers_per_group = int(request.POST.get('qualifiers_per_group') or 2)
+            except (ValueError, TypeError):
+                pass
+        if 'fixture_format' in request.POST:
+            competition.fixture_format = request.POST.get('fixture_format')
+        if 'distribution_method' in request.POST:
+            competition.distribution_method = request.POST.get('distribution_method')
 
         if 'logo' in request.FILES:
             competition.logo = request.FILES['logo']
@@ -762,5 +841,240 @@ def update_competition_view(request, comp_id):
         messages.success(request, "Organizer details updated successfully!")
         return redirect('/organizer/')
     return redirect('/organizer/')
+
+
+@approved_organizer_required
+def api_distribute_teams(request, comp_id):
+    """
+    JSON API / Form POST endpoint: Distributes registered teams across groups.
+    Supports both 'automatic' and 'manual' distribution.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    from leagues.group_service import (
+        distribute_teams_automatically, distribute_teams_manually,
+        get_group_distribution_status
+    )
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    method = data.get('method', 'automatic').lower()
+    num_groups = data.get('num_groups')
+    if num_groups:
+        try:
+            num_groups = int(num_groups)
+        except (ValueError, TypeError):
+            num_groups = competition.num_groups
+
+    if method == 'automatic':
+        res = distribute_teams_automatically(competition, num_groups=num_groups)
+    elif method == 'manual':
+        assignments = data.get('assignments', {})
+        if isinstance(assignments, str):
+            try:
+                assignments = json.loads(assignments)
+            except Exception:
+                assignments = {}
+        res = distribute_teams_manually(competition, assignments)
+    else:
+        return JsonResponse({'success': False, 'error': f"Unknown distribution method '{method}'."}, status=400)
+
+    if not res.get('success'):
+        return JsonResponse(res, status=400)
+
+    status = get_group_distribution_status(competition)
+    return JsonResponse({
+        'success': True,
+        'message': f"Teams successfully distributed via {method} method.",
+        'status': status
+    })
+
+
+@approved_organizer_required
+def api_confirm_groups(request, comp_id):
+    """
+    JSON API endpoint: Confirms group assignments.
+    Prevents confirmation while teams remain unassigned.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    from leagues.group_service import confirm_group_assignments, get_group_distribution_status
+    res = confirm_group_assignments(competition)
+    if not res.get('success'):
+        return JsonResponse(res, status=400)
+
+    status = get_group_distribution_status(competition)
+    return JsonResponse({
+        'success': True,
+        'message': "Group assignments confirmed successfully!",
+        'status': status
+    })
+
+
+@approved_organizer_required
+def api_generate_group_fixtures(request, comp_id):
+    """
+    JSON API / Form POST endpoint: Generates independent group-wise fixtures
+    (single or double round-robin with BYE handling for odd team counts).
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    double_round = str(data.get('double_round', '')).lower() in ['1', 'true', 'on', 'double']
+    matches_per_day = int(data.get('matches_per_day', 2) or 2)
+
+    from leagues.group_service import generate_group_fixtures
+    res = generate_group_fixtures(competition, double_round=double_round, matches_per_day=matches_per_day)
+
+    if not res.get('success'):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse(res, status=400)
+        messages.error(request, res.get('error', 'Failed generating group fixtures.'))
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
+
+    msg = f"✓ Successfully generated {res['matches_count']} group fixtures for {competition.name}!"
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({'success': True, 'message': msg, 'matches_count': res['matches_count']})
+
+    messages.success(request, msg)
+    return redirect(f"/organizer/{comp_id}/?tab=fixtures")
+
+
+@approved_organizer_required
+def api_update_qualification_settings(request, comp_id):
+    """
+    JSON API: Updates the number of qualifying teams per group.
+    Validates that qualification count does not exceed group size.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    try:
+        q_count = int(data.get('qualifiers_per_group', 2))
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'error': "Invalid qualifiers count."}, status=400)
+
+    groups = list(competition.groups.all())
+    if groups:
+        min_size = min((g.group_teams.count() for g in groups), default=0)
+        if q_count > min_size and min_size > 0:
+            return JsonResponse({
+                'success': False,
+                'error': f"Qualifying teams per group ({q_count}) cannot exceed the smallest group size ({min_size} teams)."
+            }, status=400)
+
+    competition.qualifiers_per_group = q_count
+    competition.save(update_fields=['qualifiers_per_group'])
+
+    return JsonResponse({
+        'success': True,
+        'message': f"Qualification updated to {q_count} teams per group.",
+        'qualifiers_per_group': q_count
+    })
+
+
+@approved_organizer_required
+def api_generate_knockout_stage(request, comp_id):
+    """
+    JSON API endpoint: Generates the knockout stage from qualified teams
+    after the group stage is completed.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    from leagues.group_service import generate_knockout_from_qualified_teams
+    res = generate_knockout_from_qualified_teams(competition)
+
+    if not res.get('success'):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse(res, status=400)
+        messages.error(request, res.get('error', 'Failed generating knockout stage.'))
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
+
+    msg = f"✓ Knockout Stage generated with {res['knockout_matches_count']} matches using qualified teams!"
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({'success': True, 'message': msg, 'matches_count': res['knockout_matches_count']})
+
+    messages.success(request, msg)
+    return redirect(f"/organizer/{comp_id}/?tab=fixtures")
+
+
+def api_group_status(request, comp_id):
+    """
+    JSON API endpoint: Returns live group distribution, standings, and qualification status.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    from leagues.group_service import (
+        get_group_distribution_status, get_group_standings_data,
+        check_group_stage_completed
+    )
+
+    dist_status = get_group_distribution_status(competition)
+    standings_data = get_group_standings_data(competition)
+    is_completed = check_group_stage_completed(competition)
+
+    serialized_tables = {}
+    for grp, entries in standings_data.items():
+        serialized_tables[grp.name] = [
+            {
+                'position': e['position'],
+                'team_id': e['team'].id,
+                'team_name': e['team'].name,
+                'played': e['played'],
+                'won': e['won'],
+                'drawn': e['drawn'],
+                'lost': e['lost'],
+                'goals_for': e['goals_for'],
+                'goals_against': e['goals_against'],
+                'goal_difference': e['goal_difference'],
+                'points': e['points'],
+                'is_qualified': e['is_qualified_position']
+            }
+            for e in entries
+        ]
+
+    qualified = [
+        {
+            'team_id': qt.team.id,
+            'team_name': qt.team.name,
+            'group_name': qt.group.name,
+            'rank': qt.rank_in_group
+        }
+        for qt in competition.qualified_teams.all()
+    ]
+
+    return JsonResponse({
+        'competition_id': competition.id,
+        'format': competition.tournament_format,
+        'num_groups': competition.num_groups,
+        'qualifiers_per_group': competition.qualifiers_per_group,
+        'fixture_format': competition.fixture_format,
+        'distribution': dist_status,
+        'standings': serialized_tables,
+        'is_group_stage_completed': is_completed,
+        'qualified_teams': qualified,
+        'knockout_generated': competition.knockout_generated
+    })
+
 
 

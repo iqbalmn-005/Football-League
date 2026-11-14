@@ -77,6 +77,12 @@ urlpatterns = [
     path('organizer/team/<int:team_id>/player/<int:player_id>/delete/', team_views.delete_player_view, name='delete_player'),
     path('organizer/<int:comp_id>/recalculate-standings/', standing_views.recalculate_standings_view, name='recalculate_standings'),
     path('organizer/<int:comp_id>/invite-organizer/', league_views.invite_co_organizer_view, name='invite_co_organizer'),
+    path('organizer/<int:comp_id>/groups/distribute/', league_views.api_distribute_teams, name='api_distribute_teams'),
+    path('organizer/<int:comp_id>/groups/confirm/', league_views.api_confirm_groups, name='api_confirm_groups'),
+    path('organizer/<int:comp_id>/groups/generate-fixtures/', league_views.api_generate_group_fixtures, name='api_generate_group_fixtures'),
+    path('organizer/<int:comp_id>/groups/qualification/', league_views.api_update_qualification_settings, name='api_update_qualification_settings'),
+    path('organizer/<int:comp_id>/groups/generate-knockout/', league_views.api_generate_knockout_stage, name='api_generate_knockout_stage'),
+    path('api/competition/<int:comp_id>/groups/status/', league_views.api_group_status, name='api_group_status'),
     path('organizer/<int:comp_id>/update/', league_views.update_competition_view, name='update_competition'),
     path('organizer/<int:comp_id>/edit/', league_views.update_competition_view, name='edit_competition'),
 ]

@@ -429,6 +429,12 @@ def enter_match_result_view(request, match_id):
         # Trigger automatic standings recomputation
         recalculate_competition_standings(match.competition)
 
+        # Automatically update qualified teams if group stage finishes
+        if match.competition.is_group_stage:
+            from leagues.group_service import check_group_stage_completed, update_qualified_teams
+            if check_group_stage_completed(match.competition):
+                update_qualified_teams(match.competition)
+
         # Advance knockout brackets (e.g. Page-McIntyre Preliminary & Grand Finals)
         advance_knockout_bracket(match.competition)
 

@@ -12,7 +12,7 @@ class CompetitionType(models.TextChoices):
 class TournamentFormat(models.TextChoices):
     ROUND_ROBIN = 'ROUND_ROBIN', 'Round Robin (League)'
     LEAGUE_KNOCKOUT = 'LEAGUE_KNOCKOUT', 'League + Tournament'
-    GROUP_KNOCKOUT = 'GROUP_KNOCKOUT', 'Group Mode + Tournament'
+    GROUP_KNOCKOUT = 'GROUP_KNOCKOUT', 'Group-wise League'
     SINGLE_ELIMINATION = 'SINGLE_ELIMINATION', 'Tournament / Knockout'
     PAGE_MCINTYRE = 'PAGE_MCINTYRE', 'Page–McIntyre System (Final 4)'
 
@@ -60,6 +60,36 @@ class Competition(models.Model):
         default=False,
         verbose_name="Extra Time Before Penalties",
         help_text="If enabled, extra time is played for tied knockout matches before penalties."
+    )
+    num_groups = models.PositiveIntegerField(
+        default=2,
+        verbose_name="Number of Groups",
+        help_text="Number of groups for group-wise league format."
+    )
+    qualifiers_per_group = models.PositiveIntegerField(
+        default=2,
+        verbose_name="Qualifying Teams per Group",
+        help_text="Number of teams qualifying from each group to knockout stage."
+    )
+    fixture_format = models.CharField(
+        max_length=20,
+        default='single',
+        choices=[('single', 'Single Round-Robin'), ('double', 'Double Round-Robin')],
+        verbose_name="Group Fixture Format"
+    )
+    distribution_method = models.CharField(
+        max_length=20,
+        default='automatic',
+        choices=[('automatic', 'Automatic Distribution'), ('manual', 'Manual Distribution')],
+        verbose_name="Team Distribution Method"
+    )
+    groups_confirmed = models.BooleanField(
+        default=False,
+        verbose_name="Groups Confirmed"
+    )
+    knockout_generated = models.BooleanField(
+        default=False,
+        verbose_name="Knockout Stage Generated"
     )
     primary_organizer = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='organized_competitions'
@@ -125,6 +155,18 @@ class Competition(models.Model):
         return max(0, left)
 
     @property
+    def is_group_stage(self):
+        return self.tournament_format in [
+            TournamentFormat.GROUP_KNOCKOUT,
+            'GROUP_KNOCKOUT'
+        ]
+
+    @property
+    def is_group_stage_completed(self):
+        group_matches = self.matches.filter(group__isnull=False)
+        return group_matches.exists() and not group_matches.exclude(status='COMPLETED').exists()
+
+    @property
     def is_completed(self):
         if self.status == CompetitionStatus.COMPLETED:
             return True
@@ -173,6 +215,30 @@ class TournamentGroup(models.Model):
 
     def __str__(self):
         return f"{self.competition.name} - {self.name}"
+
+    @property
+    def is_completed(self):
+        matches = self.matches.all()
+        return matches.exists() and not matches.exclude(status='COMPLETED').exists()
+
+    @property
+    def team_count(self):
+        return self.group_teams.count()
+
+
+class QualifiedTeam(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='qualified_teams')
+    group = models.ForeignKey(TournamentGroup, on_delete=models.CASCADE, related_name='qualified_teams')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='qualifications')
+    rank_in_group = models.PositiveIntegerField(default=1)
+    qualified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['group__name', 'rank_in_group']
+        unique_together = ('competition', 'team')
+
+    def __str__(self):
+        return f"{self.team.name} ({self.group.name} #{self.rank_in_group}) - {self.competition.name}"
 
 
 class CompetitionTeam(models.Model):
