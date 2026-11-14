@@ -241,6 +241,8 @@ def create_competition(request):
         start_date = request.POST.get('start_date') or None
         end_date = request.POST.get('end_date') or None
         logo_url = request.POST.get('logo_url', '').strip()
+        et_val = request.POST.get('extra_time_before_penalties', '0')
+        extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
 
         if not name:
             messages.error(request, "Competition name is required.")
@@ -269,6 +271,7 @@ def create_competition(request):
             start_date=start_date,
             end_date=end_date,
             logo_url=logo_url or "/static/img/mfl.jpeg",
+            extra_time_before_penalties=extra_time_before_penalties,
             status='ACTIVE',
             is_published=True
         )

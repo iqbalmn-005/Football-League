@@ -3235,7 +3235,7 @@
 
                                 <!-- Score -->
                                 <div class="match-score-pill">
-                                    {{ m.home_score }} : {{ m.away_score }}
+                                    {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <span style="font-size:11px;opacity:0.85;">({{ m.home_penalties }}–{{ m.away_penalties }} pens)</span>{% endif %}
                                 </div>
 
                                 <!-- Away Team -->

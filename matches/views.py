@@ -5,10 +5,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from accounts.decorators import approved_organizer_required
-from matches.models import Match, MatchStatus, MatchEvent, MatchEventType
+from matches.models import (
+    Match, MatchStatus, MatchEvent, MatchEventType,
+    PenaltyShootout, PenaltyShootoutAttempt,
+    ShootoutPhase, ShootoutOutcome, ShootoutStatus
+)
 from teams.models import Player, PositionChoice
 from standings.services import recalculate_competition_standings
 from fixtures.services import advance_knockout_bracket
+from matches.shootout_service import (
+    get_or_create_shootout, get_shootout_state,
+    record_shootout_attempt, undo_last_shootout_attempt,
+    get_eligible_match_players
+)
 from datetime import datetime
 
 
@@ -115,6 +124,18 @@ def api_match_details(request, match_id):
             }
             for e in away_events
         ],
+        'is_knockout': match.is_knockout,
+        'extra_time_enabled': getattr(match.competition, 'extra_time_before_penalties', False),
+        'extra_time_played': match.extra_time,
+        'home_regular_score': match.home_regular_score,
+        'away_regular_score': match.away_regular_score,
+        'home_extra_time_score': match.home_extra_time_score,
+        'away_extra_time_score': match.away_extra_time_score,
+        'penalties': match.penalties,
+        'home_penalties': match.home_penalties,
+        'away_penalties': match.away_penalties,
+        'has_shootout': hasattr(match, 'penalty_shootout') and match.penalty_shootout is not None,
+        'shootout_completed': match.penalty_shootout.is_completed if (hasattr(match, 'penalty_shootout') and match.penalty_shootout) else False,
     }
     return JsonResponse(data)
 
@@ -167,10 +188,36 @@ def enter_match_result_view(request, match_id):
             messages.error(request, "Invalid scores provided.")
             return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
 
+        # Store regular-time and extra-time breakdown
+        is_extra_time = (request.POST.get('extra_time') in ['1', 'true', 'on'])
+        home_reg = request.POST.get('home_regular_score')
+        away_reg = request.POST.get('away_regular_score')
+        home_et = request.POST.get('home_extra_time_score')
+        away_et = request.POST.get('away_extra_time_score')
+
         match.home_score = home_score
         match.away_score = away_score
-        match.status = MatchStatus.COMPLETED
-        match.save(update_fields=['home_score', 'away_score', 'status'])
+        match.home_regular_score = int(home_reg) if (home_reg is not None and str(home_reg).strip().isdigit()) else home_score
+        match.away_regular_score = int(away_reg) if (away_reg is not None and str(away_reg).strip().isdigit()) else away_score
+        match.extra_time = is_extra_time
+        if is_extra_time:
+            match.home_extra_time_score = int(home_et) if (home_et is not None and str(home_et).strip().isdigit()) else home_score
+            match.away_extra_time_score = int(away_et) if (away_et is not None and str(away_et).strip().isdigit()) else away_score
+        else:
+            match.home_extra_time_score = None
+            match.away_extra_time_score = None
+
+        is_tied = (home_score == away_score)
+        is_knockout = match.is_knockout
+        has_et_setting = getattr(match.competition, 'extra_time_before_penalties', False)
+
+        if is_knockout and is_tied:
+            # Knockout matches cannot end in a draw
+            match.status = MatchStatus.LIVE
+        else:
+            match.status = MatchStatus.COMPLETED
+
+        match.save()
 
         # Clear existing match events for clean replacement
         match.events.all().delete()
@@ -363,6 +410,22 @@ def enter_match_result_view(request, match_id):
                     description=f"Clean sheet kept by {keeper.full_name}"
                 )
 
+        # If knockout match ended in a tie, initiate or continue penalty shootout
+        if is_knockout and is_tied:
+            if has_et_setting and not is_extra_time:
+                messages.warning(
+                    request,
+                    f"Regular time ended tied {home_score}–{away_score}. Extra Time is enabled for this tournament before penalties. Please record the extra-time score."
+                )
+                return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
+
+            shootout = get_or_create_shootout(match)
+            messages.info(
+                request,
+                f"Knockout match tied {home_score}–{away_score}! Proceeding to Penalty Shootout."
+            )
+            return redirect(f"/organizer/match/{match.id}/shootout/")
+
         # Trigger automatic standings recomputation
         recalculate_competition_standings(match.competition)
 
@@ -375,3 +438,162 @@ def enter_match_result_view(request, match_id):
         )
 
     return redirect(f"/organizer/{match.competition.id}/?tab=fixtures")
+
+
+@approved_organizer_required
+def penalty_shootout_view(request, match_id):
+    """
+    Renders the dedicated Futbolix Stadium Night responsive Penalty Shootout interface.
+    Available ONLY for knockout matches when tied.
+    """
+    match = get_object_or_404(Match, id=match_id)
+    comp = match.competition
+
+    # Validation: Only knockout matches
+    if not match.is_knockout:
+        messages.error(request, "Penalty shootouts are available only for knockout matches.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
+    # Participating teams must be known
+    if not match.home_team or not match.away_team:
+        messages.error(request, "Cannot start shootout before participating teams are determined.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
+    # Default to 0-0 if scores not yet entered
+    if match.home_score is None or match.away_score is None:
+        match.home_score = 0
+        match.away_score = 0
+        match.status = MatchStatus.LIVE
+        match.save(update_fields=['home_score', 'away_score', 'status'])
+
+    # Tied check: unless already completed with penalties, match score must be tied
+    if match.home_score != match.away_score and not match.penalties:
+        messages.error(request, f"Cannot start penalty shootout: Match score is not tied ({match.home_score} - {match.away_score}).")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
+    shootout = get_or_create_shootout(match)
+    state = get_shootout_state(shootout)
+
+    context = {
+        'match': match,
+        'competition': comp,
+        'shootout': shootout,
+        'state': state,
+    }
+    return render(request, 'penalty_shootout.html', context)
+
+
+@approved_organizer_required
+def api_record_penalty_attempt(request, match_id):
+    """
+    JSON API: Records a single penalty attempt with strict backend validation
+    (alternating teams, eligible players, player rotation rules, sudden death).
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    match = get_object_or_404(Match, id=match_id)
+    if not match.is_knockout:
+        return JsonResponse({'success': False, 'error': 'Penalty shootouts are available only for knockout matches.'}, status=400)
+
+    shootout = get_or_create_shootout(match)
+    player_id = request.POST.get('player_id')
+    outcome = request.POST.get('outcome')
+
+    if not player_id:
+        return JsonResponse({'success': False, 'error': 'Player ID is required.'}, status=400)
+    if not outcome:
+        return JsonResponse({'success': False, 'error': 'Attempt outcome is required.'}, status=400)
+
+    res = record_shootout_attempt(shootout, player_id, outcome)
+    if not res.get('success'):
+        return JsonResponse(res, status=400)
+
+    state = get_shootout_state(shootout)
+    return JsonResponse({
+        'success': True,
+        'is_completed': state['is_completed'],
+        'winner_id': state['winner'].id if state['winner'] else None,
+        'winner_name': state['winner'].name if state['winner'] else None,
+        'home_score': state['home_score'],
+        'away_score': state['away_score'],
+        'current_round': state['current_round'],
+        'current_phase': state['current_phase'],
+        'next_team_id': state['next_team'].id if state['next_team'] else None,
+        'next_team_name': state['next_team'].name if state['next_team'] else None,
+        'available_players': [
+            {'id': p.id, 'name': p.full_name, 'number': p.jersey_number, 'position': p.position}
+            for p in state['available_players']
+        ],
+    })
+
+
+@approved_organizer_required
+def api_undo_penalty_attempt(request, match_id):
+    """
+    JSON API: Reverts the most recent penalty attempt.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    match = get_object_or_404(Match, id=match_id)
+    shootout = get_or_create_shootout(match)
+    res = undo_last_shootout_attempt(shootout)
+    if not res.get('success'):
+        return JsonResponse(res, status=400)
+
+    state = get_shootout_state(shootout)
+    return JsonResponse({
+        'success': True,
+        'home_score': state['home_score'],
+        'away_score': state['away_score'],
+        'current_round': state['current_round'],
+        'current_phase': state['current_phase'],
+        'next_team_id': state['next_team'].id if state['next_team'] else None,
+        'next_team_name': state['next_team'].name if state['next_team'] else None,
+        'available_players': [
+            {'id': p.id, 'name': p.full_name, 'number': p.jersey_number, 'position': p.position}
+            for p in state['available_players']
+        ],
+    })
+
+
+def api_shootout_state(request, match_id):
+    """
+    JSON API: Returns the live serialized shootout state for a match.
+    """
+    match = get_object_or_404(Match, id=match_id)
+    shootout = get_or_create_shootout(match)
+    state = get_shootout_state(shootout)
+
+    data = {
+        'match_id': match.id,
+        'is_completed': state['is_completed'],
+        'winner': {'id': state['winner'].id, 'name': state['winner'].name} if state['winner'] else None,
+        'home_team': {'id': match.home_team.id, 'name': match.home_team.name, 'score': state['home_score']},
+        'away_team': {'id': match.away_team.id, 'name': match.away_team.name, 'score': state['away_score']},
+        'current_round': state['current_round'],
+        'current_phase': state['current_phase'],
+        'next_team': {'id': state['next_team'].id, 'name': state['next_team'].name} if state['next_team'] else None,
+        'available_players': [
+            {'id': p.id, 'name': p.full_name, 'number': p.jersey_number, 'position': p.position}
+            for p in state['available_players']
+        ],
+        'attempts': [
+            {
+                'id': a.id,
+                'order': a.attempt_order,
+                'round': a.shootout_round,
+                'phase': a.shootout_phase,
+                'team_id': a.team_id,
+                'team_name': a.team.name,
+                'player_id': a.player_id,
+                'player_name': a.player.full_name,
+                'player_number': a.player.jersey_number,
+                'outcome': a.outcome,
+                'is_successful': a.is_successful,
+            }
+            for a in state['attempts']
+        ]
+    }
+    return JsonResponse(data)

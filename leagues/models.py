@@ -56,6 +56,11 @@ class Competition(models.Model):
         max_length=20, choices=CompetitionStatus.choices, default=CompetitionStatus.ACTIVE
     )
     is_published = models.BooleanField(default=True)
+    extra_time_before_penalties = models.BooleanField(
+        default=False,
+        verbose_name="Extra Time Before Penalties",
+        help_text="If enabled, extra time is played for tied knockout matches before penalties."
+    )
     primary_organizer = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='organized_competitions'
     )

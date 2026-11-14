@@ -37,6 +37,10 @@ class Match(models.Model):
     status = models.CharField(max_length=20, choices=MatchStatus.choices, default=MatchStatus.SCHEDULED)
     home_score = models.IntegerField(null=True, blank=True, default=None)
     away_score = models.IntegerField(null=True, blank=True, default=None)
+    home_regular_score = models.IntegerField(null=True, blank=True, default=None)
+    away_regular_score = models.IntegerField(null=True, blank=True, default=None)
+    home_extra_time_score = models.IntegerField(null=True, blank=True, default=None)
+    away_extra_time_score = models.IntegerField(null=True, blank=True, default=None)
     extra_time = models.BooleanField(default=False)
     penalties = models.BooleanField(default=False)
     home_penalties = models.IntegerField(null=True, blank=True)
@@ -72,8 +76,21 @@ class Match(models.Model):
         return self.status == MatchStatus.COMPLETED
 
     @property
+    def is_knockout(self):
+        if self.competition and self.competition.is_pure_knockout:
+            return True
+        r = (self.tournament_round or '').lower()
+        keywords = [
+            'final', 'semi', 'quarter', 'round of', 'playoff',
+            'elimination', 'qualifying', 'play-in', 'knockout', 'preliminary'
+        ]
+        return any(kw in r for kw in keywords)
+
+    @property
     def display_score(self):
         if self.home_score is not None and self.away_score is not None:
+            if self.penalties and self.home_penalties is not None and self.away_penalties is not None:
+                return f"{self.home_score} : {self.away_score} ({self.home_penalties}–{self.away_penalties} pens)"
             return f"{self.home_score} : {self.away_score}"
         return "VS"
 
@@ -81,15 +98,15 @@ class Match(models.Model):
     def winner(self):
         if not self.is_finished or self.home_score is None or self.away_score is None:
             return None
-        if self.home_score > self.away_score:
-            return self.home_team
-        elif self.away_score > self.home_score:
-            return self.away_team
         if self.penalties and self.home_penalties is not None and self.away_penalties is not None:
             if self.home_penalties > self.away_penalties:
                 return self.home_team
             elif self.away_penalties > self.home_penalties:
                 return self.away_team
+        if self.home_score > self.away_score:
+            return self.home_team
+        elif self.away_score > self.home_score:
+            return self.away_team
         return None  # Draw
 
     @property
@@ -194,3 +211,61 @@ class MatchEvent(models.Model):
 
     def __str__(self):
         return f"{self.minute}' {self.get_event_type_display()} - {self.player.full_name} ({self.team.name})"
+
+
+class ShootoutPhase(models.TextChoices):
+    INITIAL_FIVE = 'INITIAL_FIVE', 'Initial Five'
+    SUDDEN_DEATH = 'SUDDEN_DEATH', 'Sudden Death'
+
+
+class ShootoutOutcome(models.TextChoices):
+    GOAL = 'GOAL', 'Goal'
+    MISS = 'MISS', 'Miss'
+    SAVED = 'SAVED', 'Saved'
+    POST = 'POST', 'Post / Crossbar'
+
+
+class ShootoutStatus(models.TextChoices):
+    IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
+    COMPLETED = 'COMPLETED', 'Completed'
+
+
+class PenaltyShootout(models.Model):
+    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='penalty_shootout')
+    status = models.CharField(max_length=20, choices=ShootoutStatus.choices, default=ShootoutStatus.IN_PROGRESS)
+    home_score = models.PositiveIntegerField(default=0)
+    away_score = models.PositiveIntegerField(default=0)
+    winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='shootouts_won')
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return f"Shootout: {self.match} ({self.home_score} - {self.away_score})"
+
+    @property
+    def is_completed(self):
+        return self.status == ShootoutStatus.COMPLETED
+
+
+class PenaltyShootoutAttempt(models.Model):
+    shootout = models.ForeignKey(PenaltyShootout, on_delete=models.CASCADE, related_name='attempts')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='penalty_attempts')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='penalty_attempts')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='penalty_attempts')
+    attempt_order = models.PositiveIntegerField()
+    attempt_number = models.PositiveIntegerField()
+    shootout_round = models.PositiveIntegerField(default=1)
+    shootout_phase = models.CharField(max_length=20, choices=ShootoutPhase.choices, default=ShootoutPhase.INITIAL_FIVE)
+    outcome = models.CharField(max_length=20, choices=ShootoutOutcome.choices)
+    is_successful = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['attempt_order']
+        unique_together = [('shootout', 'attempt_order')]
+
+    def __str__(self):
+        return f"Attempt #{self.attempt_order} (R{self.shootout_round}) {self.team.name}: {self.player.full_name} ({self.outcome})"

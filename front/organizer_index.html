@@ -6039,7 +6039,7 @@
                                             onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
                                             <span
                                                 style="background:var(--dark);color:#B4F56B;padding:3px 8px;border-radius:4px;display:inline-block;">
-                                                {{ m.home_score }} : {{ m.away_score }}
+                                                {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <small style="font-size:11px;color:#fff;">({{ m.home_penalties }}–{{ m.away_penalties }} pens)</small>{% endif %}
                                             </span>
                                         </td>
                                         <td>
@@ -6049,6 +6049,13 @@
                                                     onclick="openMatchModal('{{ m.id }}')">
                                                     👁 Details
                                                 </button>
+                                                {% if m.is_knockout %}
+                                                <a href="/organizer/match/{{ m.id }}/shootout/" class="btn btn-outline"
+                                                    style="padding:4px 8px;font-size:11px;color:#047857;border-color:rgba(16,185,129,0.3);text-decoration:none;"
+                                                    title="Penalty Shootout Console">
+                                                    ⚽ Shootout
+                                                </a>
+                                                {% endif %}
                                                 <button class="btn btn-primary" type="button"
                                                     style="padding:4px 10px;font-size:11px"
                                                     onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}', '{{ m.home_score|default_if_none:0 }}', '{{ m.away_score|default_if_none:0 }}')">
@@ -6113,9 +6120,16 @@
 
                                     <!-- Score Box -->
                                     <div class="rmc-score-box">
-                                        <span class="rmc-score-val">{{ m.home_score }}</span>
-                                        <span class="rmc-score-sep">:</span>
-                                        <span class="rmc-score-val">{{ m.away_score }}</span>
+                                        <div style="display:flex;align-items:center;justify-content:center;">
+                                            <span class="rmc-score-val">{{ m.home_score }}</span>
+                                            <span class="rmc-score-sep">:</span>
+                                            <span class="rmc-score-val">{{ m.away_score }}</span>
+                                        </div>
+                                        {% if m.penalties and m.home_penalties is not None %}
+                                        <div style="font-size:11px;font-weight:800;color:var(--green-dark,#047857);margin-top:2px;">
+                                            ({{ m.home_penalties }}–{{ m.away_penalties }} pens)
+                                        </div>
+                                        {% endif %}
                                     </div>
 
                                     <!-- Away -->
@@ -6148,6 +6162,13 @@
                                         onclick="openMatchModal('{{ m.id }}')">
                                         👁 Details
                                     </button>
+                                    {% if m.is_knockout %}
+                                    <a href="/organizer/match/{{ m.id }}/shootout/" class="btn btn-outline rmc-btn"
+                                        style="color:#047857;border-color:rgba(16,185,129,0.3);text-decoration:none;"
+                                        title="Penalty Shootout Console">
+                                        ⚽ Shootout
+                                    </a>
+                                    {% endif %}
                                     <button class="btn btn-primary rmc-btn" type="button"
                                         onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}', '{{ m.home_score|default_if_none:0 }}', '{{ m.away_score|default_if_none:0 }}')">
                                         ✎ Edit
@@ -6603,6 +6624,20 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group" style="margin-bottom:14px;">
+                                    <label
+                                        style="display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">
+                                        Extra Time Before Penalties
+                                    </label>
+                                    <select class="field" name="extra_time_before_penalties" style="width:100%;">
+                                        <option value="0" {% if not active_competition.extra_time_before_penalties %}selected{% endif %}>Disabled (Shootout directly after tied regular time)</option>
+                                        <option value="1" {% if active_competition.extra_time_before_penalties %}selected{% endif %}>Enabled (Play extra time before penalties for tied knockout matches)</option>
+                                    </select>
+                                    <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block;">
+                                        Applies to knockout matches only. If enabled, organizer records extra time before penalties.
+                                    </small>
+                                </div>
+
                                 <div class="form-group" style="margin-bottom:18px;">
                                     <label
                                         style="display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Description
@@ -6827,6 +6862,49 @@
                         </div>
                     </div>
 
+                    <!-- EXTRA TIME SECTION (FOR KNOCKOUT MATCHES) -->
+                    <div id="extraTimeSection" style="display:none;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:14px;margin-bottom:18px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--dark);cursor:pointer;">
+                                <input type="checkbox" name="extra_time" id="extraTimeCheckbox" value="1" onchange="onExtraTimeToggle(this.checked)">
+                                ⏱️ Extra Time Played (30 Mins)
+                            </label>
+                            <span style="font-size:11px;color:var(--muted);font-weight:600;" id="etSettingHint"></span>
+                        </div>
+                        <div id="extraTimeInputs" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #cbd5e1;">
+                            <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Cumulative score after Extra Time:</div>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;">Home ET Score</label>
+                                    <input type="number" name="home_extra_time_score" id="homeExtraTimeScore" class="field" style="width:100%;font-size:16px;font-weight:800;padding:6px 10px;" min="0" oninput="onETScoreChange()">
+                                </div>
+                                <span style="font-size:18px;font-weight:800;color:var(--muted);margin-top:14px;">:</span>
+                                <div style="flex:1;">
+                                    <label style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;">Away ET Score</label>
+                                    <input type="number" name="away_extra_time_score" id="awayExtraTimeScore" class="field" style="width:100%;font-size:16px;font-weight:800;padding:6px 10px;" min="0" oninput="onETScoreChange()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PENALTY SHOOTOUT PROMPT BANNER (SHOWN WHEN TIED ON KNOCKOUT) -->
+                    <div id="shootoutPromptBanner" style="display:none;background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.15), transparent 75%), #101B16;border:1px solid #B4F56B;border-radius:8px;padding:16px;margin-bottom:18px;color:#fff;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <div style="font-size:13px;font-weight:900;color:#B4F56B;display:flex;align-items:center;gap:6px;">
+                                    <span>⚽</span>
+                                    <span>KNOCKOUT MATCH TIED — PENALTY SHOOTOUT REQUIRED</span>
+                                </div>
+                                <div style="font-size:11.5px;color:#b5c4ba;margin-top:4px;" id="shootoutBannerMessage">
+                                    Knockout matches cannot end in a draw. Confirming this score will immediately launch the official Penalty Shootout system!
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="btnLaunchShootoutDirect" style="background:#B4F56B;color:#101B16;font-weight:900;font-size:12px;padding:8px 16px;" onclick="triggerShootoutFromModal()">
+                                ⚡ Launch Shootout Console ➔
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- HOME TEAM GOALS SECTION (SHOWN ONLY WHEN HOME GOALS > 0) -->
                     <div id="homeGoalsSection" style="display:none;margin-bottom:18px;">
                         <div
@@ -6926,7 +7004,7 @@
                 <div class="modal-footer"
                     style="padding:14px 24px;background:#fafbfa;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
                     <button class="btn" type="button" onclick="closeRecordResultModal()">Cancel</button>
-                    <button class="btn btn-primary" type="submit"
+                    <button class="btn btn-primary" type="submit" id="confirmResultBtn"
                         style="background:#B4F56B;color:#101B16;font-weight:900;">
                         ✓ Confirm Official Result &amp; Update Standings
                     </button>
@@ -7107,6 +7185,14 @@
                             <label>Max Teams</label>
                             <input type="number" class="field" name="max_teams" value="8" min="2" max="64">
                         </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:12px;">
+                        <label>Extra Time Before Penalties</label>
+                        <select class="field" name="extra_time_before_penalties">
+                            <option value="0">Disabled (Shootout directly after tied regular time)</option>
+                            <option value="1">Enabled (Play extra time before penalties for tied matches)</option>
+                        </select>
                     </div>
 
                     <div class="form-group" style="margin-top:12px;">
@@ -7368,6 +7454,24 @@
                     renderGoalPortions('away', aScore, data.away_events);
                     updateCleanSheetUI(data.home_events, data.away_events);
 
+                    // Check extra time status from server
+                    const etCb = document.getElementById("extraTimeCheckbox");
+                    if (etCb) {
+                        etCb.checked = !!data.extra_time_played;
+                        const etInputs = document.getElementById("extraTimeInputs");
+                        if (etInputs) etInputs.style.display = data.extra_time_played ? "block" : "none";
+                    }
+                    const hET = document.getElementById("homeExtraTimeScore");
+                    if (hET && data.home_extra_time_score !== null && data.home_extra_time_score !== undefined) {
+                        hET.value = data.home_extra_time_score;
+                    }
+                    const aET = document.getElementById("awayExtraTimeScore");
+                    if (aET && data.away_extra_time_score !== null && data.away_extra_time_score !== undefined) {
+                        aET.value = data.away_extra_time_score;
+                    }
+
+                    checkKnockoutShootoutUI();
+
                     // Populate existing cards if any
                     const cards = [];
                     (data.home_events || []).forEach(e => {
@@ -7394,12 +7498,95 @@
             const count = Math.max(0, parseInt(val, 10) || 0);
             renderGoalPortions('home', count);
             updateCleanSheetUI();
+            checkKnockoutShootoutUI();
         }
 
         function onAwayScoreChange(val) {
             const count = Math.max(0, parseInt(val, 10) || 0);
             renderGoalPortions('away', count);
             updateCleanSheetUI();
+            checkKnockoutShootoutUI();
+        }
+
+        function onExtraTimeToggle(checked) {
+            const inputs = document.getElementById("extraTimeInputs");
+            if (inputs) inputs.style.display = checked ? "block" : "none";
+            checkKnockoutShootoutUI();
+        }
+
+        function onETScoreChange() {
+            checkKnockoutShootoutUI();
+        }
+
+        function checkKnockoutShootoutUI() {
+            if (!currentMatchData) return;
+            const isKnockout = currentMatchData.is_knockout;
+            const extraTimeEnabled = currentMatchData.extra_time_enabled;
+            const etSection = document.getElementById("extraTimeSection");
+            const etCheckbox = document.getElementById("extraTimeCheckbox");
+            const banner = document.getElementById("shootoutPromptBanner");
+            const msgEl = document.getElementById("shootoutBannerMessage");
+            const btnConfirm = document.getElementById("confirmResultBtn");
+
+            if (!isKnockout) {
+                if (etSection) etSection.style.display = 'none';
+                if (banner) banner.style.display = 'none';
+                if (btnConfirm) btnConfirm.innerHTML = '✓ Confirm Official Result &amp; Update Standings';
+                return;
+            }
+
+            // It is a knockout match
+            if (etSection) {
+                etSection.style.display = 'block';
+                const hint = document.getElementById("etSettingHint");
+                if (hint) {
+                    hint.textContent = extraTimeEnabled ? "(Extra Time is ENABLED for this tournament)" : "(Extra Time is DISABLED for this tournament)";
+                }
+            }
+
+            const hScore = parseInt(document.getElementById("resultHomeScore").value, 10) || 0;
+            const aScore = parseInt(document.getElementById("resultAwayScore").value, 10) || 0;
+            const isTied = (hScore === aScore);
+            const isETChecked = etCheckbox ? etCheckbox.checked : false;
+
+            if (isTied) {
+                if (extraTimeEnabled && !isETChecked) {
+                    // Extra time enabled but not recorded yet
+                    if (banner) banner.style.display = 'block';
+                    if (msgEl) msgEl.textContent = "Regular time is tied! Extra Time is enabled for this tournament. Check 'Extra Time Played' above to record extra time goals.";
+                    const btnDirect = document.getElementById("btnLaunchShootoutDirect");
+                    if (btnDirect) btnDirect.style.display = 'none';
+                    if (btnConfirm) btnConfirm.innerHTML = '⏱️ Record Tied Result &amp; Enable Extra Time';
+                } else {
+                    // Either extra time disabled, OR extra time played and still tied -> Shootout!
+                    if (banner) banner.style.display = 'block';
+                    if (msgEl) msgEl.textContent = isETChecked ? "Match remains tied after Extra Time! Official Penalty Shootout required to determine the advancing team." : "Regular time ended in a tie! Tournament rules proceed directly to Penalty Shootout.";
+                    const btnDirect = document.getElementById("btnLaunchShootoutDirect");
+                    if (btnDirect) btnDirect.style.display = 'inline-flex';
+                    if (btnConfirm) btnConfirm.innerHTML = '⚡ Confirm Scores &amp; Proceed to Shootout ➔';
+                }
+            } else {
+                if (banner) banner.style.display = 'none';
+                if (btnConfirm) btnConfirm.innerHTML = '✓ Confirm Official Result &amp; Update Standings';
+            }
+        }
+
+        function triggerShootoutFromModal() {
+            if (!currentMatchData) return;
+            const form = document.getElementById("recordResultForm");
+            if (form) {
+                let inp = form.querySelector('input[name="start_shootout"]');
+                if (!inp) {
+                    inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'start_shootout';
+                    form.appendChild(inp);
+                }
+                inp.value = '1';
+                form.submit();
+            } else {
+                window.location.href = `/organizer/match/${currentMatchData.id}/shootout/`;
+            }
         }
 
         function updateCleanSheetUI(existingHomeEvents, existingAwayEvents) {

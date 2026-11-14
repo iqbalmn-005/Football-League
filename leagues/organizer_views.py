@@ -166,6 +166,8 @@ def organizer_create_competition(request):
         start_date = request.POST.get('start_date') or None
         end_date = request.POST.get('end_date') or None
         logo_url = request.POST.get('logo_url', '').strip()
+        et_raw = request.POST.get('extra_time_before_penalties', '0')
+        extra_time_before_penalties = et_raw in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
 
         if not name:
             messages.error(request, "Competition name is required.")
@@ -190,6 +192,7 @@ def organizer_create_competition(request):
             start_date=start_date,
             end_date=end_date,
             logo_url=logo_url,
+            extra_time_before_penalties=extra_time_before_penalties,
             status=comp_status,
             is_published=is_published
         )
@@ -722,6 +725,9 @@ def update_competition_view(request, comp_id):
             competition.category = category
         if description is not None:
             competition.description = description
+        if 'extra_time_before_penalties' in request.POST:
+            et_val = request.POST.get('extra_time_before_penalties')
+            competition.extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
 
         if 'logo' in request.FILES:
             competition.logo = request.FILES['logo']

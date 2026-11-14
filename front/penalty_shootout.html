@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Shootout: {{ match.home_display_name }} vs {{ match.away_display_name }} | Touchline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #101820;
+            --card-bg: #1D2A35;
+            --secondary-bg: #293C49;
+            --text-primary: #F7FAFC;
+            --text-secondary: #B5C0CB;
+            --accent: #B8F34A;
+            --border-color: #344451;
+            --danger: #ff5252;
+            --warning: #fbbf24;
+            --info: #38bdf8;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .shootout-container {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .nav-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .nav-breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            background: var(--secondary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* MATCH INFORMATION CARD */
+        .match-info-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .match-header-meta {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tournament-badge {
+            display: inline-block;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 6px;
+        }
+
+        .format-badge {
+            display: inline-block;
+            background: rgba(184, 243, 74, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(184, 243, 74, 0.3);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        .scoreboard-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .team-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .team-crest {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--secondary-bg);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-crest img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-crest-fallback {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .team-name {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .team-code {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .center-scores {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .penalty-big-score {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--accent);
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 28px;
+            border-radius: 14px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(184, 243, 74, 0.35);
+        }
+
+        .score-sublabel {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .regular-time-summary {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+
+        /* WINNER CELEBRATION CARD */
+        .winner-banner {
+            display: {% if state.is_completed %}flex{% else %}none{% endif %};
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at 50% 0%, rgba(184, 243, 74, 0.22), transparent 75%), var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 26px 20px;
+            text-align: center;
+            gap: 12px;
+            box-shadow: 0 0 35px rgba(184, 243, 74, 0.25);
+            animation: pulseGlow 2.5s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 25px rgba(184, 243, 74, 0.15); }
+            100% { box-shadow: 0 0 45px rgba(184, 243, 74, 0.35); }
+        }
+
+        .winner-title {
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .winner-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .winner-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            max-width: 520px;
+        }
+
+        /* PENALTY ENTRY CARD */
+        .entry-card {
+            display: {% if state.is_completed %}none{% else %}flex{% endif %};
+            flex-direction: column;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            gap: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .entry-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .entry-phase-badge {
+            background: var(--secondary-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .turn-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(184, 243, 74, 0.08);
+            border: 1px solid rgba(184, 243, 74, 0.3);
+            padding: 10px 16px;
+            border-radius: 10px;
+        }
+
+        .turn-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: blink 1.2s infinite ease-in-out;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .turn-text {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .turn-team-name {
+            color: var(--accent);
+        }
+
+        .entry-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .entry-form-grid {
+                grid-template-columns: 1fr;
+            }
+            .scoreboard-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .center-scores {
+                order: -1;
+            }
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .player-select {
+            width: 100%;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .player-select:focus {
+            border-color: var(--accent);
+        }
+
+        .rotation-note {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* OUTCOME BUTTONS */
+        .outcomes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .outcome-btn {
+            background: var(--secondary-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 14px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .outcome-btn:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .outcome-btn.active[data-outcome="GOAL"] {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+        }
+
+        .outcome-btn.active[data-outcome="MISS"] {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #ef4444;
+            box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+        }
+
+        .outcome-btn.active[data-outcome="SAVED"] {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+            color: #f59e0b;
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
+        }
+
+        .outcome-btn.active[data-outcome="POST"] {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+            color: #38bdf8;
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+        }
+
+        .entry-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+            padding-top: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-confirm {
+            background: var(--accent);
+            color: #101820;
+            font-size: 15px;
+            font-weight: 900;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-confirm:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(184, 243, 74, 0.4);
+        }
+
+        .btn-confirm:disabled {
+            background: #2a3b47;
+            color: #6a7c8a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-undo {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-undo:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        /* PENALTY HISTORY CARD */
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .history-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .history-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .shootout-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            font-size: 13px;
+        }
+
+        .shootout-table th {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .shootout-table th.center,
+        .shootout-table td.center {
+            text-align: center;
+        }
+
+        .shootout-row {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .shootout-row td {
+            padding: 12px 14px;
+        }
+
+        .shootout-row td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        .shootout-row td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .round-num-pill {
+            display: inline-block;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .attempt-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .tag-goal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .tag-miss {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .tag-saved {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .tag-post {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .tag-pending {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        /* ELIGIBLE ROSTER DRAWER / INFO */
+        .roster-info-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .roster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .roster-col {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .roster-col-header {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .player-pill {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .player-pill.used {
+            opacity: 0.45;
+            text-decoration: line-through;
+        }
+
+        .player-pill.available {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="shootout-container">
+
+        <!-- Top Navigation -->
+        <header class="top-nav">
+            <div class="nav-breadcrumb">
+                <a href="/organizer/{{ competition.id }}/?tab=fixtures">← Back to Fixtures</a>
+                <span>/</span>
+                <span>Knockout Penalty Shootout</span>
+            </div>
+            <div class="nav-actions">
+                <a href="/organizer/{{ competition.id }}/?tab=fixtures" class="btn-action">Matches &amp; Fixtures</a>
+                <a href="/organizer/{{ competition.id }}/?tab=results" class="btn-action">Results</a>
+            </div>
+        </header>
+
+        <!-- Match Information Card -->
+        <section class="match-info-card">
+            <div class="match-header-meta">
+                <span class="tournament-badge">🏆 {{ competition.name }} · {{ match.tournament_round }}</span>
+                <span class="format-badge">{{ state.game_format_capacity }}-a-side Format</span>
+            </div>
+
+            <div class="scoreboard-grid">
+                <!-- Team A -->
+                <div class="team-box">
+                    <div class="team-crest">
+                        {% if match.home_team.get_logo_url %}
+                        <img src="{{ match.home_team.get_logo_url }}" alt="{{ match.home_team.name }}">
+                        {% else %}
+                        <span class="team-crest-fallback">{{ match.home_team.short_name|default:match.home_team.name|slice:":3"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="team-name">{{ match.home_team.name }}</div>
+                        <div class="team-code">{{ match.home_team.short_name|default:"HOME" }}</div>
+                    </div>
+                </div>
+
+                <!-- Center Scoreboard -->
+                <div class="center-scores">
+                    <div class="score-sublabel">PENALTY SHOOTOUT</div>
+                    <div class="penalty-big-score">
+                        <span id="scoreHome">{{ state.home_score }}</span>
+                        <span>:</span>
+                        <span id="scoreAway">{{ state.away_score }}</span>
+                    </div>
+                    <div class="regular-time-summary">
+                        <span>Regular Time: {{ match.home_regular_score|default:match.home_score }}–{{ match.away_regular_score|default:match.away_score }}</span>
+                        {% if match.extra_time or match.home_extra_time_score is not None %}
+                        <span>· Extra Time: {{ match.home_score }}–{{ match.away_score }} (AET)</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Team B -->
+                <div class="team-box">
+                    <div class="team-crest">
+                        {% if match.away_team.get_logo_url %}
+                        <img src="{{ match.away_team.get_logo_url }}" alt="{{ match.away_team.name }}">
+                        {% else %}
+                        <span class="team-crest-fallback">{{ match.away_team.short_name|default:match.away_team.name|slice:":3"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="team-name">{{ match.away_team.name }}</div>
+                        <div class="team-code">{{ match.away_team.short_name|default:"AWAY" }}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Winner Celebration Banner -->
+        <section class="winner-banner" id="winnerBanner">
+            <div class="winner-title">🎉 SHOOTOUT COMPLETED</div>
+            <div class="winner-name" id="winnerNameText">
+                🏆 {{ state.winner.name }} WINS ON PENALTIES!
+            </div>
+            <div class="winner-desc" id="winnerDescText">
+                Match recorded as completed ({{ match.home_score }}–{{ match.away_score }}, {{ state.home_score }}–{{ state.away_score }} pens). The winning team has been automatically advanced into the next tournament knockout round.
+            </div>
+            <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+                <a href="/organizer/{{ competition.id }}/?tab=fixtures" class="btn-confirm" style="text-decoration:none;">
+                    View Updated Bracket &amp; Fixtures ➔
+                </a>
+                <a href="/organizer/{{ competition.id }}/?tab=results" class="btn-action" style="padding:14px 20px;font-size:14px;">
+                    View All Results
+                </a>
+            </div>
+        </section>
+
+        <!-- Penalty Entry Card (Interactive) -->
+        <section class="entry-card" id="entryCard">
+            <div class="entry-header">
+                <div class="entry-phase-badge" id="phaseBadge">
+                    {% if state.current_round <= 5 %}
+                    <span>⚽ Mandatory Initial Five</span> · Round <span id="currentRoundText">{{ state.current_round }}</span> of 5
+                    {% else %}
+                    <span>⚡ Sudden Death</span> · Round <span id="currentRoundText">{{ state.current_round }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="turn-indicator">
+                    <span class="turn-dot"></span>
+                    <span class="turn-text">
+                        Current Kicker: <span class="turn-team-name" id="currentTeamText">{{ state.next_team.name }}</span>
+                    </span>
+                </div>
+            </div>
+
+            <form id="penaltyAttemptForm" onsubmit="handleAttemptSubmit(event)">
+                {% csrf_token %}
+                <div class="entry-form-grid">
+                    <!-- Column 1: Eligible Player Selection -->
+                    <div class="form-section">
+                        <label class="section-label" for="playerSelect">
+                            1. Select Eligible Penalty Taker <span style="color:var(--danger)">*</span>
+                        </label>
+                        <select id="playerSelect" class="player-select" required onchange="validateForm()">
+                            <option value="">-- Choose Eligible Player --</option>
+                            {% for p in state.available_players %}
+                            <option value="{{ p.id }}">#{{ p.jersey_number }} {{ p.full_name }} ({{ p.position }})</option>
+                            {% endfor %}
+                        </select>
+                        <div class="rotation-note" id="rotationNote">
+                            <strong>Player Rotation ({{ state.game_format_capacity }}-a-side):</strong> Each team must use a different player for each attempt until all eligible match players have taken a penalty.
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Attempt Outcome Selection -->
+                    <div class="form-section">
+                        <label class="section-label">2. Select Attempt Outcome <span style="color:var(--danger)">*</span></label>
+                        <div class="outcomes-grid">
+                            <button type="button" class="outcome-btn" data-outcome="GOAL" onclick="selectOutcome('GOAL')">
+                                ⚽ Goal
+                            </button>
+                            <button type="button" class="outcome-btn" data-outcome="MISS" onclick="selectOutcome('MISS')">
+                                ❌ Miss
+                            </button>
+                            <button type="button" class="outcome-btn" data-outcome="SAVED" onclick="selectOutcome('SAVED')">
+                                🧤 Saved
+                            </button>
+                            <button type="button" class="outcome-btn" data-outcome="POST" onclick="selectOutcome('POST')">
+                                🥅 Post / Crossbar
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedOutcome" name="outcome" value="">
+                    </div>
+                </div>
+
+                <div class="entry-footer">
+                    <div>
+                        {% if state.attempts %}
+                        <button type="button" class="btn-undo" id="btnUndo" onclick="handleUndoAttempt()">
+                            ↶ Undo Last Attempt
+                        </button>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn-confirm" id="btnConfirmAttempt" disabled>
+                        ✓ Confirm Attempt Result
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Penalty History Card -->
+        <section class="history-card">
+            <div class="history-title-row">
+                <div class="history-title">
+                    <span>📜</span>
+                    <span>Penalty Shootout History</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);font-weight:700;">
+                    Alternating: {{ match.home_team.name }} kicks first
+                </div>
+            </div>
+
+            <!-- Mandatory First 5 Section -->
+            <div style="margin-bottom:12px;">
+                <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">
+                    Mandatory Initial Five Penalties
+                </div>
+                <div class="table-responsive">
+                    <table class="shootout-table">
+                        <thead>
+                            <tr>
+                                <th style="width:70px;" class="center">Round</th>
+                                <th style="width:45%;">{{ match.home_team.name }}</th>
+                                <th style="width:45%;">{{ match.away_team.name }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="initialFiveBody">
+                            {% for row in state.initial_five_rounds %}
+                            <tr class="shootout-row">
+                                <td class="center">
+                                    <span class="round-num-pill">R{{ row.round }}</span>
+                                </td>
+                                <td>
+                                    {% if row.home_attempt %}
+                                    <span class="attempt-tag {% if row.home_attempt.outcome == 'GOAL' %}tag-goal{% elif row.home_attempt.outcome == 'SAVED' %}tag-saved{% elif row.home_attempt.outcome == 'POST' %}tag-post{% else %}tag-miss{% endif %}">
+                                        {% if row.home_attempt.outcome == 'GOAL' %}⚽ Goal{% elif row.home_attempt.outcome == 'SAVED' %}🧤 Saved{% elif row.home_attempt.outcome == 'POST' %}🥅 Post{% else %}❌ Miss{% endif %}
+                                    </span>
+                                    <span style="margin-left:8px;font-weight:700;">#{{ row.home_attempt.player.jersey_number }} {{ row.home_attempt.player.full_name }}</span>
+                                    {% else %}
+                                    <span class="tag-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.away_attempt %}
+                                    <span class="attempt-tag {% if row.away_attempt.outcome == 'GOAL' %}tag-goal{% elif row.away_attempt.outcome == 'SAVED' %}tag-saved{% elif row.away_attempt.outcome == 'POST' %}tag-post{% else %}tag-miss{% endif %}">
+                                        {% if row.away_attempt.outcome == 'GOAL' %}⚽ Goal{% elif row.away_attempt.outcome == 'SAVED' %}🧤 Saved{% elif row.away_attempt.outcome == 'POST' %}🥅 Post{% else %}❌ Miss{% endif %}
+                                    </span>
+                                    <span style="margin-left:8px;font-weight:700;">#{{ row.away_attempt.player.jersey_number }} {{ row.away_attempt.player.full_name }}</span>
+                                    {% else %}
+                                    <span class="tag-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sudden Death Section -->
+            <div id="suddenDeathSection" style="{% if not state.sudden_death_rounds %}display:none;{% endif %}margin-top:10px;">
+                <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#f59e0b;margin-bottom:8px;">
+                    ⚡ Sudden Death Penalties
+                </div>
+                <div class="table-responsive">
+                    <table class="shootout-table">
+                        <thead>
+                            <tr>
+                                <th style="width:70px;" class="center">Round</th>
+                                <th style="width:45%;">{{ match.home_team.name }}</th>
+                                <th style="width:45%;">{{ match.away_team.name }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suddenDeathBody">
+                            {% for row in state.sudden_death_rounds %}
+                            <tr class="shootout-row">
+                                <td class="center">
+                                    <span class="round-num-pill" style="border-color:#f59e0b;color:#f59e0b;">R{{ row.round }}</span>
+                                </td>
+                                <td>
+                                    {% if row.home_attempt %}
+                                    <span class="attempt-tag {% if row.home_attempt.outcome == 'GOAL' %}tag-goal{% elif row.home_attempt.outcome == 'SAVED' %}tag-saved{% elif row.home_attempt.outcome == 'POST' %}tag-post{% else %}tag-miss{% endif %}">
+                                        {% if row.home_attempt.outcome == 'GOAL' %}⚽ Goal{% elif row.home_attempt.outcome == 'SAVED' %}🧤 Saved{% elif row.home_attempt.outcome == 'POST' %}🥅 Post{% else %}❌ Miss{% endif %}
+                                    </span>
+                                    <span style="margin-left:8px;font-weight:700;">#{{ row.home_attempt.player.jersey_number }} {{ row.home_attempt.player.full_name }}</span>
+                                    {% else %}
+                                    <span class="tag-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.away_attempt %}
+                                    <span class="attempt-tag {% if row.away_attempt.outcome == 'GOAL' %}tag-goal{% elif row.away_attempt.outcome == 'SAVED' %}tag-saved{% elif row.away_attempt.outcome == 'POST' %}tag-post{% else %}tag-miss{% endif %}">
+                                        {% if row.away_attempt.outcome == 'GOAL' %}⚽ Goal{% elif row.away_attempt.outcome == 'SAVED' %}🧤 Saved{% elif row.away_attempt.outcome == 'POST' %}🥅 Post{% else %}❌ Miss{% endif %}
+                                    </span>
+                                    <span style="margin-left:8px;font-weight:700;">#{{ row.away_attempt.player.jersey_number }} {{ row.away_attempt.player.full_name }}</span>
+                                    {% else %}
+                                    <span class="tag-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Eligible Roster & Rotation Status Card -->
+        <section class="roster-info-card">
+            <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text-secondary);">
+                👥 Match Player Rotation &amp; Eligibility
+            </div>
+            <div class="roster-grid">
+                <div class="roster-col">
+                    <div class="roster-col-header">
+                        <span>{{ match.home_team.name }}</span>
+                        <span>{{ state.home_unused_in_cycle|length }} unused in cycle</span>
+                    </div>
+                    <div class="player-pill-list" id="homeRosterPills">
+                        {% for p in state.home_eligible %}
+                        <span class="player-pill {% if p in state.home_unused_in_cycle %}available{% else %}used{% endif %}">
+                            #{{ p.jersey_number }} {{ p.full_name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="roster-col">
+                    <div class="roster-col-header">
+                        <span>{{ match.away_team.name }}</span>
+                        <span>{{ state.away_unused_in_cycle|length }} unused in cycle</span>
+                    </div>
+                    <div class="player-pill-list" id="awayRosterPills">
+                        {% for p in state.away_eligible %}
+                        <span class="player-pill {% if p in state.away_unused_in_cycle %}available{% else %}used{% endif %}">
+                            #{{ p.jersey_number }} {{ p.full_name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const matchId = "{{ match.id }}";
+        const homeTeamId = "{{ match.home_team.id }}";
+        const awayTeamId = "{{ match.away_team.id }}";
+        let isSubmitting = false;
+
+        function selectOutcome(val) {
+            document.querySelectorAll(".outcome-btn").forEach(btn => {
+                if (btn.getAttribute("data-outcome") === val) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+            document.getElementById("selectedOutcome").value = val;
+            validateForm();
+        }
+
+        function validateForm() {
+            const playerVal = document.getElementById("playerSelect").value;
+            const outcomeVal = document.getElementById("selectedOutcome").value;
+            const btn = document.getElementById("btnConfirmAttempt");
+            if (playerVal && outcomeVal && !isSubmitting) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        function handleAttemptSubmit(e) {
+            e.preventDefault();
+            const playerVal = document.getElementById("playerSelect").value;
+            const outcomeVal = document.getElementById("selectedOutcome").value;
+            if (!playerVal || !outcomeVal || isSubmitting) return;
+
+            isSubmitting = true;
+            validateForm();
+            const btn = document.getElementById("btnConfirmAttempt");
+            btn.textContent = "Recording Attempt...";
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            formData.append('player_id', playerVal);
+            formData.append('outcome', outcomeVal);
+
+            fetch(`/organizer/match/${matchId}/shootout/attempt/`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                isSubmitting = false;
+                btn.textContent = "✓ Confirm Attempt Result";
+                if (!data.success) {
+                    alert(data.error || "Failed to record penalty attempt.");
+                    validateForm();
+                    return;
+                }
+                // Reload full state cleanly to ensure accurate view and DB persistence
+                window.location.reload();
+            })
+            .catch(err => {
+                isSubmitting = false;
+                btn.textContent = "✓ Confirm Attempt Result";
+                validateForm();
+                console.error(err);
+                alert("Network error while recording attempt.");
+            });
+        }
+
+        function handleUndoAttempt() {
+            if (!confirm("Are you sure you want to revert the last penalty attempt?")) return;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch(`/organizer/match/${matchId}/shootout/undo/`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.error || "Failed to undo attempt.");
+                    return;
+                }
+                window.location.reload();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Network error while undoing attempt.");
+            });
+        }
+    </script>
+</body>
+</html>
