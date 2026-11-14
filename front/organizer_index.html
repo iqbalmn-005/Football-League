@@ -1256,6 +1256,15 @@
             /* Mobile Sidebar Drawer */
             .sidebar-backdrop {
                 display: none;
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(16, 27, 22, 0.7) !important;
+                backdrop-filter: blur(4px) !important;
+                -webkit-backdrop-filter: blur(4px) !important;
+                z-index: 1000000 !important;
+                opacity: 0;
+                transition: opacity 0.25s ease;
+                pointer-events: none;
             }
 
             .sidebar-backdrop.active,
@@ -1267,27 +1276,30 @@
             }
 
             .sidebar {
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                width: 285px;
-                max-width: 85vw;
-                height: 100vh;
-                height: 100dvh;
+                position: fixed !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                width: 285px !important;
+                max-width: 85vw !important;
+                height: 100vh !important;
+                height: 100dvh !important;
                 z-index: 1000001 !important;
-                transform: translateX(-100%);
-                -webkit-transform: translateX(-100%);
-                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-                box-shadow: none;
-                overflow-y: auto;
+                transform: translateX(-100%) !important;
+                -webkit-transform: translateX(-100%) !important;
+                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                box-shadow: none !important;
+                overflow-y: auto !important;
                 overscroll-behavior: contain !important;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
                 display: flex !important;
                 flex-direction: column !important;
-                box-sizing: border-box;
+                box-sizing: border-box !important;
                 padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+                background: var(--dark, #101B16) !important;
+                color: #ffffff !important;
+                pointer-events: auto !important;
             }
 
             .sidebar::-webkit-scrollbar {
@@ -1295,9 +1307,14 @@
             }
 
             .sidebar .nav-link {
-                padding: 9px 12px !important;
-                margin-bottom: 2px !important;
-                font-size: 13px !important;
+                padding: 10px 14px !important;
+                margin-bottom: 3px !important;
+                font-size: 13.5px !important;
+                border-radius: 8px !important;
+                cursor: pointer !important;
+                touch-action: manipulation !important;
+                display: flex !important;
+                align-items: center !important;
             }
 
             #sidebar.mobile-open,
@@ -1310,10 +1327,14 @@
                 visibility: visible !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
+                z-index: 1000001 !important;
             }
 
             .sidebar-close-btn {
-                display: flex;
+                display: flex !important;
+                cursor: pointer !important;
+                pointer-events: auto !important;
+                z-index: 1000002 !important;
             }
 
             /* STATS SUBNAV (NO SLIDE / 2-ROW GRID ON MOBILE) */
@@ -3281,41 +3302,6 @@
                 font-size: 16px !important;
             }
 
-            /* Responsive Sidebar Drawer */
-            .sidebar {
-                position: fixed !important;
-                top: 0 !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                width: 280px !important;
-                max-width: 85vw !important;
-                height: 100vh !important;
-                height: 100dvh !important;
-                z-index: 99999 !important;
-                transform: translateX(-100%) !important;
-                -webkit-transform: translateX(-100%) !important;
-                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                box-shadow: none !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                scrollbar-width: thin !important;
-                display: flex !important;
-                box-sizing: border-box !important;
-                padding-bottom: 24px !important;
-            }
-
-            #sidebar.mobile-open,
-            #sidebar.open,
-            .sidebar.mobile-open,
-            .sidebar.open {
-                transform: translateX(0) !important;
-                -webkit-transform: translateX(0) !important;
-                box-shadow: 14px 0 45px rgba(0, 0, 0, 0.75) !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-            }
-
             /* Breadcrumb parent hide on mobile */
             .breadcrumb-parent {
                 display: none !important;
@@ -5189,155 +5175,7 @@
         }
 
 
-        /* DEDICATED ORGANIZER MOBILE DRAWER */
-        .mobile-organizer-drawer {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 290px;
-            max-width: 85vw;
-            height: 100vh;
-            height: 100dvh;
-            background: #101B16;
-            color: #ffffff;
-            z-index: 100000;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 14px 0 45px rgba(0, 0, 0, 0.75);
-            transform: translateX(-100%);
-            -webkit-transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            box-sizing: border-box;
-            padding: 20px 16px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
 
-        .mobile-organizer-drawer.open {
-            display: flex !important;
-            transform: translateX(0) !important;
-            -webkit-transform: translateX(0) !important;
-        }
-
-        .mobile-organizer-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(16, 27, 22, 0.75);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 99999;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .mobile-organizer-backdrop.open {
-            display: block !important;
-            opacity: 1 !important;
-        }
-
-        .drawer-header-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .drawer-close-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .drawer-close-btn:active {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .drawer-section-label {
-            color: #788578;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            padding: 8px 10px 4px;
-        }
-
-        .drawer-nav-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .drawer-nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            color: #b5c4ba;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            transition: all 0.15s;
-            cursor: pointer;
-        }
-
-        .drawer-nav-link:hover,
-        .drawer-nav-link:active,
-        .drawer-nav-link.active {
-            background: rgba(255, 255, 255, 0.08);
-            color: #B4F56B;
-        }
-
-        .drawer-nav-icon {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-            color: #B4F56B;
-        }
-
-        .drawer-footer {
-            margin-top: auto;
-            padding-top: 18px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .organizer-badge-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .drawer-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 7px 12px;
-            font-size: 11px;
-            font-weight: 700;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: #ffffff;
-            text-decoration: none;
-            transition: background 0.15s;
-        }
-
-        .drawer-btn:active {
-            background: rgba(255, 255, 255, 0.15);
-        }
     
         @media (max-width: 360px) {
             .topbar-gen-full,
@@ -5354,89 +5192,7 @@
 
 <body>
 
-    <!-- DEDICATED MOBILE ORGANIZER DRAWER & BACKDROP -->
-    <div class="mobile-organizer-backdrop" id="mobileOrganizerBackdrop" onclick="closeMobileMenu()"></div>
-    <aside class="mobile-organizer-drawer" id="mobileOrganizerDrawer" aria-label="Organizer Mobile Menu">
-        <div>
-            <div class="drawer-header-row">
-                <a href="/organizer/" class="logo" onclick="closeMobileMenu()">
-                    <span class="logo-mark">Ⅲ</span> TOUCHLINE
-                </a>
-                <button type="button" class="drawer-close-btn" onclick="closeMobileMenu()"
-                    aria-label="Close menu">✕</button>
-            </div>
 
-            <div class="drawer-section-label">WORKSPACE</div>
-
-            <div class="drawer-nav-list">
-                <a href="javascript:void(0)" onclick="openTab('overview'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
-                    id="mNavOverview">
-                    <span class="drawer-nav-icon">▤</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="javascript:void(0)" onclick="openTab('fixtures'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'fixtures' %}active{% endif %}" id="mNavFixtures">
-                    <span class="drawer-nav-icon">📅</span>
-                    <span>Matches &amp; Fixtures</span>
-                </a>
-                <a href="javascript:void(0)" onclick="openTab('results'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'results' %}active{% endif %}" id="mNavResults">
-                    <span class="drawer-nav-icon">🏆</span>
-                    <span>Enter Results</span>
-                </a>
-                {% if not active_competition.is_pure_knockout %}
-                <a href="javascript:void(0)" onclick="openTab('standings'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'standings' %}active{% endif %}" id="mNavStandings">
-                    <span class="drawer-nav-icon">📊</span>
-                    <span>Live Standings</span>
-                </a>
-                {% endif %}
-                <a href="javascript:void(0)" onclick="openTab('teams'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'teams' %}active{% endif %}" id="mNavTeams">
-                    <span class="drawer-nav-icon">♟</span>
-                    <span>Teams &amp; Squads</span>
-                </a>
-                <a href="javascript:void(0)" onclick="openTab('statistics'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'statistics' %}active{% endif %}" id="mNavStatistics">
-                    <span class="drawer-nav-icon">📊</span>
-                    <span>Statistics</span>
-                </a>
-                <a href="javascript:void(0)" onclick="openTab('settings'); closeMobileMenu();"
-                    class="drawer-nav-link {% if active_tab == 'settings' %}active{% endif %}" id="mNavSettings">
-                    <span class="drawer-nav-icon">⚙</span>
-                    <span>Settings</span>
-                </a>
-
-                {% if active_competition %}
-                <a href="/competition/{{ active_competition.id }}/" class="drawer-nav-link" target="_blank"
-                    style="color:var(--green,#B4F56B);">
-                    <span class="drawer-nav-icon">↗</span>
-                    <span>Public Viewer View</span>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="drawer-footer">
-            <div class="organizer-badge-box">
-                <div class="avatar" style="background:var(--green,#B4F56B);color:#101B16;font-weight:900;">
-                    {{ user.username|slice:":2"|upper }}
-                </div>
-                <div style="min-width:0;">
-                    <strong
-                        style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:#fff;">{{ user.first_name|default:user.username }}</strong>
-                    <small
-                        style="color:#8c9e92;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;">{{ user.profile.organization_name|default:"League Organizer" }}</small>
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:12px;">
-                <a href="/" class="drawer-btn" style="flex:1;">Home ↗</a>
-                <a href="/logout/" class="drawer-btn" style="color:#ff6b6b;border-color:rgba(255,107,107,0.3);">Log
-                    out</a>
-            </div>
-        </div>
-    </aside>
 
 
     <div class="app">
@@ -5459,6 +5215,7 @@
             <div class="sidebar-label">WORKSPACE</div>
 
             <a href="/organizer/{{ active_competition.id }}/?tab=overview"
+                onclick="event.preventDefault(); openTab('overview', this);"
                 class="nav-link {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
                 id="navLinkOverview">
                 <span class="nav-icon">▤</span>
@@ -5466,12 +5223,14 @@
             </a>
 
             <a href="/organizer/{{ active_competition.id }}/?tab=fixtures"
+                onclick="event.preventDefault(); openTab('fixtures', this);"
                 class="nav-link {% if active_tab == 'fixtures' %}active{% endif %}" id="navLinkFixtures">
                 <span class="nav-icon">📅</span>
                 <span>Matches &amp; Fixtures</span>
             </a>
 
             <a href="/organizer/{{ active_competition.id }}/?tab=results"
+                onclick="event.preventDefault(); openTab('results', this);"
                 class="nav-link {% if active_tab == 'results' %}active{% endif %}" id="navLinkResults">
                 <span class="nav-icon">🏆</span>
                 <span>Results</span>
@@ -5479,6 +5238,7 @@
 
             {% if not active_competition.is_pure_knockout %}
             <a href="/organizer/{{ active_competition.id }}/?tab=standings"
+                onclick="event.preventDefault(); openTab('standings', this);"
                 class="nav-link {% if active_tab == 'standings' %}active{% endif %}" id="navLinkStandings">
                 <span class="nav-icon">📊</span>
                 <span>Live Standings</span>
@@ -5486,18 +5246,21 @@
             {% endif %}
 
             <a href="/organizer/{{ active_competition.id }}/?tab=teams"
+                onclick="event.preventDefault(); openTab('teams', this);"
                 class="nav-link {% if active_tab == 'teams' %}active{% endif %}" id="navLinkTeams">
                 <span class="nav-icon">♟</span>
                 <span>Teams &amp; Squads</span>
             </a>
 
             <a href="/organizer/{{ active_competition.id }}/?tab=statistics"
+                onclick="event.preventDefault(); openTab('statistics', this);"
                 class="nav-link {% if active_tab == 'statistics' %}active{% endif %}" id="navLinkStatistics">
                 <span class="nav-icon">📊</span>
                 <span>Statistics</span>
             </a>
 
             <a href="/organizer/{{ active_competition.id }}/?tab=settings"
+                onclick="event.preventDefault(); openTab('settings', this);"
                 class="nav-link {% if active_tab == 'settings' %}active{% endif %}" id="navLinkSettings">
                 <span class="nav-icon">⚙</span>
                 <span>Settings</span>
@@ -5505,6 +5268,7 @@
 
             {% if active_competition %}
             <a href="/competition/{{ active_competition.id }}/" class="nav-link" target="_blank"
+                onclick="closeMobileMenu(event, true);"
                 style="color:var(--green)">
                 <span class="nav-icon">↗</span>
                 <span>Public Viewer View</span>
@@ -5522,8 +5286,8 @@
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;margin-top:10px;">
-                    <a href="/" class="btn btn-outline" style="flex:1;font-size:10px;padding:6px;">Home ↗</a>
-                    <a href="/logout/" class="btn btn-outline" style="font-size:10px;padding:6px;color:#d93838;">Log
+                    <a href="/" class="btn btn-outline" style="flex:1;font-size:10px;padding:6px;" onclick="closeMobileMenu(event, true);">Home ↗</a>
+                    <a href="/logout/" class="btn btn-outline" style="font-size:10px;padding:6px;color:#d93838;" onclick="closeMobileMenu(event, true);">Log
                         out</a>
                 </div>
             </div>
@@ -7365,7 +7129,7 @@
                 tabName = 'fixtures';
             }
             {% endif %}
-            closeMobileMenu();
+            closeMobileMenu(null, true);
 
             document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
             const target = document.getElementById(tabName);
@@ -7385,6 +7149,12 @@
             const bnavId = "bnav-" + tabName;
             const bnavEl = document.getElementById(bnavId);
             if (bnavEl) bnavEl.classList.add("active");
+
+            try {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tabName);
+                window.history.replaceState({}, '', url);
+            } catch(e) {}
         }
 
         let _mobileMenuCooldown = 0;
@@ -7397,7 +7167,7 @@
                 if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
             }
             const now = Date.now();
-            if (now - _mobileMenuCooldown < 300) {
+            if (now - _mobileMenuCooldown < 200) {
                 return;
             }
             _mobileMenuCooldown = now;
@@ -7413,11 +7183,14 @@
                 sidebar.style.setProperty("visibility", "visible", "important");
                 sidebar.style.setProperty("opacity", "1", "important");
                 sidebar.style.setProperty("display", "flex", "important");
+                sidebar.style.setProperty("z-index", "1000001", "important");
+                sidebar.style.setProperty("pointer-events", "auto", "important");
                 if (backdrop) {
                     backdrop.classList.add("open", "active");
                     backdrop.style.setProperty("display", "block", "important");
                     backdrop.style.setProperty("opacity", "1", "important");
                     backdrop.style.setProperty("pointer-events", "auto", "important");
+                    backdrop.style.setProperty("z-index", "1000000", "important");
                 }
                 document.body.style.overflow = "hidden";
                 _menuOpenedAt = Date.now();
@@ -7431,7 +7204,7 @@
                 e.stopPropagation();
             }
             // Prevent synthetic ghost touch/click immediately after menu opens
-            if (!force && Date.now() - _menuOpenedAt < 400) {
+            if (!force && Date.now() - _menuOpenedAt < 150) {
                 return;
             }
             _mobileMenuCooldown = Date.now();
@@ -7442,12 +7215,16 @@
                 sidebar.style.removeProperty("transform");
                 sidebar.style.removeProperty("visibility");
                 sidebar.style.removeProperty("opacity");
+                sidebar.style.removeProperty("display");
+                sidebar.style.removeProperty("z-index");
+                sidebar.style.removeProperty("pointer-events");
             }
             if (backdrop) {
                 backdrop.classList.remove("open", "active");
                 backdrop.style.setProperty("display", "none", "important");
                 backdrop.style.removeProperty("opacity");
                 backdrop.style.removeProperty("pointer-events");
+                backdrop.style.removeProperty("z-index");
             }
             document.body.style.overflow = "";
         }
@@ -8014,7 +7791,7 @@
             // Auto close mobile drawer when any sidebar link is clicked
             document.querySelectorAll('#sidebar .nav-link').forEach(function (link) {
                 link.addEventListener('click', function () {
-                    closeMobileMenu();
+                    closeMobileMenu(null, true);
                 });
             });
         });
@@ -8024,34 +7801,40 @@
     <!-- MOBILE BOTTOM NAVIGATION FOR ORGANIZERS (Fixed to bottom for mobile users) -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Organizer Mobile Navigation">
         <a href="/organizer/{{ active_competition.id }}/?tab=overview"
+            onclick="event.preventDefault(); openTab('overview', this);"
             class="bottom-nav-item {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
             id="bnav-overview">
             <span class="bottom-nav-icon">▤</span>
             <span>Home</span>
         </a>
         <a href="/organizer/{{ active_competition.id }}/?tab=fixtures"
+            onclick="event.preventDefault(); openTab('fixtures', this);"
             class="bottom-nav-item {% if active_tab == 'fixtures' %}active{% endif %}" id="bnav-fixtures">
             <span class="bottom-nav-icon">📅</span>
             <span>Fixtures</span>
         </a>
         <a href="/organizer/{{ active_competition.id }}/?tab=results"
+            onclick="event.preventDefault(); openTab('results', this);"
             class="bottom-nav-item {% if active_tab == 'results' %}active{% endif %}" id="bnav-results">
             <span class="bottom-nav-icon">🏆</span>
             <span>Results</span>
         </a>
         {% if not active_competition.is_pure_knockout %}
         <a href="/organizer/{{ active_competition.id }}/?tab=standings"
+            onclick="event.preventDefault(); openTab('standings', this);"
             class="bottom-nav-item {% if active_tab == 'standings' %}active{% endif %}" id="bnav-standings">
             <span class="bottom-nav-icon">📊</span>
             <span>Table</span>
         </a>
         {% endif %}
         <a href="/organizer/{{ active_competition.id }}/?tab=teams"
+            onclick="event.preventDefault(); openTab('teams', this);"
             class="bottom-nav-item {% if active_tab == 'teams' %}active{% endif %}" id="bnav-teams">
             <span class="bottom-nav-icon">♟</span>
             <span>Teams</span>
         </a>
         <a href="/organizer/{{ active_competition.id }}/?tab=statistics"
+            onclick="event.preventDefault(); openTab('statistics', this);"
             class="bottom-nav-item {% if active_tab == 'statistics' %}active{% endif %}" id="bnav-statistics">
             <span class="bottom-nav-icon">📊</span>
             <span>Statistics</span>
