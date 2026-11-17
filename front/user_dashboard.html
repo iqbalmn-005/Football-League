@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-    <title>{{ competition.name }} · Touchline Match Center</title>
+    <title>{{ competition.name }} · Futbolix Match Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1559,8 +1559,8 @@
                 padding: 10px 6px !important;
             }
         }
-    
-        
+
+
         /* LAST MATCH RESULT POSTER (CLEAN RESULT & BALANCED DESKTOP VIEW) */
         .poster-result-board {
             max-width: 820px;
@@ -1986,9 +1986,11 @@
                 padding: 18px 20px;
                 gap: 16px;
             }
+
             .banner-actions {
                 width: 100%;
             }
+
             .banner-actions .btn {
                 width: 100%;
             }
@@ -1998,8 +2000,8 @@
         .match-fixture-poster {
             position: relative;
             background: radial-gradient(ellipse at 85% 15%, rgba(180, 245, 107, 0.16), transparent 50%),
-                        radial-gradient(ellipse at 15% 85%, rgba(180, 245, 107, 0.08), transparent 45%),
-                        linear-gradient(135deg, #101b16 0%, #17251e 100%);
+                radial-gradient(ellipse at 15% 85%, rgba(180, 245, 107, 0.08), transparent 45%),
+                linear-gradient(135deg, #101b16 0%, #17251e 100%);
             border: 1px solid #26342b;
             border-radius: 12px;
             padding: 26px 32px 24px;
@@ -2514,9 +2516,11 @@
                 width: 100% !important;
                 box-sizing: border-box !important;
             }
+
             .stats-category-nav::-webkit-scrollbar {
                 display: none !important;
             }
+
             .stat-pill-btn {
                 padding: 8px 4px !important;
                 font-size: 11.5px !important;
@@ -2531,9 +2535,11 @@
                 box-sizing: border-box !important;
                 box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
             }
+
             .stat-pill-btn .pill-icon {
                 font-size: 13.5px !important;
             }
+
             .stat-pill-btn.active {
                 box-shadow: 0 2px 8px rgba(20, 36, 28, 0.25) !important;
             }
@@ -2562,14 +2568,17 @@
                 padding-bottom: 10px !important;
                 gap: 8px !important;
             }
+
             .stats-header-badge {
                 font-size: 10px !important;
                 padding: 2px 7px !important;
                 letter-spacing: 0.5px !important;
             }
+
             .stats-card-heading {
                 font-size: 17px !important;
             }
+
             .stats-metric-pill {
                 font-size: 10px !important;
                 padding: 3px 8px !important;
@@ -2695,8 +2704,7 @@
                 padding: 5px 10px !important;
             }
         }
-
-</style>
+    </style>
 </head>
 
 <body>
@@ -2705,7 +2713,7 @@
     <header class="navbar">
         <div class="container nav-inner">
             <a href="/" class="logo">
-                <span class="logo-mark">//</span>TOUCHLINE
+                <span class="logo-mark">//</span>FUTBOLIX
             </a>
 
             <nav class="nav-links" id="navLinks">
@@ -2743,21 +2751,29 @@
     <div class="mobile-drawer" id="mobileMenu">
         <div>
             <div class="mobile-drawer-top">
-                <span class="logo"><span class="logo-mark">//</span>TOUCHLINE</span>
+                <span class="logo"><span class="logo-mark">//</span>FUTBOLIX</span>
                 <button class="modal-close-btn" style="position:static;" onclick="toggleMobileMenu()">✕</button>
             </div>
-            <div style="margin:14px 0 8px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--green);">
+            <div
+                style="margin:14px 0 8px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--green);">
                 Tournament Navigation
             </div>
             <nav class="mobile-drawer-links" style="margin-bottom:14px;">
-                <a href="?tab=upcoming" class="mobile-drawer-link {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" onclick="toggleMobileMenu()">📅 Upcoming Fixtures</a>
-                <a href="?tab=results" class="mobile-drawer-link {% if active_tab == 'results' %}active{% endif %}" onclick="toggleMobileMenu()">🏆 Match Results</a>
-                <a href="?tab=table" class="mobile-drawer-link {% if active_tab == 'table' %}active{% endif %}" onclick="toggleMobileMenu()">📊 Standings Table</a>
-                <a href="?tab=stats" class="mobile-drawer-link {% if active_tab == 'stats' %}active{% endif %}" onclick="toggleMobileMenu()">📈 Player Statistics</a>
-                <a href="?tab=teams" class="mobile-drawer-link {% if active_tab == 'teams' %}active{% endif %}" onclick="toggleMobileMenu()">🛡️ Teams &amp; Squads</a>
+                <a href="?tab=upcoming"
+                    class="mobile-drawer-link {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}"
+                    onclick="toggleMobileMenu()">📅 Upcoming Fixtures</a>
+                <a href="?tab=results" class="mobile-drawer-link {% if active_tab == 'results' %}active{% endif %}"
+                    onclick="toggleMobileMenu()">🏆 Match Results</a>
+                <a href="?tab=table" class="mobile-drawer-link {% if active_tab == 'table' %}active{% endif %}"
+                    onclick="toggleMobileMenu()">📊 Standings Table</a>
+                <a href="?tab=stats" class="mobile-drawer-link {% if active_tab == 'stats' %}active{% endif %}"
+                    onclick="toggleMobileMenu()">📈 Player Statistics</a>
+                <a href="?tab=teams" class="mobile-drawer-link {% if active_tab == 'teams' %}active{% endif %}"
+                    onclick="toggleMobileMenu()">🛡️ Teams &amp; Squads</a>
             </nav>
 
-            <div style="margin:8px 0;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8c9e92;">
+            <div
+                style="margin:8px 0;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8c9e92;">
                 Platform Menu
             </div>
             <nav class="mobile-drawer-links">
@@ -2809,7 +2825,6 @@
                             LIVE TOURNAMENT DASHBOARD
                         </div>
                         <h1 class="hero-title">{{ competition.name }}</h1>
-                        <p class="hero-desc">{{ competition.description|default:"Live standings, fixtures, results, golden boot race, and registered club profiles for the 2026/27 campaign." }}</p>
                     </div>
                 </div>
 
@@ -2817,7 +2832,8 @@
                     <div class="season-badge">
                         Season: <strong>{{ competition.season }}</strong> · {{ competition.get_category_display }}
                         {% if competition.is_completed %}
-                        · <span style="background:#B4F56B;color:#142019;font-weight:900;padding:2px 7px;border-radius:4px;font-size:10px;">COMPLETED</span>
+                        · <span
+                            style="background:#B4F56B;color:#142019;font-weight:900;padding:2px 7px;border-radius:4px;font-size:10px;">COMPLETED</span>
                         {% endif %}
                     </div>
                     <div>
@@ -2828,11 +2844,93 @@
                 </div>
             </div>
 
-            <!-- METRIC CARDS (3 TILES IN SCREENSHOT) -->
+            <!-- METRIC CARDS (3 TILES: TABLE TOPPER, TOP SCORER, NO OF TEAMS) -->
             <div class="metrics-row">
+                <!-- CARD 1: TABLE TOPPER -->
                 <div class="kpi-card">
                     <div class="kpi-card-header">
-                        <span>Registered Clubs</span>
+                        {% if not competition.is_pure_knockout %}
+                        <span>{% if competition.is_completed %}League Champion{% else %}Table Topper{% endif %}</span>
+                        <span class="kpi-icon">🏆</span>
+                        {% else %}
+                        <span>{% if competition.is_completed %}Tournament Champion{% else %}Tournament Stage{% endif %}</span>
+                        <span class="kpi-icon">🏆</span>
+                        {% endif %}
+                    </div>
+                    <div class="kpi-main-val">
+                        {% if not competition.is_pure_knockout %}
+                        {% if competition.is_completed and competition.winner %}
+                        <strong
+                            style="font-size:clamp(17px, 1.8vw, 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ competition.winner.short_name|default:competition.winner.name }}</strong>
+                        <span>Winner</span>
+                        {% elif standings.0 %}
+                        <strong
+                            style="font-size:clamp(17px, 1.8vw, 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ standings.0.team.short_name|default:standings.0.team.name }}</strong>
+                        <span>Leader</span>
+                        {% else %}
+                        <strong>-</strong>
+                        <span>Pending</span>
+                        {% endif %}
+                        {% else %}
+                        {% if competition.is_completed and competition.winner %}
+                        <strong
+                            style="font-size:clamp(17px, 1.8vw, 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ competition.winner.short_name|default:competition.winner.name }}</strong>
+                        <span>Winner</span>
+                        {% else %}
+                        <strong style="font-size:clamp(17px, 1.8vw, 24px);">Knockout</strong>
+                        <span>Bracket</span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="kpi-sub-text">
+                        {% if not competition.is_pure_knockout %}
+                        {% if competition.is_completed and competition.winner %}
+                        {{ competition.winner_entry.points }} PTS · {{ competition.winner_entry.won }}W (+{{ competition.winner_entry.goal_difference }} GD)
+                        {% elif standings.0 %}
+                        Rank #1 · {{ standings.0.points }} PTS (+{{ standings.0.goal_difference }} GD)
+                        {% else %}
+                        Standings calculate after match results
+                        {% endif %}
+                        {% else %}
+                        {% if competition.is_completed and competition.winner %}
+                        Official Champion of {{ competition.season }}
+                        {% else %}
+                        Single-elimination cup format
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CARD 2: TOP SCORER -->
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span>Top Scorer</span>
+                        <span class="kpi-icon">👟</span>
+                    </div>
+                    <div class="kpi-main-val">
+                        {% if stats.top_scorers.0 %}
+                        <strong>{{ stats.top_scorers.0.goals|stringformat:"02d" }}</strong>
+                        <span>Goals</span>
+                        {% else %}
+                        <strong>{{ stats.total_goals|stringformat:"02d" }}</strong>
+                        <span>Goals Total</span>
+                        {% endif %}
+                    </div>
+                    <div class="kpi-sub-text">
+                        {% if stats.top_scorers.0 %}
+                        🥇 {{ stats.top_scorers.0.full_name }} ({{ stats.top_scorers.0.team_short_name|default:stats.top_scorers.0.team_name }})
+                        {% elif stats.total_goals > 0 %}
+                        {{ stats.avg_goals_per_game }} goals per match avg
+                        {% else %}
+                        No individual goals recorded yet
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CARD 3: NUMBER OF TEAMS -->
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span>Participating Teams</span>
                         <span class="kpi-icon">🛡️</span>
                     </div>
                     <div class="kpi-main-val">
@@ -2840,41 +2938,7 @@
                         <span>Clubs Active</span>
                     </div>
                     <div class="kpi-sub-text">
-                        {% if competition.is_completed and competition.winner %}
-                        🏆 Champion: {{ competition.winner.name }} ({{ competition.winner_entry.points }} pts)
-                        {% elif standings.0 %}
-                        {{ standings.0.team.name }} leading (+{{ standings.0.goal_difference }} GD)
-                        {% else %}
-                        {{ competition.location }} · Division 1
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-card-header">
-                        <span>Scheduled Fixtures</span>
-                        <span class="kpi-icon">📅</span>
-                    </div>
-                    <div class="kpi-main-val">
-                        <strong>{{ competition.matches.count }}</strong>
-                        <span>Matches Total</span>
-                    </div>
-                    <div class="kpi-sub-text">
-                        {{ completed_matches.count }} Finished · {{ upcoming_matches.count }} Upcoming
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-card-header">
-                        <span>Goals Scored</span>
-                        <span class="kpi-icon">⚽</span>
-                    </div>
-                    <div class="kpi-main-val">
-                        <strong>{{ stats.total_goals }}</strong>
-                        <span>Goals Recorded</span>
-                    </div>
-                    <div class="kpi-sub-text">
-                        {{ stats.avg_goals_per_game }} goals per match avg
+                        {{ competition.max_teams }} Max Slots · {{ competition.get_category_display }}
                     </div>
                 </div>
             </div>
@@ -2885,21 +2949,27 @@
     <nav class="tabs-container" aria-label="Competition sections">
         <div class="container">
             <div class="tabs-list" id="tabs">
-                <button type="button" class="tab-btn {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" data-tab="upcoming" onclick="switchTab('upcoming')">
+                <button type="button"
+                    class="tab-btn {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}"
+                    data-tab="upcoming" onclick="switchTab('upcoming')">
                     Upcoming Matches
                 </button>
-                <button type="button" class="tab-btn {% if active_tab == 'results' %}active{% endif %}" data-tab="results" onclick="switchTab('results')">
+                <button type="button" class="tab-btn {% if active_tab == 'results' %}active{% endif %}"
+                    data-tab="results" onclick="switchTab('results')">
                     Results
                 </button>
                 {% if not competition.is_pure_knockout %}
-                <button type="button" class="tab-btn {% if active_tab == 'table' %}active{% endif %}" data-tab="table" onclick="switchTab('table')">
+                <button type="button" class="tab-btn {% if active_tab == 'table' %}active{% endif %}" data-tab="table"
+                    onclick="switchTab('table')">
                     Points Table
                 </button>
                 {% endif %}
-                <button type="button" class="tab-btn {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats" onclick="switchTab('stats')">
+                <button type="button" class="tab-btn {% if active_tab == 'stats' %}active{% endif %}" data-tab="stats"
+                    onclick="switchTab('stats')">
                     Statistics
                 </button>
-                <button type="button" class="tab-btn {% if active_tab == 'teams' %}active{% endif %}" data-tab="teams" onclick="switchTab('teams')">
+                <button type="button" class="tab-btn {% if active_tab == 'teams' %}active{% endif %}" data-tab="teams"
+                    onclick="switchTab('teams')">
                     Teams
                 </button>
             </div>
@@ -2911,39 +2981,45 @@
         <div class="container">
 
             <!-- TAB 1: UPCOMING MATCHES (3-COL CARDS IN SCREENSHOT) -->
-            <div class="tab-pane {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" id="pane-upcoming">
+            <div class="tab-pane {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}"
+                id="pane-upcoming">
                 <div class="section-header-row">
                     <div class="section-title-box">
                         <h2>Upcoming matches</h2>
-                        <p>Your next fixtures, kickoff times and venues.</p>
-                    </div>
-                    <div class="filter-pill-group">
-                        <button class="filter-btn active" onclick="filterFixtures('all', this)">All Matches</button>
-                        <button class="filter-btn" onclick="filterFixtures('week', this)">This Week</button>
                     </div>
                 </div>
 
                 {% if competition.is_completed and competition.winner %}
                 <!-- LEAGUE CHAMPION / WINNER SHOWCASE IN UPCOMING MATCHES -->
-                <section class="champions-upcoming-hero" style="background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.22), transparent 70%), linear-gradient(135deg, #0e1712 0%, #172a1e 50%, #0d1510 100%);border-radius:16px;padding:36px 28px;margin-bottom:28px;border:1px solid rgba(180,245,107,0.4);box-shadow:0 12px 36px rgba(0,0,0,0.4), 0 0 30px rgba(180,245,107,0.15);text-align:center;position:relative;overflow:hidden;">
-                    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(180,245,107,0.18);border:1px solid rgba(180,245,107,0.4);padding:4px 14px;border-radius:100px;margin-bottom:16px;">
+                <section class="champions-upcoming-hero"
+                    style="background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.22), transparent 70%), linear-gradient(135deg, #0e1712 0%, #172a1e 50%, #0d1510 100%);border-radius:16px;padding:36px 28px;margin-bottom:28px;border:1px solid rgba(180,245,107,0.4);box-shadow:0 12px 36px rgba(0,0,0,0.4), 0 0 30px rgba(180,245,107,0.15);text-align:center;position:relative;overflow:hidden;">
+                    <div
+                        style="display:inline-flex;align-items:center;gap:8px;background:rgba(180,245,107,0.18);border:1px solid rgba(180,245,107,0.4);padding:4px 14px;border-radius:100px;margin-bottom:16px;">
                         <span style="font-size:14px;">🏆</span>
-                        <span style="font-family:var(--font-heading);font-size:11px;font-weight:900;color:#B4F56B;letter-spacing:1px;text-transform:uppercase;">Official League Winner</span>
-                        <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;">COMPLETED</span>
+                        <span
+                            style="font-family:var(--font-heading);font-size:11px;font-weight:900;color:#B4F56B;letter-spacing:1px;text-transform:uppercase;">Official
+                            League Winner</span>
+                        <span
+                            style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;">COMPLETED</span>
                     </div>
 
                     <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:18px;">
-                        <div style="width:90px;height:90px;border-radius:50%;background:#142019;border:3px solid #B4F56B;box-shadow:0 0 28px rgba(180,245,107,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:14px;">
+                        <div
+                            style="width:90px;height:90px;border-radius:50%;background:#142019;border:3px solid #B4F56B;box-shadow:0 0 28px rgba(180,245,107,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:14px;">
                             {% if competition.winner.get_logo_url %}
-                            <img src="{{ competition.winner.get_logo_url }}" alt="{{ competition.winner.name }}" style="width:64px;height:64px;object-fit:contain;">
+                            <img src="{{ competition.winner.get_logo_url }}" alt="{{ competition.winner.name }}"
+                                style="width:64px;height:64px;object-fit:contain;">
                             {% else %}
                             <span style="font-size:42px;">🏆</span>
                             {% endif %}
                         </div>
-                        <h2 style="font-family:var(--font-heading);font-size:32px;font-weight:900;color:#ffffff;margin:0 0 6px;letter-spacing:0.5px;text-transform:uppercase;">{{ competition.winner.name }}</h2>
+                        <h2
+                            style="font-family:var(--font-heading);font-size:32px;font-weight:900;color:#ffffff;margin:0 0 6px;letter-spacing:0.5px;text-transform:uppercase;">
+                            {{ competition.winner.name }}</h2>
                         <p style="font-size:14px;color:rgba(255,255,255,0.85);max-width:560px;margin:0 auto;">
                             {% if not competition.is_pure_knockout and competition.winner_entry %}
-                            Champions of <strong>{{ competition.name }}</strong> ({{ competition.season }}) topping the league with <strong>{{ competition.winner_entry.points }}</strong> points!
+                            Champions of <strong>{{ competition.name }}</strong> ({{ competition.season }}) topping the
+                            league with <strong>{{ competition.winner_entry.points }}</strong> points!
                             {% else %}
                             Champions of <strong>{{ competition.name }}</strong> ({{ competition.season }})!
                             {% endif %}
@@ -2951,30 +3027,41 @@
                     </div>
 
                     {% if not competition.is_pure_knockout and competition.winner_entry %}
-                    <div style="display:inline-flex;gap:14px;align-items:center;background:rgba(0,0,0,0.3);padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-bottom:18px;flex-wrap:wrap;justify-content:center;">
+                    <div
+                        style="display:inline-flex;gap:14px;align-items:center;background:rgba(0,0,0,0.3);padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-bottom:18px;flex-wrap:wrap;justify-content:center;">
                         <div style="text-align:center;min-width:65px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Matches</div>
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">
+                                Matches</div>
                             <div style="font-size:18px;font-weight:900;color:#fff;">{{ competition.winner_entry.played }}</div>
                         </div>
                         <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
                         <div style="text-align:center;min-width:65px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Won</div>
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">
+                                Won</div>
                             <div style="font-size:18px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.won }}</div>
                         </div>
                         <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
                         <div style="text-align:center;min-width:65px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Goal Diff</div>
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">
+                                Goal Diff</div>
                             <div style="font-size:18px;font-weight:900;color:#fff;">{{ competition.winner_entry.goal_difference }}</div>
                         </div>
                         <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
                         <div style="text-align:center;min-width:65px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">Points</div>
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;">
+                                Points</div>
                             <div style="font-size:18px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.points }}</div>
                         </div>
                     </div>
 
                     <div>
-                        <button type="button" class="btn" style="background:#B4F56B;color:#101B16;font-weight:900;border:none;padding:8px 22px;border-radius:20px;font-size:12px;cursor:pointer;" onclick="switchTab('table')">
+                        <button type="button" class="btn"
+                            style="background:#B4F56B;color:#101B16;font-weight:900;border:none;padding:8px 22px;border-radius:20px;font-size:12px;cursor:pointer;"
+                            onclick="switchTab('table')">
                             View Full Standings Table →
                         </button>
                     </div>
@@ -2990,10 +3077,13 @@
 
                     <div class="poster-matchup">
                         {% if next_match.home_team %}
-                        <a href="/team/{{ next_match.home_team.id }}/" class="poster-team poster-team-home" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ next_match.home_team.name }} details">
+                        <a href="/team/{{ next_match.home_team.id }}/" class="poster-team poster-team-home"
+                            onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;"
+                            title="View {{ next_match.home_team.name }} details">
                             <div class="poster-crest-wrap" title="{{ next_match.home_team.name }}">
                                 {% if next_match.home_team.get_logo_url %}
-                                <img src="{{ next_match.home_team.get_logo_url }}" alt="{{ next_match.home_team.name }}">
+                                <img src="{{ next_match.home_team.get_logo_url }}"
+                                    alt="{{ next_match.home_team.name }}">
                                 {% else %}
                                 <span class="poster-crest-fallback">{{ next_match.home_team.short_name|default:next_match.home_team.name|slice:":3"|upper }}</span>
                                 {% endif %}
@@ -3014,11 +3104,14 @@
                         </div>
 
                         {% if next_match.away_team %}
-                        <a href="/team/{{ next_match.away_team.id }}/" class="poster-team poster-team-away" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ next_match.away_team.name }} details">
+                        <a href="/team/{{ next_match.away_team.id }}/" class="poster-team poster-team-away"
+                            onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;"
+                            title="View {{ next_match.away_team.name }} details">
                             <div class="poster-team-name">{{ next_match.away_team.name }}</div>
                             <div class="poster-crest-wrap" title="{{ next_match.away_team.name }}">
                                 {% if next_match.away_team.get_logo_url %}
-                                <img src="{{ next_match.away_team.get_logo_url }}" alt="{{ next_match.away_team.name }}">
+                                <img src="{{ next_match.away_team.get_logo_url }}"
+                                    alt="{{ next_match.away_team.name }}">
                                 {% else %}
                                 <span class="poster-crest-fallback">{{ next_match.away_team.short_name|default:next_match.away_team.name|slice:":3"|upper }}</span>
                                 {% endif %}
@@ -3037,14 +3130,14 @@
                     <div class="poster-info-pill" style="cursor:default;">
                         <span>📅 {{ next_match.match_date|date:"M d"|upper }}{% if next_match.kickoff_time %}, {{ next_match.kickoff_time|time:"h:i A"|upper }}{% endif %}</span>
                         <span class="poster-pill-divider">|</span>
-                        <span>📍 {{ next_match.venue|default:"Payyanad Stadium"|upper }}</span>
                     </div>
                 </section>
                 {% endif %}
 
                 <div class="matches-grid">
                     {% for m in upcoming_matches %}
-                    <div class="fixture-card {% if next_match and m.id == next_match.id or forloop.first %}highlight-next-match-card{% endif %}">
+                    <div
+                        class="fixture-card {% if next_match and m.id == next_match.id or forloop.first %}highlight-next-match-card{% endif %}">
                         <div>
                             <div class="fixture-card-header">
                                 <span>{{ m.match_date|date:"D, d M"|upper }} · {{ m.kickoff_time|time:"H:i A" }}</span>
@@ -3119,8 +3212,14 @@
                         <div class="fixture-card-footer">
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                 <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                                {% if m.group %}
+                                <span class="badge"
+                                    style="background:rgba(180,245,107,0.18);color:#17251e;border:1px solid #b4f56b;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;">{{ m.group.name }}</span>
+                                {% endif %}
                                 {% if m.round_byes %}
-                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE: {{ m.round_byes|join:', ' }}</span>
+                                <span class="badge"
+                                    style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE:
+                                    {{ m.round_byes|join:', ' }}</span>
                                 {% endif %}
                             </div>
                             <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
@@ -3132,7 +3231,9 @@
                         <div style="font-size:32px;margin-bottom:8px;">🏆</div>
                         <h4 style="font-family:var(--font-heading);font-size:20px;">League Season Completed</h4>
                         <p style="font-size:12.5px;">All scheduled matches have concluded and <strong>{{ competition.winner.name }}</strong> is crowned champion!</p>
-                        <button class="btn" style="background:#B4F56B;color:#101B16;font-weight:900;border:none;padding:8px 20px;border-radius:20px;font-size:12px;margin-top:8px;cursor:pointer;" onclick="switchTab('results')">
+                        <button class="btn"
+                            style="background:#B4F56B;color:#101B16;font-weight:900;border:none;padding:8px 20px;border-radius:20px;font-size:12px;margin-top:8px;cursor:pointer;"
+                            onclick="switchTab('results')">
                             View Results →
                         </button>
                         {% else %}
@@ -3150,28 +3251,25 @@
             <div class="tab-pane {% if active_tab == 'results' %}active{% endif %}" id="pane-results">
                 <div class="section-header-row">
                     <div class="section-title-box">
-                        <h2>Completed Match Results</h2>
-                        <p>Full-time scores, goal scorers, and official match records.</p>
+                        <h2>Match Results</h2>
                     </div>
                 </div>
 
                 {% if last_match %}
                 <!-- FEATURED LAST MATCH RESULT POSTER -->
-                <section class="match-fixture-poster last-match-hero-poster" onclick="openMatchModal('{{ last_match.id }}')" style="cursor:pointer;" title="Click to view match scorecard">
-                    <div class="poster-info-pill" style="margin-bottom:12px;">
-                        <span>📅 {{ last_match.match_date|date:"l, j F, Y" }}</span>
-                        <span class="poster-pill-divider">|</span>
-                        <span>🕒 {{ last_match.kickoff_time|time:"g:i A" }}</span>
-                        <span class="poster-pill-divider">|</span>
-                        <span>📍 {{ last_match.venue|default:"Payyanad Stadium, Manjeri" }}</span>
-                    </div>
+                <section class="match-fixture-poster last-match-hero-poster"
+                    onclick="openMatchModal('{{ last_match.id }}')" style="cursor:pointer;"
+                    title="Click to view match scorecard">
 
                     <div class="poster-result-board">
                         <!-- HOME CLUB PILLAR -->
-                        <a href="/team/{{ last_match.home_team.id }}/" class="poster-club-pillar poster-pillar-home" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ last_match.home_team.name }} details">
+                        <a href="/team/{{ last_match.home_team.id }}/" class="poster-club-pillar poster-pillar-home"
+                            onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;"
+                            title="View {{ last_match.home_team.name }} details">
                             <div class="poster-crest-wrap" title="{{ last_match.home_team.name }}">
                                 {% if last_match.home_team.get_logo_url %}
-                                <img src="{{ last_match.home_team.get_logo_url }}" alt="{{ last_match.home_team.name }}">
+                                <img src="{{ last_match.home_team.get_logo_url }}"
+                                    alt="{{ last_match.home_team.name }}">
                                 {% else %}
                                 <span class="poster-crest-fallback">{{ last_match.home_team.short_name|default:last_match.home_team.name|slice:":3"|upper }}</span>
                                 {% endif %}
@@ -3189,10 +3287,13 @@
                         </div>
 
                         <!-- AWAY CLUB PILLAR -->
-                        <a href="/team/{{ last_match.away_team.id }}/" class="poster-club-pillar poster-pillar-away" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;" title="View {{ last_match.away_team.name }} details">
+                        <a href="/team/{{ last_match.away_team.id }}/" class="poster-club-pillar poster-pillar-away"
+                            onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;cursor:pointer;"
+                            title="View {{ last_match.away_team.name }} details">
                             <div class="poster-crest-wrap" title="{{ last_match.away_team.name }}">
                                 {% if last_match.away_team.get_logo_url %}
-                                <img src="{{ last_match.away_team.get_logo_url }}" alt="{{ last_match.away_team.name }}">
+                                <img src="{{ last_match.away_team.get_logo_url }}"
+                                    alt="{{ last_match.away_team.name }}">
                                 {% else %}
                                 <span class="poster-crest-fallback">{{ last_match.away_team.short_name|default:last_match.away_team.name|slice:":3"|upper }}</span>
                                 {% endif %}
@@ -3205,7 +3306,8 @@
 
                 <div class="matches-grid">
                     {% for m in completed_matches %}
-                    <div class="fixture-card {% if last_match and m.id == last_match.id or forloop.first %}highlight-last-match-card{% endif %}" onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
+                    <div class="fixture-card {% if last_match and m.id == last_match.id or forloop.first %}highlight-last-match-card{% endif %}"
+                        onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
                         <div>
                             <div class="fixture-card-header">
                                 <span>{{ m.match_date|date:"D, d M"|upper }}</span>
@@ -3235,7 +3337,7 @@
 
                                 <!-- Score -->
                                 <div class="match-score-pill">
-                                    {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <span style="font-size:11px;opacity:0.85;">({{ m.home_penalties }}–{{ m.away_penalties }} pens)</span>{% endif %}
+                                    {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <span style="font-size:11px;opacity:0.85;font-weight:800;">({{ m.home_penalties }} - {{ m.away_penalties }})</span>{% endif %}
                                 </div>
 
                                 <!-- Away Team -->
@@ -3259,11 +3361,16 @@
                         <div class="fixture-card-footer">
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                 <span class="fixture-round-tag">{{ m.tournament_round|upper }}</span>
+                                {% if m.group %}
+                                <span class="badge"
+                                    style="background:rgba(180,245,107,0.18);color:#17251e;border:1px solid #b4f56b;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;">{{ m.group.name }}</span>
+                                {% endif %}
                                 {% if m.round_byes %}
-                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE: {{ m.round_byes|join:', ' }}</span>
+                                <span class="badge"
+                                    style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">BYE:
+                                    {{ m.round_byes|join:', ' }}</span>
                                 {% endif %}
                             </div>
-                            <span class="fixture-venue-tag">📍 {{ m.venue|default:"Community Pitch" }}</span>
                         </div>
                     </div>
                     {% empty %}
@@ -3281,26 +3388,37 @@
             <div class="tab-pane {% if active_tab == 'table' %}active{% endif %}" id="pane-table">
                 <div class="section-header-row">
                     <div class="section-title-box">
+                        {% if group_tables or competition.is_group_stage %}
+                        <h2>Official Group Standings</h2>
+                        <p>Scoring: Win = 3 PTS · Draw = 1 PT · Loss = 0 PTS · Ranked by PTS, GD, GF · Top {{ competition.qualifiers_per_group|default:2 }} advance</p>
+                        {% else %}
                         <h2>Official League Standings</h2>
                         <p>Scoring: Win = 3 PTS · Draw = 1 PT · Loss = 0 PTS · Ranked by PTS, GD, GF</p>
+                        {% endif %}
                     </div>
                 </div>
 
                 {% if competition.is_completed and competition.winner %}
                 <!-- OFFICIAL LEAGUE WINNERS BANNER -->
-                <div class="champions-banner" style="background:linear-gradient(135deg, #142019 0%, #1c3829 60%, #0d1712 100%);border-radius:12px;padding:20px 24px;margin-bottom:20px;border:1px solid rgba(180,245,107,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                <div class="champions-banner"
+                    style="background:linear-gradient(135deg, #142019 0%, #1c3829 60%, #0d1712 100%);border-radius:12px;padding:20px 24px;margin-bottom:20px;border:1px solid rgba(180,245,107,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
                     <div style="display:flex;align-items:center;gap:16px;">
-                        <div style="width:64px;height:64px;border-radius:50%;background:#B4F56B;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(180,245,107,0.4);flex-shrink:0;">
+                        <div
+                            style="width:64px;height:64px;border-radius:50%;background:#B4F56B;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(180,245,107,0.4);flex-shrink:0;">
                             {% if competition.winner.get_logo_url %}
-                            <img src="{{ competition.winner.get_logo_url }}" alt="{{ competition.winner.name }}" style="width:48px;height:48px;object-fit:contain;border-radius:50%;">
+                            <img src="{{ competition.winner.get_logo_url }}" alt="{{ competition.winner.name }}"
+                                style="width:48px;height:48px;object-fit:contain;border-radius:50%;">
                             {% else %}
                             <span style="font-size:32px;">🏆</span>
                             {% endif %}
                         </div>
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                                <span style="background:#B4F56B;color:#142019;font-size:11px;font-weight:900;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">🏆 LEAGUE CHAMPION</span>
-                                <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;">COMPLETED</span>
+                                <span
+                                    style="background:#B4F56B;color:#142019;font-size:11px;font-weight:900;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">🏆
+                                    LEAGUE CHAMPION</span>
+                                <span
+                                    style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;">COMPLETED</span>
                             </div>
                             <h3 style="margin:0;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.02em;">{{ competition.winner.name }}</h3>
                             <p style="margin:3px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">
@@ -3309,22 +3427,161 @@
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;align-items:center;">
-                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">Won</div>
+                        <div
+                            style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">
+                                Won</div>
                             <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.won }}</div>
                         </div>
-                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">GD</div>
+                        <div
+                            style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">
+                                GD</div>
                             <div style="font-size:17px;font-weight:900;color:#fff;">{{ competition.winner_entry.goal_difference }}</div>
                         </div>
-                        <div style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
-                            <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">PTS</div>
+                        <div
+                            style="background:rgba(255,255,255,0.08);padding:8px 14px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.1);min-width:64px;">
+                            <div
+                                style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:700;">
+                                PTS</div>
                             <div style="font-size:17px;font-weight:900;color:#B4F56B;">{{ competition.winner_entry.points }}</div>
                         </div>
                     </div>
                 </div>
                 {% endif %}
 
+                {% if group_tables %}
+                {% if groups|length > 1 %}
+                <!-- GROUP FILTER PILLS -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+                    <span
+                        style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.8px;margin-right:4px;">Filter
+                        Group:</span>
+                    <button type="button" class="group-tab-btn active" onclick="filterUserGroupStandings('all', this)"
+                        style="background:var(--dark);color:white;border:1px solid var(--dark);padding:6px 14px;border-radius:4px;font-size:11px;font-weight:800;cursor:pointer;transition:0.15s;">
+                        All Groups
+                    </button>
+                    {% for grp in groups %}
+                    <button type="button" class="group-tab-btn"
+                        onclick="filterUserGroupStandings('{{ grp.slug|default:grp.name|slugify }}', this)"
+                        style="background:white;color:var(--text);border:1px solid var(--border);padding:6px 14px;border-radius:4px;font-size:11px;font-weight:800;cursor:pointer;transition:0.15s;">
+                        {{ grp.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- GROUP-WISE TABLES -->
+                {% for grp, rows in group_tables.items %}
+                <div class="user-group-card" data-group-slug="{{ grp.slug|default:grp.name|slugify }}"
+                    style="margin-bottom:26px;">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--dark);color:white;border:1px solid #26342b;border-top-left-radius:8px;border-top-right-radius:8px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:17px;">🏆</span>
+                            <h3
+                                style="margin:0;font-size:16px;font-weight:900;color:#B4F56B;text-transform:uppercase;letter-spacing:0.5px;">
+                                {{ grp.name }} Standings</h3>
+                            <span style="font-size:11px;color:#aab5ac;font-weight:700;">({{ rows|length }} Teams)</span>
+                        </div>
+                        <span
+                            style="background:rgba(180, 245, 107, 0.15);border:1px solid rgba(180, 245, 107, 0.35);color:#b4f56b;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:100px;">
+                            Top {{ competition.qualifiers_per_group|default:2 }} Advance to Knockout
+                        </span>
+                    </div>
+
+                    <div class="table-card" style="border-top-left-radius:0;border-top-right-radius:0;border-top:0;">
+                        <table class="standings-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px;">#</th>
+                                    <th>CLUB</th>
+                                    <th class="center">P</th>
+                                    <th class="center">W</th>
+                                    <th class="center">D</th>
+                                    <th class="center">L</th>
+                                    <th class="center col-gf">GF</th>
+                                    <th class="center col-ga">GA</th>
+                                    <th class="center">GD</th>
+                                    <th class="center pts-col">PTS</th>
+                                    <th class="col-form">FORM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in rows %}
+                                <tr {% if row.is_qualified_position %}style="background:rgba(180,245,107,0.06);"{% endif %}>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <span
+                                                class="rank-badge {% if row.is_qualified_position %}leader{% endif %}">
+                                                {{ row.position }}
+                                            </span>
+                                            {% if row.is_qualified_position %}
+                                            <span
+                                                style="background:#b4f56b;color:var(--dark);font-size:9px;font-weight:900;padding:1px 5px;border-radius:3px;"
+                                                title="Qualifying Position">Q</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="/team/{{ row.team.id }}/" class="table-club">
+                                            <div class="mini-crest">
+                                                {% if row.team.get_logo_url %}
+                                                <img src="{{ row.team.get_logo_url }}" alt="{{ row.team.name }}">
+                                                {% else %}
+                                                {{ row.team.short_name|default:"FC"|slice:":3" }}
+                                                {% endif %}
+                                            </div>
+                                            <span>{{ row.team.name }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="center">{{ row.played }}</td>
+                                    <td class="center">{{ row.won }}</td>
+                                    <td class="center">{{ row.drawn }}</td>
+                                    <td class="center">{{ row.lost }}</td>
+                                    <td class="center col-gf">{{ row.goals_for }}</td>
+                                    <td class="center col-ga">{{ row.goals_against }}</td>
+                                    <td class="center" style="font-weight:700;">{{ row.goal_difference }}</td>
+                                    <td class="center pts-col">{{ row.points }}</td>
+                                    <td class="col-form">
+                                        {% for f in row.form_list %}
+                                        <span
+                                            class="form-pill {% if f == 'W' %}w{% elif f == 'D' %}d{% else %}l{% endif %}">
+                                            {{ f }}
+                                        </span>
+                                        {% empty %}
+                                        <span style="color:var(--text-muted);font-size:11px;">-</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="11" style="text-align:center;padding:28px;color:var(--text-muted);">
+                                        No teams assigned to this group yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% elif competition.is_group_stage %}
+                <!-- GROUP STAGE CONFIGURED BUT NO GROUPS/TEAMS DRAWN YET -->
+                <div class="table-card" style="text-align:center;padding:48px 24px;">
+                    <div style="font-size:36px;margin-bottom:12px;">📊</div>
+                    <h3 style="font-family:var(--font-heading);font-size:22px;margin-bottom:6px;color:var(--dark);">
+                        Group Distribution Pending</h3>
+                    <p style="color:var(--text-muted);font-size:13px;max-width:480px;margin:0 auto;">
+                        This tournament is configured as a group-wise competition. Group tables and fixtures will
+                        display here as soon as the tournament organizer completes the team distribution.
+                    </p>
+                </div>
+
+                {% else %}
                 <div class="table-card">
                     <table class="standings-table">
                         <thead>
@@ -3362,7 +3619,9 @@
                                         </div>
                                         <span>{{ row.team.name }}</span>
                                         {% if competition.is_completed and forloop.first %}
-                                        <span style="background:linear-gradient(135deg, #FFD700, #FFA500);color:#000;font-size:10px;font-weight:900;padding:2px 7px;border-radius:4px;margin-left:6px;box-shadow:0 1px 3px rgba(0,0,0,0.2);white-space:nowrap;">🏆 WINNER</span>
+                                        <span
+                                            style="background:linear-gradient(135deg, #FFD700, #FFA500);color:#000;font-size:10px;font-weight:900;padding:2px 7px;border-radius:4px;margin-left:6px;box-shadow:0 1px 3px rgba(0,0,0,0.2);white-space:nowrap;">🏆
+                                            WINNER</span>
                                         {% endif %}
                                     </a>
                                 </td>
@@ -3396,6 +3655,7 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -3464,7 +3724,8 @@
                                             {{ s.full_name }}
                                         </a>
                                     </td>
-                                    <td><a href="/team/{{ s.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ s.team_short_name }}</a></td>
+                                    <td><a href="/team/{{ s.team_id }}/"
+                                            style="color:inherit;text-decoration:none;font-weight:700;">{{ s.team_short_name }}</a></td>
                                     <td class="stat-value-badge">{{ s.goals }}</td>
                                 </tr>
                                 {% empty %}
@@ -3477,7 +3738,7 @@
                         </table>
                     </div>
 
-                                        <!-- MOST ASSISTS / PLAYMAKERS -->
+                    <!-- MOST ASSISTS / PLAYMAKERS -->
                     <div class="stats-card" data-stat-card="assists" style="display:none;">
                         <div class="stats-header">
                             <div class="stats-header-info">
@@ -3508,8 +3769,10 @@
                                             {{ a.full_name }}
                                         </a>
                                     </td>
-                                    <td><a href="/team/{{ a.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ a.team_short_name|default:a.team_name }}</a></td>
-                                    <td class="stat-value-badge" style="color:var(--green-dark);font-weight:900;">&#127919; {{ a.assists }}</td>
+                                    <td><a href="/team/{{ a.team_id }}/"
+                                            style="color:inherit;text-decoration:none;font-weight:700;">{{ a.team_short_name|default:a.team_name }}</a></td>
+                                    <td class="stat-value-badge" style="color:var(--green-dark);font-weight:900;">
+                                        &#127919; {{ a.assists }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -3547,7 +3810,8 @@
                                 {% if cs.clean_sheets > 0 %}
                                 <tr>
                                     <td style="font-weight:900;">{{ cs.rank }}</td>
-                                    <td><a href="/team/{{ cs.team.id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ cs.team.name }}</a></td>
+                                    <td><a href="/team/{{ cs.team.id }}/"
+                                            style="color:inherit;text-decoration:none;font-weight:700;">{{ cs.team.name }}</a></td>
                                     <td style="color:var(--text-muted);">{{ cs.goalkeeper_name }}</td>
                                     <td class="stat-value-badge" style="color:var(--green-dark);">{{ cs.clean_sheets }}
                                     </td>
@@ -3589,12 +3853,14 @@
                                 <tr>
                                     <td style="font-weight:900;">{{ y.rank }}</td>
                                     <td style="font-weight:700;">{{ y.full_name }}</td>
-                                    <td><a href="/team/{{ y.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ y.team_name }}</a></td>
+                                    <td><a href="/team/{{ y.team_id }}/"
+                                            style="color:inherit;text-decoration:none;font-weight:700;">{{ y.team_name }}</a></td>
                                     <td class="stat-value-badge" style="color:#B45309;font-weight:900;">🟨 {{ y.yellow_cards }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Fair play! No yellow cards recorded.</td>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Fair
+                                        play! No yellow cards recorded.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -3627,12 +3893,14 @@
                                 <tr>
                                     <td style="font-weight:900;">{{ r.rank }}</td>
                                     <td style="font-weight:700;">{{ r.full_name }}</td>
-                                    <td><a href="/team/{{ r.team_id }}/" style="color:inherit;text-decoration:none;font-weight:700;">{{ r.team_name }}</a></td>
+                                    <td><a href="/team/{{ r.team_id }}/"
+                                            style="color:inherit;text-decoration:none;font-weight:700;">{{ r.team_name }}</a></td>
                                     <td class="stat-value-badge" style="color:#B91C1C;font-weight:900;">🟥 {{ r.red_cards }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Clean record! No red cards recorded.</td>
+                                    <td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">
+                                        Clean record! No red cards recorded.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -3683,17 +3951,18 @@
     <footer class="site-footer">
         <div class="container footer-inner">
             <div>
-                <strong>TOUCHLINE</strong> · Your Game. Your League.
+                <strong>FUTBOLIX</strong> · Your Game. Your League.
             </div>
             <div>
-                Live Competition Engine &copy; 2026 Touchline Platform
+                Live Competition Engine &copy; 2026 Futbolix Platform
             </div>
         </div>
     </footer>
 
     <!-- MOBILE FIXED BOTTOM NAVIGATION BAR (SHOWN ON MOBILE <= 768px) -->
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
-        <a href="?tab=upcoming" class="bnav-tab {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}" data-tab="upcoming">
+        <a href="?tab=upcoming" class="bnav-tab {% if active_tab == 'upcoming' or not active_tab %}active{% endif %}"
+            data-tab="upcoming">
             <div class="bnav-icon-wrap">
                 <span class="bnav-icon">📅</span>
             </div>
@@ -3734,68 +4003,95 @@
     <!-- MODAL 1: MATCH DETAILS & EVENTS -->
     <!-- MODAL: MATCH GAME DETAILS (POPUPS ON VIEW DETAILS) -->
     <div class="modal-backdrop modal-overlay" id="matchModal" onclick="closeMatchModal(event)">
-        <div class="modal-card match-popup-card" style="max-width:620px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.14), transparent 65%), linear-gradient(135deg, #0e1712 0%, #15231b 100%);border:1px solid rgba(180, 245, 107, 0.3);box-shadow:0 0 32px rgba(180, 245, 107, 0.18), 0 24px 50px rgba(0, 0, 0, 0.7);color:#ffffff;" onclick="event.stopPropagation()">
+        <div class="modal-card match-popup-card"
+            style="max-width:620px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(180, 245, 107, 0.14), transparent 65%), linear-gradient(135deg, #0e1712 0%, #15231b 100%);border:1px solid rgba(180, 245, 107, 0.3);box-shadow:0 0 32px rgba(180, 245, 107, 0.18), 0 24px 50px rgba(0, 0, 0, 0.7);color:#ffffff;"
+            onclick="event.stopPropagation()">
             <!-- HEADER -->
-            <div style="background:#0b1410;padding:14px 20px;border-bottom:1px solid #26342b;display:flex;justify-content:space-between;align-items:center;">
+            <div
+                style="background:#0b1410;padding:14px 20px;border-bottom:1px solid #26342b;display:flex;justify-content:space-between;align-items:center;">
                 <div>
-                    <span id="matchModalRound" style="font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#B4F56B;">Matchweek</span>
+                    <span id="matchModalRound"
+                        style="font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#B4F56B;">Matchweek</span>
                     <span style="color:rgba(255,255,255,0.4);margin:0 6px;">·</span>
-                    <span id="matchModalStatusPill" style="font-size:10px;font-weight:900;color:#B4F56B;background:rgba(180,245,107,0.15);padding:2px 8px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);letter-spacing:0.5px;">COMPLETED</span>
-                    <div id="matchModalMeta" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;">Date · Venue</div>
+                    <span id="matchModalStatusPill"
+                        style="font-size:10px;font-weight:900;color:#B4F56B;background:rgba(180,245,107,0.15);padding:2px 8px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);letter-spacing:0.5px;">COMPLETED</span>
+                    <div id="matchModalMeta" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;">Date ·
+                        Venue</div>
                 </div>
-                <button type="button" onclick="closeMatchModal()" style="color:#ffffff;background:rgba(255,255,255,0.12);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;border:none;cursor:pointer;font-size:14px;font-weight:bold;transition:all 0.2s;">✕</button>
+                <button type="button" onclick="closeMatchModal()"
+                    style="color:#ffffff;background:rgba(255,255,255,0.12);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;border:none;cursor:pointer;font-size:14px;font-weight:bold;transition:all 0.2s;">✕</button>
             </div>
 
             <!-- SCOREBOARD (LIKE USER IMAGE SPEC) -->
             <div style="padding:28px 24px 24px;">
-                <div class="popup-scoreboard-row" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div class="popup-scoreboard-row"
+                    style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
                     <!-- HOME TEAM -->
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                        <div id="matchModalHomeCrestWrap" class="poster-crest-wrap" style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
-                            <img id="matchModalHomeLogo" src="" alt="Home Logo" style="width:100%;height:100%;object-fit:contain;display:none;">
-                            <span id="matchModalHomeFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">HME</span>
+                        <div id="matchModalHomeCrestWrap" class="poster-crest-wrap"
+                            style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
+                            <img id="matchModalHomeLogo" src="" alt="Home Logo"
+                                style="width:100%;height:100%;object-fit:contain;display:none;">
+                            <span id="matchModalHomeFallback"
+                                style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">HME</span>
                         </div>
-                        <h3 id="matchModalHomeName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Home Team</h3>
-                        
+                        <h3 id="matchModalHomeName"
+                            style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">
+                            Home Team</h3>
+
                     </div>
 
                     <!-- CENTER SCORE -->
                     <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0;">
-                        <span id="matchModalHomeScore" style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
-                        <span id="matchModalDash" style="font-family:var(--font-heading, sans-serif);font-size:42px;font-weight:900;color:#B4F56B;line-height:1;opacity:0.9;">-</span>
-                        <span id="matchModalAwayScore" style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
+                        <span id="matchModalHomeScore"
+                            style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
+                        <span id="matchModalDash"
+                            style="font-family:var(--font-heading, sans-serif);font-size:42px;font-weight:900;color:#B4F56B;line-height:1;opacity:0.9;">-</span>
+                        <span id="matchModalAwayScore"
+                            style="font-family:var(--font-heading, sans-serif);font-size:58px;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 16px rgba(255,255,255,0.2);">0</span>
                     </div>
 
                     <!-- AWAY TEAM -->
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                        <div id="matchModalAwayCrestWrap" class="poster-crest-wrap" style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
-                            <img id="matchModalAwayLogo" src="" alt="Away Logo" style="width:100%;height:100%;object-fit:contain;display:none;">
-                            <span id="matchModalAwayFallback" style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">AWY</span>
+                        <div id="matchModalAwayCrestWrap" class="poster-crest-wrap"
+                            style="width:68px;height:68px;min-width:68px;min-height:68px;border-radius:50%;background:#142019;border:2px solid rgba(180, 245, 107, 0.45);box-shadow:0 6px 18px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;">
+                            <img id="matchModalAwayLogo" src="" alt="Away Logo"
+                                style="width:100%;height:100%;object-fit:contain;display:none;">
+                            <span id="matchModalAwayFallback"
+                                style="font-family:var(--font-heading, sans-serif);font-size:24px;font-weight:900;color:#B4F56B;">AWY</span>
                         </div>
-                        <h3 id="matchModalAwayName" style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">Away Team</h3>
-                        
+                        <h3 id="matchModalAwayName"
+                            style="font-family:var(--font-heading, sans-serif);font-size:20px;font-weight:800;color:#ffffff;margin:10px 0 4px;letter-spacing:0.5px;text-transform:uppercase;">
+                            Away Team</h3>
+
                     </div>
                 </div>
 
                 <!-- MATCH DETAILS (GOAL SCORERS & RED CARDS) -->
-                <div id="matchModalDetails" style="margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);display:none;">
-                    <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#B4F56B;margin-bottom:12px;text-align:center;">
+                <div id="matchModalDetails"
+                    style="margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);display:none;">
+                    <div
+                        style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#B4F56B;margin-bottom:12px;text-align:center;">
                         MATCH DETAILS &amp; EVENTS
                     </div>
                     <div style="display:flex;justify-content:space-between;gap:20px;align-items:flex-start;">
                         <!-- Home Team Highlights -->
-                        <div id="matchModalHomeHighlights" style="flex:1;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);">
+                        <div id="matchModalHomeHighlights"
+                            style="flex:1;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);">
                         </div>
                         <!-- Away Team Highlights -->
-                        <div id="matchModalAwayHighlights" style="flex:1;text-align:right;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);align-items:flex-end;">
+                        <div id="matchModalAwayHighlights"
+                            style="flex:1;text-align:right;display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.9);align-items:flex-end;">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- FOOTER -->
-            <div style="padding:12px 20px;background:#0b1410;display:flex;justify-content:flex-end;border-top:1px solid #26342b;">
-                <button type="button" onclick="closeMatchModal()" style="background:#B4F56B;color:#101B16;font-family:var(--font-heading, sans-serif);font-size:13px;font-weight:900;letter-spacing:0.5px;padding:8px 22px;border-radius:24px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(180,245,107,0.35);transition:all 0.2s;">CLOSE</button>
+            <div
+                style="padding:12px 20px;background:#0b1410;display:flex;justify-content:flex-end;border-top:1px solid #26342b;">
+                <button type="button" onclick="closeMatchModal()"
+                    style="background:#B4F56B;color:#101B16;font-family:var(--font-heading, sans-serif);font-size:13px;font-weight:900;letter-spacing:0.5px;padding:8px 22px;border-radius:24px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(180,245,107,0.35);transition:all 0.2s;">CLOSE</button>
             </div>
         </div>
     </div>
@@ -3847,35 +4143,47 @@
 
     <!-- MODAL 3: SOCIAL MEDIA SHARE DIALOG -->
     <div class="modal-overlay" id="shareModal" role="dialog" aria-modal="true" onclick="closeShareModal(event)">
-        <div class="modal-window" style="max-width:480px;border-radius:16px;padding:24px;background:#ffffff;box-shadow:0 20px 45px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+        <div class="modal-window"
+            style="max-width:480px;border-radius:16px;padding:24px;background:#ffffff;box-shadow:0 20px 45px rgba(0,0,0,0.25);"
+            onclick="event.stopPropagation()">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
                 <div>
-                    <span style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--green-dark,#1c3829);">SHARE LEAGUE</span>
-                    <h3 style="font-family:var(--font-heading);font-size:20px;font-weight:900;color:var(--dark);margin:4px 0 2px;">{{ competition.name }}</h3>
-                    <p style="font-size:12px;color:var(--text-muted);margin:0;">Share live fixtures, points table &amp; results with players &amp; fans.</p>
+                    <span
+                        style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--green-dark,#1c3829);">SHARE
+                        LEAGUE</span>
+                    <h3
+                        style="font-family:var(--font-heading);font-size:20px;font-weight:900;color:var(--dark);margin:4px 0 2px;">
+                        {{ competition.name }}</h3>
+                    <p style="font-size:12px;color:var(--text-muted);margin:0;">Share live fixtures, points table &amp;
+                        results with players &amp; fans.</p>
                 </div>
-                <button type="button" onclick="closeShareModal()" style="background:#f1f5f9;border:none;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-weight:bold;color:#475569;">✕</button>
+                <button type="button" onclick="closeShareModal()"
+                    style="background:#f1f5f9;border:none;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-weight:bold;color:#475569;">✕</button>
             </div>
 
             <!-- SOCIAL MEDIA PLATFORM BUTTONS -->
             <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;margin-bottom:18px;">
                 <!-- WhatsApp -->
-                <a id="shareWhatsAppBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#25D366;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
+                <a id="shareWhatsAppBtn" href="#" target="_blank" rel="noopener noreferrer"
+                    style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#25D366;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
                     <span style="font-size:18px;">💬</span>
                     <span>WhatsApp</span>
                 </a>
                 <!-- Telegram -->
-                <a id="shareTelegramBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#229ED9;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
+                <a id="shareTelegramBtn" href="#" target="_blank" rel="noopener noreferrer"
+                    style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#229ED9;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
                     <span style="font-size:18px;">✈️</span>
                     <span>Telegram</span>
                 </a>
                 <!-- X / Twitter -->
-                <a id="shareXBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#000000;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
+                <a id="shareXBtn" href="#" target="_blank" rel="noopener noreferrer"
+                    style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#000000;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
                     <span style="font-size:16px;">𝕏</span>
                     <span>X (Twitter)</span>
                 </a>
                 <!-- Facebook -->
-                <a id="shareFacebookBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#1877F2;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
+                <a id="shareFacebookBtn" href="#" target="_blank" rel="noopener noreferrer"
+                    style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:#1877F2;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;transition:transform 0.15s, opacity 0.15s;">
                     <span style="font-size:18px;">📘</span>
                     <span>Facebook</span>
                 </a>
@@ -3883,19 +4191,28 @@
 
             <!-- COPY LINK BOX -->
             <div style="margin-bottom:14px;">
-                <label style="display:block;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Page Link</label>
+                <label
+                    style="display:block;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Page
+                    Link</label>
                 <div style="display:flex;gap:6px;">
-                    <input type="text" id="shareLinkInput" readonly style="flex:1;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;background:#f8fafc;color:#334155;" value="">
-                    <button type="button" id="copyShareLinkBtn" onclick="copyShareLink()" style="background:var(--dark,#142019);color:#B4F56B;border:none;padding:9px 16px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;">
+                    <input type="text" id="shareLinkInput" readonly
+                        style="flex:1;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;background:#f8fafc;color:#334155;"
+                        value="">
+                    <button type="button" id="copyShareLinkBtn" onclick="copyShareLink()"
+                        style="background:var(--dark,#142019);color:#B4F56B;border:none;padding:9px 16px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;">
                         Copy Link
                     </button>
                 </div>
-                <div id="copyAlertSuccess" style="display:none;color:#16a34a;font-size:11px;font-weight:700;margin-top:4px;">✓ Link copied to clipboard!</div>
+                <div id="copyAlertSuccess"
+                    style="display:none;color:#16a34a;font-size:11px;font-weight:700;margin-top:4px;">✓ Link copied to
+                    clipboard!</div>
             </div>
 
             <!-- NATIVE SYSTEM SHARE (IF SUPPORTED) -->
-            <div id="nativeShareOption" style="display:none;border-top:1px solid #e2e8f0;padding-top:12px;text-align:center;">
-                <button type="button" onclick="triggerNativeShare()" style="background:#f1f5f9;color:var(--dark);border:1px solid #cbd5e1;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;width:100%;">
+            <div id="nativeShareOption"
+                style="display:none;border-top:1px solid #e2e8f0;padding-top:12px;text-align:center;">
+                <button type="button" onclick="triggerNativeShare()"
+                    style="background:#f1f5f9;color:var(--dark);border:1px solid #cbd5e1;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;width:100%;">
                     📲 More Sharing Options...
                 </button>
             </div>
@@ -3907,12 +4224,12 @@
         // Tab switching synced for both desktop top bar and mobile bottom nav
         function showStatCategory(category, btn) {
             if (btn) {
-                document.querySelectorAll('.stat-pill-btn').forEach(function(b) {
+                document.querySelectorAll('.stat-pill-btn').forEach(function (b) {
                     b.classList.remove('active');
                 });
                 btn.classList.add('active');
             } else {
-                document.querySelectorAll('.stat-pill-btn').forEach(function(b) {
+                document.querySelectorAll('.stat-pill-btn').forEach(function (b) {
                     const onclickAttr = b.getAttribute('onclick') || '';
                     if (onclickAttr.includes("'" + category + "'")) {
                         b.classList.add('active');
@@ -3922,7 +4239,7 @@
                 });
             }
             const cards = document.querySelectorAll('.stats-grid [data-stat-card]');
-            cards.forEach(function(card) {
+            cards.forEach(function (card) {
                 if (card.getAttribute('data-stat-card') === category) {
                     card.style.display = 'block';
                 } else {
@@ -3940,19 +4257,18 @@
         }
 
         function switchTab(tabId) {
-            {% if competition.is_pure_knockout %}
-            if (tabId === 'table') tabId = 'upcoming';
-            {% endif %}
+            const isPureKnockout = "{{ competition.is_pure_knockout|yesno:'true,false' }}" === "true";
+            if (isPureKnockout && tabId === 'table') tabId = 'upcoming';
             if (!tabId) tabId = 'upcoming';
 
             // Hide all tab panes
-            document.querySelectorAll(".tab-pane").forEach(function(p) {
+            document.querySelectorAll(".tab-pane").forEach(function (p) {
                 p.style.display = "none";
                 p.classList.remove("active");
             });
 
             // Deactivate all tab buttons & bottom nav tabs
-            document.querySelectorAll(".tab-btn, .bnav-tab").forEach(function(t) {
+            document.querySelectorAll(".tab-btn, .bnav-tab").forEach(function (t) {
                 t.classList.remove("active");
             });
 
@@ -3964,7 +4280,7 @@
             }
 
             // Sync active state on all buttons matching this tab
-            document.querySelectorAll("[data-tab='" + tabId + "']").forEach(function(t) {
+            document.querySelectorAll("[data-tab='" + tabId + "']").forEach(function (t) {
                 t.classList.add("active");
             });
 
@@ -3973,7 +4289,7 @@
                 const url = new URL(window.location.href);
                 url.searchParams.set('tab', tabId);
                 window.history.replaceState({ tab: tabId }, '', url.toString());
-            } catch (e) {}
+            } catch (e) { }
 
             // When switching to stats, ensure active category is shown
             if (tabId === 'stats') {
@@ -4173,7 +4489,7 @@
         // Share Modal Logic (WhatsApp, Telegram, X/Twitter, Facebook, Copy Link)
         function openShareModal() {
             const url = window.location.href;
-            const title = "Check out {{ competition.name|escapejs }} on Touchline!";
+            const title = "Check out {{ competition.name|escapejs }} on Futbolix!";
             const desc = "Follow live scores, points table, fixtures, and standings:";
 
             const linkInput = document.getElementById('shareLinkInput');
@@ -4251,9 +4567,31 @@
             if (navigator.share) {
                 navigator.share({
                     title: "{{ competition.name|escapejs }}",
-                    text: "Check out {{ competition.name|escapejs }} on Touchline - Live standings, fixtures and results:",
+                    text: "Check out {{ competition.name|escapejs }} on Futbolix - Live standings, fixtures and results:",
                     url: window.location.href
-                }).catch(() => {});
+                }).catch(() => { });
+            }
+        }
+
+        function filterUserGroupStandings(groupSlug, btn) {
+            const cards = document.querySelectorAll('.user-group-card');
+            cards.forEach(c => {
+                if (groupSlug === 'all' || c.getAttribute('data-group-slug') === groupSlug) {
+                    c.style.display = 'block';
+                } else {
+                    c.style.display = 'none';
+                }
+            });
+            const btns = document.querySelectorAll('.group-tab-btn');
+            btns.forEach(b => {
+                b.style.background = 'white';
+                b.style.color = 'var(--text)';
+                b.style.borderColor = 'var(--border)';
+            });
+            if (btn) {
+                btn.style.background = 'var(--dark)';
+                btn.style.color = 'white';
+                btn.style.borderColor = 'var(--dark)';
             }
         }
 

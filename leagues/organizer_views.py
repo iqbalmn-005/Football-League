@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import Q
 from datetime import datetime, date, time
 import json
@@ -70,7 +71,7 @@ def organizer_dashboard(request, comp_id=None):
             'events', 'events__player', 'events__team'
         ).order_by('-match_date', '-kickoff_time')
         all_matches = active_competition.matches.all().select_related('home_team', 'away_team', 'group').order_by('round_number', 'match_date', 'kickoff_time')
-        next_match = upcoming_matches.first()
+        next_match = upcoming_matches.filter(home_team__isnull=False, away_team__isnull=False).first() or upcoming_matches.first()
         last_match = completed_matches.first()
 
         # Group filtering for fixtures & results
@@ -115,7 +116,12 @@ def organizer_dashboard(request, comp_id=None):
             is_group_stage_completed = check_group_stage_completed(active_competition)
             if is_group_stage_completed:
                 update_qualified_teams(active_competition)
+                advance_knockout_bracket(active_competition)
             qualified_teams = list(active_competition.qualified_teams.select_related('team', 'group').order_by('group__name', 'rank_in_group'))
+        elif active_competition.tournament_format in ['LEAGUE_KNOCKOUT', 'PAGE_MCINTYRE']:
+            league_matches = active_competition.matches.filter(tournament_round__icontains='Matchweek')
+            if league_matches.exists() and not league_matches.exclude(status=MatchStatus.COMPLETED).exists():
+                advance_knockout_bracket(active_competition)
 
         # Eligible co-organizers to invite
         co_organizers = User.objects.filter(
@@ -273,7 +279,7 @@ def organizer_create_competition(request):
                 applicant=request.user,
                 full_name=request.user.get_full_name() or request.user.username,
                 organization_name=org_name,
-                email=request.user.email or f"{request.user.username}@touchline.local",
+                email=request.user.email or f"{request.user.username}@futbolix.local",
                 phone=getattr(request.user.profile, 'phone', '') or request.user.username,
                 city=location,
                 country="United Kingdom",
@@ -312,6 +318,9 @@ def generate_fixtures_view(request, comp_id):
         return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
+        if competition.is_completed:
+            messages.error(request, f"'{competition.name}' is already completed. Fixtures cannot be generated.")
+            return redirect(f"/organizer/{comp_id}/?tab=fixtures")
         teams_count = competition.teams.count()
         if teams_count < 2:
             messages.error(request, "Need at least 2 teams registered to generate fixtures.")
@@ -339,6 +348,9 @@ def add_fixture_view(request, comp_id):
         return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
+        if competition.is_completed:
+            messages.error(request, "Cannot add matches to a completed competition.")
+            return redirect(f"/organizer/{comp_id}/?tab=fixtures")
         home_team_id = request.POST.get('home_team_id')
         away_team_id = request.POST.get('away_team_id')
         match_date_str = request.POST.get('match_date')
@@ -438,126 +450,126 @@ def enter_match_result_view(request, match_id):
         return redirect(f"/organizer/{comp_id}/?tab=fixtures")
 
     if request.method == 'POST':
-        comp_id = match_obj.competition_id
+        with transaction.atomic():
+            comp_id = match_obj.competition_id
 
-        home_score = int(request.POST.get('home_score', 0))
-        away_score = int(request.POST.get('away_score', 0))
-        status = request.POST.get('status', MatchStatus.COMPLETED)
+            home_score = int(request.POST.get('home_score', 0))
+            away_score = int(request.POST.get('away_score', 0))
+            status = request.POST.get('status', MatchStatus.COMPLETED)
 
-        match_obj.home_score = home_score
-        match_obj.away_score = away_score
-        match_obj.status = status
-        match_obj.recorded_by = request.user
-        match_obj.save()
+            match_obj.home_score = home_score
+            match_obj.away_score = away_score
+            match_obj.status = status
+            match_obj.recorded_by = request.user
+            match_obj.save()
 
-        # Goal events recording
-        home_scorers_text = request.POST.get('home_scorers', '').strip()
-        away_scorers_text = request.POST.get('away_scorers', '').strip()
-
-        # Parse and save goals if specified
-        # Format example: "John Doe 12', Alex Smith 45'(P)"
-        def parse_and_record_scorers(scorers_str, team, opp_team):
-            if not scorers_str:
-                return
-            items = [item.strip() for item in scorers_str.split(',') if item.strip()]
-            for item in items:
-                # e.g. "Brooks 14'"
-                parts = item.split()
-                if not parts:
-                    continue
-                min_part = parts[-1].replace("'", "").replace("min", "")
-                name_part = " ".join(parts[:-1]) if len(parts) > 1 else parts[0]
-
-                is_pen = '(P)' in item.upper() or '(PEN)' in item.upper()
-                name_part = name_part.replace('(P)', '').replace('(p)', '').replace('(PEN)', '').replace('(pen)', '').strip()
-
-                try:
-                    minute = int("".join(filter(str.isdigit, min_part))) or 45
-                except Exception:
-                    minute = 45
-
-                # Find player or create
-                player = Player.objects.filter(team=team, full_name__icontains=name_part).first()
-                if not player:
-                    player = Player.objects.filter(team=team).first()
-
-                if player:
-                    MatchEvent.objects.create(
-                        match=match_obj,
-                        team=team,
-                        player=player,
-                        event_type=MatchEventType.PENALTY if is_pen else MatchEventType.GOAL,
-                        minute=min(minute, 120),
-                        description=f"Goal by {player.full_name}"
-                    )
-
-        # Clear existing goal events for this match before re-populating if requested
-        if 'reset_events' in request.POST:
+            # Always clear existing events for this match before re-populating to guarantee zero duplicate events
             match_obj.events.all().delete()
 
-        parse_and_record_scorers(home_scorers_text, match_obj.home_team, match_obj.away_team)
-        parse_and_record_scorers(away_scorers_text, match_obj.away_team, match_obj.home_team)
+            # Goal events recording
+            home_scorers_text = request.POST.get('home_scorers', '').strip()
+            away_scorers_text = request.POST.get('away_scorers', '').strip()
 
-        # Clean sheet events recording
-        if away_score == 0:
-            home_gks = list(match_obj.home_team.players.filter(position=PositionChoice.GK))
-            home_cs_keeper_id = request.POST.get('home_clean_sheet_keeper')
-            keeper = None
-            if home_cs_keeper_id:
-                try:
-                    keeper = match_obj.home_team.players.get(id=int(home_cs_keeper_id))
-                except (ValueError, Player.DoesNotExist):
-                    keeper = None
-            if not keeper and len(home_gks) == 1:
-                keeper = home_gks[0]
-            if keeper:
-                MatchEvent.objects.create(
-                    match=match_obj,
-                    team=match_obj.home_team,
-                    player=keeper,
-                    event_type=MatchEventType.CLEAN_SHEET,
-                    minute=90,
-                    description=f"Clean sheet kept by {keeper.full_name}"
-                )
+            # Parse and save goals if specified
+            # Format example: "John Doe 12', Alex Smith 45'(P)"
+            def parse_and_record_scorers(scorers_str, team, opp_team):
+                if not scorers_str:
+                    return
+                items = [item.strip() for item in scorers_str.split(',') if item.strip()]
+                for item in items:
+                    # e.g. "Brooks 14'"
+                    parts = item.split()
+                    if not parts:
+                        continue
+                    min_part = parts[-1].replace("'", "").replace("min", "")
+                    name_part = " ".join(parts[:-1]) if len(parts) > 1 else parts[0]
 
-        if home_score == 0:
-            away_gks = list(match_obj.away_team.players.filter(position=PositionChoice.GK))
-            away_cs_keeper_id = request.POST.get('away_clean_sheet_keeper')
-            keeper = None
-            if away_cs_keeper_id:
-                try:
-                    keeper = match_obj.away_team.players.get(id=int(away_cs_keeper_id))
-                except (ValueError, Player.DoesNotExist):
-                    keeper = None
-            if not keeper and len(away_gks) == 1:
-                keeper = away_gks[0]
-            if keeper:
-                MatchEvent.objects.create(
-                    match=match_obj,
-                    team=match_obj.away_team,
-                    player=keeper,
-                    event_type=MatchEventType.CLEAN_SHEET,
-                    minute=90,
-                    description=f"Clean sheet kept by {keeper.full_name}"
-                )
+                    is_pen = '(P)' in item.upper() or '(PEN)' in item.upper()
+                    name_part = name_part.replace('(P)', '').replace('(p)', '').replace('(PEN)', '').replace('(pen)', '').strip()
 
-        # Automatically recalculate standings!
-        recalculate_competition_standings(match_obj.competition)
+                    try:
+                        minute = int("".join(filter(str.isdigit, min_part))) or 45
+                    except Exception:
+                        minute = 45
 
-        # Automatically update qualified teams if group stage finishes
-        if match_obj.competition.is_group_stage:
-            from leagues.group_service import check_group_stage_completed, update_qualified_teams
-            if check_group_stage_completed(match_obj.competition):
-                update_qualified_teams(match_obj.competition)
+                    # Find player or create
+                    player = Player.objects.filter(team=team, full_name__icontains=name_part).first()
+                    if not player:
+                        player = Player.objects.filter(team=team).first()
 
-        # Automatically advance knockout brackets
-        advance_knockout_bracket(match_obj.competition)
+                    if player:
+                        MatchEvent.objects.create(
+                            match=match_obj,
+                            team=team,
+                            player=player,
+                            event_type=MatchEventType.PENALTY if is_pen else MatchEventType.GOAL,
+                            minute=min(minute, 120),
+                            description=f"Goal by {player.full_name}"
+                        )
 
-        ActivityLog.log(
-            'MATCH_RESULT_ENTERED',
-            f"Entered result: {match_obj.home_display_name} {home_score}-{away_score} {match_obj.away_display_name}.",
-            user=request.user
-        )
+            parse_and_record_scorers(home_scorers_text, match_obj.home_team, match_obj.away_team)
+            parse_and_record_scorers(away_scorers_text, match_obj.away_team, match_obj.home_team)
+
+            # Clean sheet events recording
+            if away_score == 0:
+                home_gks = list(match_obj.home_team.players.filter(position=PositionChoice.GK))
+                home_cs_keeper_id = request.POST.get('home_clean_sheet_keeper')
+                keeper = None
+                if home_cs_keeper_id:
+                    try:
+                        keeper = match_obj.home_team.players.get(id=int(home_cs_keeper_id))
+                    except (ValueError, Player.DoesNotExist):
+                        keeper = None
+                if not keeper and len(home_gks) == 1:
+                    keeper = home_gks[0]
+                if keeper:
+                    MatchEvent.objects.create(
+                        match=match_obj,
+                        team=match_obj.home_team,
+                        player=keeper,
+                        event_type=MatchEventType.CLEAN_SHEET,
+                        minute=90,
+                        description=f"Clean sheet kept by {keeper.full_name}"
+                    )
+
+            if home_score == 0:
+                away_gks = list(match_obj.away_team.players.filter(position=PositionChoice.GK))
+                away_cs_keeper_id = request.POST.get('away_clean_sheet_keeper')
+                keeper = None
+                if away_cs_keeper_id:
+                    try:
+                        keeper = match_obj.away_team.players.get(id=int(away_cs_keeper_id))
+                    except (ValueError, Player.DoesNotExist):
+                        keeper = None
+                if not keeper and len(away_gks) == 1:
+                    keeper = away_gks[0]
+                if keeper:
+                    MatchEvent.objects.create(
+                        match=match_obj,
+                        team=match_obj.away_team,
+                        player=keeper,
+                        event_type=MatchEventType.CLEAN_SHEET,
+                        minute=90,
+                        description=f"Clean sheet kept by {keeper.full_name}"
+                    )
+
+            # Automatically recalculate standings!
+            recalculate_competition_standings(match_obj.competition)
+
+            # Automatically update qualified teams if group stage finishes
+            if match_obj.competition.is_group_stage:
+                from leagues.group_service import check_group_stage_completed, update_qualified_teams
+                if check_group_stage_completed(match_obj.competition):
+                    update_qualified_teams(match_obj.competition)
+
+            # Automatically advance knockout brackets
+            advance_knockout_bracket(match_obj.competition)
+
+            ActivityLog.log(
+                'MATCH_RESULT_ENTERED',
+                f"Entered result: {match_obj.home_display_name} {home_score}-{away_score} {match_obj.away_display_name}.",
+                user=request.user
+            )
 
         messages.success(request, f"Result recorded: {match_obj.home_display_name} {home_score} - {away_score} {match_obj.away_display_name}. Points table updated!")
         return redirect(f"/organizer/{comp_id}/?tab=fixtures")
@@ -571,6 +583,9 @@ def add_team_view(request, comp_id):
         return redirect(f"/competition/{comp_id}/")
     if request.method == 'POST':
         competition = get_object_or_404(Competition, id=comp_id)
+        if competition.is_completed:
+            messages.error(request, "This competition is already completed. New teams cannot be added.")
+            return redirect(f"/organizer/{comp_id}/?tab=teams")
 
         team_name = request.POST.get('name', '').strip()
         short_name = request.POST.get('short_name', '').strip()
@@ -784,29 +799,37 @@ def update_competition_view(request, comp_id):
             competition.category = category
         if description is not None:
             competition.description = description
-        if 'extra_time_before_penalties' in request.POST:
-            et_val = request.POST.get('extra_time_before_penalties')
-            competition.extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
-        if 'tournament_format' in request.POST:
-            competition.tournament_format = request.POST.get('tournament_format')
-        if 'num_groups' in request.POST:
+        if 'max_teams' in request.POST:
             try:
-                new_num_groups = int(request.POST.get('num_groups') or 2)
-                competition.num_groups = new_num_groups
-                if competition.is_group_stage:
-                    from leagues.group_service import create_or_sync_groups
-                    create_or_sync_groups(competition, new_num_groups)
+                new_max = int(request.POST.get('max_teams'))
+                if new_max >= 2:
+                    competition.max_teams = new_max
             except (ValueError, TypeError):
                 pass
-        if 'qualifiers_per_group' in request.POST:
-            try:
-                competition.qualifiers_per_group = int(request.POST.get('qualifiers_per_group') or 2)
-            except (ValueError, TypeError):
-                pass
-        if 'fixture_format' in request.POST:
-            competition.fixture_format = request.POST.get('fixture_format')
-        if 'distribution_method' in request.POST:
-            competition.distribution_method = request.POST.get('distribution_method')
+        if not competition.is_completed:
+            if 'extra_time_before_penalties' in request.POST:
+                et_val = request.POST.get('extra_time_before_penalties')
+                competition.extra_time_before_penalties = et_val in ['1', 'on', 'true', 'True', 'enabled', 'ENABLED']
+            if 'tournament_format' in request.POST:
+                competition.tournament_format = request.POST.get('tournament_format')
+            if 'num_groups' in request.POST:
+                try:
+                    new_num_groups = int(request.POST.get('num_groups') or 2)
+                    competition.num_groups = new_num_groups
+                    if competition.is_group_stage:
+                        from leagues.group_service import create_or_sync_groups
+                        create_or_sync_groups(competition, new_num_groups)
+                except (ValueError, TypeError):
+                    pass
+            if 'qualifiers_per_group' in request.POST:
+                try:
+                    competition.qualifiers_per_group = int(request.POST.get('qualifiers_per_group') or 2)
+                except (ValueError, TypeError):
+                    pass
+            if 'fixture_format' in request.POST:
+                competition.fixture_format = request.POST.get('fixture_format')
+            if 'distribution_method' in request.POST:
+                competition.distribution_method = request.POST.get('distribution_method')
 
         if 'logo' in request.FILES:
             competition.logo = request.FILES['logo']
@@ -850,6 +873,8 @@ def api_distribute_teams(request, comp_id):
     Supports both 'automatic' and 'manual' distribution.
     """
     competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_completed:
+        return JsonResponse({'success': False, 'error': "This competition is already completed. Teams and groups cannot be modified."}, status=400)
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 
@@ -902,6 +927,8 @@ def api_confirm_groups(request, comp_id):
     Prevents confirmation while teams remain unassigned.
     """
     competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_completed:
+        return JsonResponse({'success': False, 'error': "This competition is already completed. Group assignments cannot be modified."}, status=400)
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 
@@ -925,6 +952,11 @@ def api_generate_group_fixtures(request, comp_id):
     (single or double round-robin with BYE handling for odd team counts).
     """
     competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_completed:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'error': "This competition is already completed. Group fixtures cannot be generated."}, status=400)
+        messages.error(request, "This competition is already completed. Group fixtures cannot be generated.")
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 
@@ -960,6 +992,8 @@ def api_update_qualification_settings(request, comp_id):
     Validates that qualification count does not exceed group size.
     """
     competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_completed:
+        return JsonResponse({'success': False, 'error': "This competition is already completed. Qualification settings cannot be modified."}, status=400)
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 
@@ -999,6 +1033,11 @@ def api_generate_knockout_stage(request, comp_id):
     after the group stage is completed.
     """
     competition = get_object_or_404(Competition, id=comp_id)
+    if competition.is_completed:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'error': "This tournament is already completed. Knockout fixtures cannot be generated."}, status=400)
+        messages.error(request, "This tournament is already completed. Knockout fixtures cannot be generated.")
+        return redirect(f"/organizer/{comp_id}/?tab=fixtures")
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 

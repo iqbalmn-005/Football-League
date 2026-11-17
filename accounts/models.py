@@ -119,9 +119,9 @@ class ActivityLog(models.Model):
 
 
 class PlatformSetting(models.Model):
-    platform_name = models.CharField(max_length=100, default="TOUCHLINE")
+    platform_name = models.CharField(max_length=100, default="FUTBOLIX")
     tagline = models.CharField(max_length=200, default="Your Game. Your League.")
-    contact_email = models.EmailField(default="support@touchline.football")
+    contact_email = models.EmailField(default="support@futbolix.football")
     allow_organizer_registration = models.BooleanField(default=True)
     auto_publish_fixtures = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)

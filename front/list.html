@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Touchline | Football Starts Here</title>
+    <title>Futbolix | Football Starts Here</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
@@ -204,6 +204,18 @@
             color: white;
             border: 0;
             font-size: 26px;
+        }
+
+        .mobile-nav-auth {
+            display: none;
+        }
+
+        .mobile-signup-text {
+            display: none;
+        }
+
+        .desktop-signup-text {
+            display: inline;
         }
 
         /* HERO */
@@ -770,7 +782,7 @@
             font-weight: 800;
         }
 
-        /* TOUCHLINE TEAM PROFILE DASHBOARD */
+        /* FUTBOLIX TEAM PROFILE DASHBOARD */
         .tp-section {
             background: var(--cream);
             position: relative;
@@ -1693,37 +1705,20 @@
                 min-height: 65px;
                 flex-wrap: wrap;
                 gap: 10px;
+                align-items: center;
             }
 
             .logo {
                 font-size: 22px;
-            }
-
-            .menu-toggle {
-                display: block;
-                margin-left: auto;
-            }
-
-            .nav-links {
-                display: none;
-                width: 100%;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0;
-                padding: 8px 0 15px;
-            }
-
-            .nav-links.open {
-                display: flex;
-            }
-
-            .nav-links a {
-                padding: 11px 0;
-                border-top: 1px solid #29362d;
+                order: 1;
             }
 
             .nav-actions {
-                gap: 12px;
+                order: 2;
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
 
             .nav-actions>a:first-child {
@@ -1731,8 +1726,93 @@
             }
 
             .nav-actions .btn {
-                padding: 10px;
-                font-size: 10px;
+                padding: 8px 14px;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+                border-radius: 6px;
+                background: var(--green);
+                color: var(--dark) !important;
+                white-space: nowrap;
+            }
+
+            .menu-toggle {
+                display: block;
+                order: 3;
+                margin-left: 0;
+                background: transparent;
+                color: white;
+                border: 0;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 4px 6px;
+                line-height: 1;
+            }
+
+            .nav-links {
+                order: 4;
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 10px 0 16px;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 12px 0;
+                border-top: 1px solid #29362d;
+                font-size: 13px;
+            }
+
+            .mobile-signup-text {
+                display: inline;
+            }
+
+            .desktop-signup-text {
+                display: none;
+            }
+
+            .mobile-nav-auth {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding-top: 14px;
+                margin-top: 6px;
+                border-top: 1px solid #29362d;
+            }
+
+            .mobile-nav-auth .mobile-btn-primary {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--green);
+                color: var(--dark) !important;
+                padding: 11px 16px;
+                font-size: 13px;
+                font-weight: 800;
+                text-align: center;
+                border-radius: 8px;
+                text-decoration: none;
+                letter-spacing: 0.5px;
+                border-top: none;
+            }
+
+            .mobile-nav-auth .mobile-auth-link {
+                text-align: center;
+                font-size: 12px;
+                color: var(--muted);
+                padding: 4px 0;
+                text-decoration: none;
+                border-top: none !important;
+            }
+
+            .mobile-nav-auth .mobile-auth-link strong {
+                color: var(--green);
             }
 
             .hero-grid {
@@ -1989,8 +2069,16 @@
                 gap: 25px 12px;
             }
         }
-            .pill-active { background:#b4f56b; color:#101b16; }
-        .pill-inactive { background:rgba(16,27,22,0.85); color:white; }
+
+        .pill-active {
+            background: #b4f56b;
+            color: #101b16;
+        }
+
+        .pill-inactive {
+            background: rgba(16, 27, 22, 0.85);
+            color: white;
+        }
     </style>
 </head>
 
@@ -1999,31 +2087,52 @@
     <!-- NAVIGATION -->
     <header class="navbar" id="home">
         <div class="container nav-inner">
-            <a href="/" class="logo"><span class="logo-mark">//</span>TOUCHLINE</a>
-
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <a href="/" class="logo"><span class="logo-mark">//</span>FUTBOLIX</a>
 
             <nav class="nav-links" id="navLinks">
                 <a href="#tournaments">Competitions</a>
                 <a href="#organizers">For Organizers</a>
                 <a href="#contact">Contact</a>
+                <div class="mobile-nav-auth">
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.profile.is_super_admin %}
+                            <a href="/super-admin/" class="btn mobile-btn-primary">Super Admin <span class="arrow">↗</span></a>
+                        {% elif user.profile.role == 'ORGANIZER' %}
+                            <a href="/organizer/" class="btn mobile-btn-primary">Organizer Dashboard <span class="arrow">↗</span></a>
+                        {% else %}
+                            <a href="/dashboard/" class="btn mobile-btn-primary">My Portal <span class="arrow">↗</span></a>
+                        {% endif %}
+                        <a href="/logout/" class="mobile-auth-link">Sign Out</a>
+                    {% else %}
+                        <a href="/register/" class="btn mobile-btn-primary">Sign Up <span class="arrow">↗</span></a>
+                        <a href="/login/" class="mobile-auth-link">Already registered? <strong>Sign In &rarr;</strong></a>
+                    {% endif %}
+                </div>
             </nav>
 
             <div class="nav-actions">
                 {% if user.is_authenticated %}
-                    {% if user.is_superuser or user.profile.is_super_admin %}
-                        <a href="/super-admin/" class="btn" style="background:var(--green);color:var(--dark);">Super Admin <span class="arrow">↗</span></a>
-                    {% elif user.profile.role == 'ORGANIZER' %}
-                        <a href="/organizer/" class="btn" style="background:var(--green);color:var(--dark);">Organizer Dashboard <span class="arrow">↗</span></a>
-                    {% else %}
-                        <a href="/dashboard/" class="btn btn-outline">My Portal</a>
-                    {% endif %}
-                    <a href="/logout/" style="font-size:11px;color:var(--muted);margin-left:6px;font-weight:700;">Sign Out</a>
+                {% if user.is_superuser or user.profile.is_super_admin %}
+                <a href="/super-admin/" class="btn" style="background:var(--green);color:var(--dark);">Super Admin <span
+                        class="arrow">↗</span></a>
+                {% elif user.profile.role == 'ORGANIZER' %}
+                <a href="/organizer/" class="btn" style="background:var(--green);color:var(--dark);">Organizer Dashboard
+                    <span class="arrow">↗</span></a>
                 {% else %}
-                    <a href="/login/" style="font-size:12px;color:#d8e0d9;font-weight:700;">Sign in</a>
-                    <a href="/register/" class="btn">Get Started <span class="arrow">↗</span></a>
+                <a href="/dashboard/" class="btn btn-outline">My Portal</a>
+                {% endif %}
+                <a href="/logout/" style="font-size:11px;color:var(--muted);margin-left:6px;font-weight:700;">Sign
+                    Out</a>
+                {% else %}
+                <a href="/login/" style="font-size:12px;color:#d8e0d9;font-weight:700;">Sign in</a>
+                <a href="/register/" class="btn nav-signup-btn">
+                    <span class="desktop-signup-text">Get Started <span class="arrow">↗</span></span>
+                    <span class="mobile-signup-text">Sign Up</span>
+                </a>
                 {% endif %}
             </div>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
         </div>
     </header>
 
@@ -2031,24 +2140,32 @@
     <div class="container" style="margin-top:16px;">
         {% for message in messages %}
         {% if message.tags == 'error' %}
-        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
+        <div
+            style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
             <span>● {{ message }}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+            <button onclick="this.parentElement.remove()"
+                style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
         </div>
         {% elif message.tags == 'success' %}
-        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
+        <div
+            style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
             <span>● {{ message }}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+            <button onclick="this.parentElement.remove()"
+                style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
         </div>
         {% elif message.tags == 'warning' %}
-        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fdf6b2;color:#723b13;border:1px solid #fce96a;">
+        <div
+            style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#fdf6b2;color:#723b13;border:1px solid #fce96a;">
             <span>● {{ message }}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+            <button onclick="this.parentElement.remove()"
+                style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
         </div>
         {% else %}
-        <div style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;">
+        <div
+            style="padding:12px 18px;border-radius:4px;margin-bottom:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;">
             <span>● {{ message }}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+            <button onclick="this.parentElement.remove()"
+                style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
         </div>
         {% endif %}
         {% endfor %}
@@ -2070,13 +2187,14 @@
                     <div class="hero-buttons">
                         <a href="#tournaments" class="btn">Explore Competitions <span class="arrow">↓</span></a>
                         {% if user.is_authenticated %}
-                            {% if user.profile.role == 'ORGANIZER' %}
-                                <a href="/organizer/" class="btn btn-dark">Open Dashboard <span class="arrow">↗</span></a>
-                            {% else %}
-                                <a href="/organizer/apply/" class="btn btn-dark">Become an Organizer <span class="arrow">↗</span></a>
-                            {% endif %}
+                        {% if user.profile.role == 'ORGANIZER' %}
+                        <a href="/organizer/" class="btn btn-dark">Open Dashboard <span class="arrow">↗</span></a>
                         {% else %}
-                            <a href="/register/" class="btn btn-dark">Register as Organizer <span class="arrow">↗</span></a>
+                        <a href="/organizer/apply/" class="btn btn-dark">Become an Organizer <span
+                                class="arrow">↗</span></a>
+                        {% endif %}
+                        {% else %}
+                        <a href="/register/" class="btn btn-dark">Register as Organizer <span class="arrow">↗</span></a>
                         {% endif %}
                     </div>
                     <div class="hero-note">
@@ -2089,7 +2207,8 @@
                     {% if featured_comp %}
                     <div class="featured-card">
                         <div>
-                            <span class="card-kicker" style="font-size:9px;text-transform:uppercase;color:var(--green-dark);font-weight:800;">
+                            <span class="card-kicker"
+                                style="font-size:9px;text-transform:uppercase;color:var(--green-dark);font-weight:800;">
                                 {{ featured_comp.get_category_display }} · {{ featured_comp.get_tournament_format_display }}
                             </span>
                             <h3 style="font-size:18px;margin:4px 0;">{{ featured_comp.name }}</h3>
@@ -2097,7 +2216,8 @@
                                 <span>◉ {{ featured_comp.location }}</span> · <span>{{ featured_comp.total_teams_count }} Teams</span>
                             </div>
                         </div>
-                        <a href="/competition/{{ featured_comp.id }}/" class="btn" style="padding:8px 12px;font-size:10px;">View ↗</a>
+                        <a href="/competition/{{ featured_comp.id }}/" class="btn"
+                            style="padding:8px 12px;font-size:10px;">View ↗</a>
                     </div>
                     {% endif %}
                 </div>
@@ -2115,7 +2235,7 @@
                             One-day showdowns to weekend classics. There is a competition for every team.
                         </p>
                     </div>
-                    <a href="#tournamentGrid" class="text-link">All competitions <span>→</span></a>
+                    <a href="{% url 'all_competitions' %}" class="text-link">See all competitions ({{ total_leagues }}) <span>&rarr;</span></a>
                 </div>
 
                 <div class="filter-bar">
@@ -2126,19 +2246,24 @@
                         <button class="filter-btn" data-filter="5-a-side">5-a-side</button>
                         <button class="filter-btn" data-filter="youth">Youth</button>
                     </div>
-                    <label class="search-box">
-                        <span>⌕</span>
-                        <input id="searchInput" type="search" placeholder="Search tournaments or venues..." aria-label="Search tournaments">
-                    </label>
+                    <form method="get" action="{% url 'all_competitions' %}" style="display:flex;align-items:center;margin:0;">
+                        <label class="search-box">
+                            <span>⌕</span>
+                            <input id="searchInput" name="q" type="search" placeholder="Search tournaments or venues..."
+                                aria-label="Search tournaments" autocomplete="off">
+                        </label>
+                    </form>
                 </div>
 
                 <div class="tournament-grid" id="tournamentGrid">
-                    {% for comp in competitions %}
-                    <article class="tournament-card" data-category="{{ comp.category }}" data-name="{{ comp.name|lower }} {{ comp.location|lower }}">
+                    {% for comp in competitions|slice:":6" %}
+                    <article class="tournament-card" data-category="{{ comp.category }}"
+                        data-name="{{ comp.name|lower }} {{ comp.location|lower }}">
                         <a href="/competition/{{ comp.id }}/" aria-label="View {{ comp.name }}">
                             <div class="tournament-image">
                                 <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" loading="lazy">
-                                <span class="pill {% if comp.status == 'ACTIVE' %}pill-active{% else %}pill-inactive{% endif %}">
+                                <span
+                                    class="pill {% if comp.status == 'ACTIVE' %}pill-active{% elif comp.status == 'UPCOMING' %}pill-upcoming{% else %}pill-inactive{% endif %}">
                                     {{ comp.get_status_display }}
                                 </span>
                             </div>
@@ -2151,19 +2276,34 @@
                                 <span>▦ {{ comp.season }}</span>
                             </div>
                             <div class="card-footer">
-                                <span class="slots">{{ comp.spots_left }} spots left</span>
                                 <a href="/competition/{{ comp.id }}/">View competition ↗</a>
                             </div>
                         </div>
                     </article>
                     {% empty %}
-                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white; border-radius: 4px; border: 1px solid var(--border);">
+                    <div
+                        style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white; border-radius: 4px; border: 1px solid var(--border);">
                         <h3>No competitions found</h3>
-                        <p style="color:var(--muted);font-size:12px;margin-top:8px;">Check back soon or create your own tournament as an organizer.</p>
+                        <p style="color:var(--muted);font-size:12px;margin-top:8px;">Check back soon or create your own
+                            tournament as an organizer.</p>
                     </div>
                     {% endfor %}
                 </div>
-                <p class="empty-state" id="emptyState" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:13px;">
+
+                {% if total_leagues > 6 or competitions|length > 6 %}
+                <!-- SEE MORE TOURNAMENTS BUTTON -->
+                <div style="text-align:center;margin-top:42px;">
+                    <a href="{% url 'all_competitions' %}" class="btn" style="padding:15px 36px;font-size:14px;letter-spacing:1px;font-weight:900;display:inline-flex;align-items:center;gap:12px;border-radius:10px;background:var(--green);color:var(--dark);box-shadow:0 8px 24px rgba(182, 250, 109, 0.28);text-transform:uppercase;transition:all 0.2s;">
+                        <span>See More Leagues &amp; Tournaments</span>
+                        <span class="arrow" style="font-size:18px;">&rarr;</span>
+                    </a>
+                    <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+                        Showing 6 of {{ total_leagues }} competitions. Browse all formats, categories, and locations.
+                    </p>
+                </div>
+                {% endif %}
+                <p class="empty-state" id="emptyState"
+                    style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:13px;">
                     No competitions match your search. Try a different keyword or category.
                 </p>
             </div>
@@ -2176,34 +2316,38 @@
                     <p class="eyebrow">● Less admin. More football.</p>
                     <h2>Run the show.<br>Not spreadsheets.</h2>
                     <p class="section-description">
-                        From team registrations to the final whistle, everything you need to run a brilliant football competition, all in one place.
+                        From team registrations to the final whistle, everything you need to run a brilliant football
+                        competition, all in one place.
                     </p>
                     <ul class="benefits">
                         <li><span>▤</span>
-                            <div><strong>Fixtures that practically build themselves</strong>Generate balanced round-robin matchweeks in a single click.</div>
+                            <div><strong>Fixtures that practically build themselves</strong>Generate balanced
+                                round-robin matchweeks in a single click.</div>
                         </li>
                         <li><span>♧</span>
-                            <div><strong>Your teams. Your rules. Zero chasing.</strong>Manage registrations, rosters, squads, and player cards in one place.</div>
+                            <div><strong>Your teams. Your rules. Zero chasing.</strong>Manage registrations, rosters,
+                                squads, and player cards in one place.</div>
                         </li>
                         <li><span>▥</span>
-                            <div><strong>Every result, instantly up to date.</strong>Live tables, goal difference, top scorers, and clean sheet tracking.</div>
+                            <div><strong>Every result, instantly up to date.</strong>Live tables, goal difference, top
+                                scorers, and clean sheet tracking.</div>
                         </li>
                     </ul>
                     {% if user.is_authenticated %}
-                        {% if user.profile.role == 'ORGANIZER' %}
-                            <a href="/organizer/" class="btn">Enter Organizer Console <span class="arrow">↗</span></a>
-                        {% else %}
-                            <a href="/organizer/apply/" class="btn">Apply as League Organizer <span class="arrow">↗</span></a>
-                        {% endif %}
+                    {% if user.profile.role == 'ORGANIZER' %}
+                    <a href="/organizer/" class="btn">Enter Organizer Console <span class="arrow">↗</span></a>
                     {% else %}
-                        <a href="/register/" class="btn">Start organizing — it is free <span class="arrow">↗</span></a>
+                    <a href="/organizer/apply/" class="btn">Apply as League Organizer <span class="arrow">↗</span></a>
+                    {% endif %}
+                    {% else %}
+                    <a href="/register/" class="btn">Start organizing — it is free <span class="arrow">↗</span></a>
                     {% endif %}
                 </div>
 
                 <div class="dashboard-preview">
                     <div class="dashboard-window">
                         <div class="dashboard-top">
-                            <strong><span style="color:#b4f56b">//</span> TOUCHLINE</strong>
+                            <strong><span style="color:#b4f56b">//</span> FUTBOLIX</strong>
                             <span>Live Engine</span>
                             <span>●</span>
                         </div>
@@ -2215,9 +2359,12 @@
                             <div class="metric"><strong>100%</strong><small>Automated Standings</small></div>
                         </div>
                         <div class="dashboard-lines">
-                            <div class="dashboard-line"><span>Round-robin scheduling</span><span>Up to date ✓</span></div>
-                            <div class="dashboard-line"><span>Disciplinary & card tracking</span><span>Live tracking ✓</span></div>
-                            <div class="dashboard-line"><span>Goal & assist leaderboards</span><span>Updated ✓</span></div>
+                            <div class="dashboard-line"><span>Round-robin scheduling</span><span>Up to date ✓</span>
+                            </div>
+                            <div class="dashboard-line"><span>Disciplinary & card tracking</span><span>Live tracking
+                                    ✓</span></div>
+                            <div class="dashboard-line"><span>Goal & assist leaderboards</span><span>Updated ✓</span>
+                            </div>
                         </div>
                         <div class="dashboard-notice">✓ All fixtures and standings live</div>
                     </div>
@@ -2234,9 +2381,9 @@
                 </div>
                 <div class="cta-actions">
                     {% if user.is_authenticated %}
-                        <a href="/organizer/" class="btn btn-dark">Open Console <span class="arrow">↗</span></a>
+                    <a href="/organizer/" class="btn btn-dark">Open Console <span class="arrow">↗</span></a>
                     {% else %}
-                        <a href="/register/" class="btn btn-dark">Create your account <span class="arrow">↗</span></a>
+                    <a href="/register/" class="btn btn-dark">Create your account <span class="arrow">↗</span></a>
                     {% endif %}
                     <a href="#tournaments" class="text-link">Explore all competitions →</a>
                 </div>
@@ -2249,8 +2396,9 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                    <a href="/" class="logo"><span class="logo-mark">//</span>TOUCHLINE</a>
-                    <p>For the love of the game. Professional software for football leagues, cups, and grassroots organizers.</p>
+                    <a href="/" class="logo"><span class="logo-mark">//</span>FUTBOLIX</a>
+                    <p>For the love of the game. Professional software for football leagues, cups, and grassroots
+                        organizers.</p>
                     <div class="socials">
                         <a href="#contact" aria-label="Social">◎</a>
                         <a href="#contact" aria-label="Social">f</a>
@@ -2270,14 +2418,14 @@
                     <a href="/super-admin/">Super Admin</a>
                 </div>
                 <div class="footer-column">
-                    <h4>Touchline</h4>
+                    <h4>Futbolix</h4>
                     <a href="#home">About platform</a>
                     <a href="#contact">Contact team</a>
                     <a href="#home">Terms of service</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>© 2026 TOUCHLINE. Your Game. Your League.</span>
+                <span>© 2026 FUTBOLIX. Your Game. Your League.</span>
                 <div class="footer-legal">
                     <a href="#contact">Privacy policy</a>
                     <a href="#contact">Terms of use</a>
@@ -2357,4 +2505,5 @@
         }
     </script>
 </body>
+
 </html>

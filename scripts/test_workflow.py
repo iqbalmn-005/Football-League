@@ -21,12 +21,12 @@ from fixtures.services import generate_round_robin_fixtures
 
 def run_tests():
     client = Client()
-    print("=== STARTING TOUCHLINE INTEGRATION TESTS ===")
+    print("=== STARTING FUTBOLIX INTEGRATION TESTS ===")
 
     # Test 1: Landing Page
     res = client.get('/')
     assert res.status_code == 200, f"Landing page failed with {res.status_code}"
-    assert b"TOUCHLINE" in res.content, "TOUCHLINE brand missing on landing page"
+    assert b"FUTBOLIX" in res.content, "FUTBOLIX brand missing on landing page"
     assert b"Metropolis Premier League" in res.content, "Seeded competition missing on landing page"
     print("[OK] Test 1 Passed: Landing page (list.html) renders with dynamic competitions.")
 

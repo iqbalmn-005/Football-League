@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penalty Shootout: {{ match.home_display_name }} vs {{ match.away_display_name }} | Touchline</title>
+    <title>Penalty Shootout: {{ match.home_display_name }} vs {{ match.away_display_name }} | Futbolix</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #101820;
-            --card-bg: #1D2A35;
-            --secondary-bg: #293C49;
+            --bg-color: #0b1410;
+            --card-bg: #122119;
+            --secondary-bg: #1a2f24;
             --text-primary: #F7FAFC;
-            --text-secondary: #B5C0CB;
-            --accent: #B8F34A;
-            --border-color: #344451;
-            --danger: #ff5252;
-            --warning: #fbbf24;
+            --text-secondary: #8FA89B;
+            --accent: #B4F56B;
+            --accent-glow: rgba(180, 245, 107, 0.35);
+            --border-color: #243c2e;
+            --border-subtle: rgba(180, 245, 107, 0.2);
+            --danger: #ef4444;
+            --warning: #f59e0b;
             --info: #38bdf8;
             --success: #10b981;
         }
@@ -246,9 +248,13 @@
             border-radius: 8px;
         }
 
+        .d-none {
+            display: none !important;
+        }
+
         /* WINNER CELEBRATION CARD */
         .winner-banner {
-            display: {% if state.is_completed %}flex{% else %}none{% endif %};
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -289,7 +295,7 @@
 
         /* PENALTY ENTRY CARD */
         .entry-card {
-            display: {% if state.is_completed %}none{% else %}flex{% endif %};
+            display: flex;
             flex-direction: column;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -506,8 +512,8 @@
         }
 
         .btn-confirm:disabled {
-            background: #2a3b47;
-            color: #6a7c8a;
+            background: #1a2f24;
+            color: #4a6857;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -798,13 +804,14 @@
         </section>
 
         <!-- Winner Celebration Banner -->
+        {% if state.is_completed %}
         <section class="winner-banner" id="winnerBanner">
             <div class="winner-title">🎉 SHOOTOUT COMPLETED</div>
             <div class="winner-name" id="winnerNameText">
                 🏆 {{ state.winner.name }} WINS ON PENALTIES!
             </div>
             <div class="winner-desc" id="winnerDescText">
-                Match recorded as completed ({{ match.home_score }}–{{ match.away_score }}, {{ state.home_score }}–{{ state.away_score }} pens). The winning team has been automatically advanced into the next tournament knockout round.
+                Match recorded as completed ({{ match.home_score }} - {{ match.away_score }}, {{ state.home_score }} - {{ state.away_score }}). The winning team has been automatically advanced into the next tournament knockout round.
             </div>
             <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
                 <a href="/organizer/{{ competition.id }}/?tab=fixtures" class="btn-confirm" style="text-decoration:none;">
@@ -815,8 +822,10 @@
                 </a>
             </div>
         </section>
+        {% endif %}
 
         <!-- Penalty Entry Card (Interactive) -->
+        {% if not state.is_completed %}
         <section class="entry-card" id="entryCard">
             <div class="entry-header">
                 <div class="entry-phase-badge" id="phaseBadge">
@@ -889,6 +898,7 @@
                 </div>
             </form>
         </section>
+        {% endif %}
 
         <!-- Penalty History Card -->
         <section class="history-card">
@@ -950,7 +960,8 @@
             </div>
 
             <!-- Sudden Death Section -->
-            <div id="suddenDeathSection" style="{% if not state.sudden_death_rounds %}display:none;{% endif %}margin-top:10px;">
+            {% if state.sudden_death_rounds %}
+            <div id="suddenDeathSection" style="margin-top:10px;">
                 <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#f59e0b;margin-bottom:8px;">
                     ⚡ Sudden Death Penalties
                 </div>
@@ -995,6 +1006,7 @@
                     </table>
                 </div>
             </div>
+            {% endif %}
         </section>
 
         <!-- Eligible Roster & Rotation Status Card -->
@@ -1064,7 +1076,7 @@
             }
         }
 
-        function handleAttemptSubmit(e) {
+        async function handleAttemptSubmit(e) {
             e.preventDefault();
             const playerVal = document.getElementById("playerSelect").value;
             const outcomeVal = document.getElementById("selectedOutcome").value;
@@ -1075,61 +1087,131 @@
             const btn = document.getElementById("btnConfirmAttempt");
             btn.textContent = "Recording Attempt...";
 
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
             const formData = new FormData();
             formData.append('csrfmiddlewaretoken', csrfToken);
             formData.append('player_id', playerVal);
             formData.append('outcome', outcomeVal);
 
-            fetch(`/organizer/match/${matchId}/shootout/attempt/`, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(data => {
+            try {
+                const res = await fetch(`/organizer/match/${matchId}/shootout/attempt/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
                 isSubmitting = false;
                 btn.textContent = "✓ Confirm Attempt Result";
-                if (!data.success) {
+
+                if (res.redirected && res.url.includes('/login')) {
+                    alert("Your session has expired. Redirecting to login...");
+                    window.location.href = res.url;
+                    return;
+                }
+
+                const contentType = res.headers.get("content-type") || "";
+                if (!contentType.includes("application/json")) {
+                    if (res.status === 401 || res.status === 403) {
+                        alert("Authentication or permission required. Please log in with an authorized organizer account.");
+                        window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`;
+                        return;
+                    }
+                    if (res.status >= 500) {
+                        alert("Server error encountered while saving penalty attempt. Please try again.");
+                        validateForm();
+                        return;
+                    }
+                    alert(`Server returned non-JSON response (HTTP ${res.status}).`);
+                    validateForm();
+                    return;
+                }
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    if (data.redirect) {
+                        alert(data.error || "Authentication required. Redirecting to login...");
+                        window.location.href = data.redirect;
+                        return;
+                    }
                     alert(data.error || "Failed to record penalty attempt.");
                     validateForm();
                     return;
                 }
-                // Reload full state cleanly to ensure accurate view and DB persistence
+
+                // Cleanly reload to update scoreboard and rotation state
                 window.location.reload();
-            })
-            .catch(err => {
+            } catch (err) {
                 isSubmitting = false;
                 btn.textContent = "✓ Confirm Attempt Result";
                 validateForm();
-                console.error(err);
-                alert("Network error while recording attempt.");
-            });
+                console.error("Shootout Attempt Error:", err);
+                if (window.navigator && window.navigator.onLine === false) {
+                    alert("No internet connection detected. Please verify your network and retry.");
+                } else {
+                    alert("Unable to reach the server. Please check your connection and retry.");
+                }
+            }
         }
 
-        function handleUndoAttempt() {
+        async function handleUndoAttempt() {
             if (!confirm("Are you sure you want to revert the last penalty attempt?")) return;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
             const formData = new FormData();
             formData.append('csrfmiddlewaretoken', csrfToken);
 
-            fetch(`/organizer/match/${matchId}/shootout/undo/`, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
+            try {
+                const res = await fetch(`/organizer/match/${matchId}/shootout/undo/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (res.redirected && res.url.includes('/login')) {
+                    alert("Your session has expired. Redirecting to login...");
+                    window.location.href = res.url;
+                    return;
+                }
+
+                const contentType = res.headers.get("content-type") || "";
+                if (!contentType.includes("application/json")) {
+                    if (res.status === 401 || res.status === 403) {
+                        alert("Authentication or permission required. Please log in with an authorized organizer account.");
+                        window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`;
+                        return;
+                    }
+                    alert(`Server returned non-JSON response (HTTP ${res.status}).`);
+                    return;
+                }
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    if (data.redirect) {
+                        alert(data.error || "Authentication required. Redirecting to login...");
+                        window.location.href = data.redirect;
+                        return;
+                    }
                     alert(data.error || "Failed to undo attempt.");
                     return;
                 }
                 window.location.reload();
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Network error while undoing attempt.");
-            });
+            } catch (err) {
+                console.error("Shootout Undo Error:", err);
+                if (window.navigator && window.navigator.onLine === false) {
+                    alert("No internet connection detected. Please verify your network and retry.");
+                } else {
+                    alert("Unable to reach the server. Please check your connection and retry.");
+                }
+            }
         }
     </script>
 </body>

@@ -32,6 +32,10 @@ def fixture_generator_page(request, comp_id):
         messages.error(request, "Fixtures cannot be generated while competition is under review.")
         return redirect('organizer_competition_dashboard', comp_id=comp.id)
 
+    if comp.is_completed:
+        messages.error(request, f"'{comp.name}' is concluded and completed. Fixtures cannot be generated or modified.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
     teams = list(comp.teams.all())
     default_start_date = comp.start_date or (date.today() + timedelta(days=7))
     default_end_date = comp.end_date or (default_start_date + timedelta(days=90))
@@ -61,6 +65,9 @@ def api_generate_fixture_preview(request, comp_id):
     """
     comp = get_object_or_404(Competition, id=comp_id)
 
+    if comp.is_completed:
+        return JsonResponse({'success': False, 'errors': ["This competition is already completed. Fixtures cannot be generated."]}, status=400)
+
     try:
         data = json.loads(request.body.decode('utf-8'))
     except Exception as e:
@@ -77,6 +84,9 @@ def api_publish_fixtures(request, comp_id):
     Django JSON API endpoint: Finalizes and atomically commits generated (and edited) fixtures to DB.
     """
     comp = get_object_or_404(Competition, id=comp_id)
+
+    if comp.is_completed:
+        return JsonResponse({'success': False, 'errors': ["Cannot publish fixtures for a completed competition."]}, status=400)
 
     try:
         data = json.loads(request.body.decode('utf-8'))
@@ -127,6 +137,10 @@ def generate_fixtures_view(request, comp_id):
         messages.error(request, "Fixtures cannot be generated while competition is under review.")
         return redirect('organizer_competition_dashboard', comp_id=comp.id)
 
+    if comp.is_completed:
+        messages.error(request, f"'{comp.name}' is concluded and completed. Fixtures cannot be generated or modified.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
     team_count = comp.teams.count()
     if team_count < 2:
         messages.error(request, "At least 2 teams are required to generate round-robin fixtures.")
@@ -150,6 +164,10 @@ def add_fixture_view(request, comp_id):
     Django backend view: Adds a single fixture scheduled between two teams.
     """
     comp = get_object_or_404(Competition, id=comp_id)
+
+    if comp.is_completed:
+        messages.error(request, "Cannot add matches to a completed competition.")
+        return redirect(f"/organizer/{comp.id}/?tab=fixtures")
 
     if request.method == 'POST':
         home_id = request.POST.get('home_team_id')

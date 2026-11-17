@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Touchline | Super Admin Platform Console</title>
+    <title>Futbolix | Super Admin Platform Console</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
@@ -480,7 +480,7 @@
             border-color: #fca5a5;
         }
 
-        /* SIGNATURE TOUCHLINE COMMAND BANNER HERO */
+        /* SIGNATURE FUTBOLIX COMMAND BANNER HERO */
         .command-banner {
             background: var(--dark);
             color: #ffffff;
@@ -575,6 +575,22 @@
         .kpi-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-card.pending-alert {
+            border-left: 3px solid #f59e0b !important;
+        }
+
+        .kpi-card.pending-alert .kpi-value {
+            color: #b58105 !important;
+        }
+
+        .kpi-card.pending-clear {
+            border-left: 3px solid var(--green) !important;
+        }
+
+        .kpi-card.pending-clear .kpi-value {
+            color: var(--green-dark) !important;
         }
 
         .kpi-top {
@@ -1977,7 +1993,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header-row">
                 <a href="/super-admin/" class="logo">
-                    <span class="logo-mark">Ⅲ</span> TOUCHLINE
+                    <span class="logo-mark">Ⅲ</span> FUTBOLIX
                 </a>
                 <button class="sidebar-close-btn" onclick="closeMobileMenu()" aria-label="Close menu">✕</button>
             </div>
@@ -2024,7 +2040,7 @@
                     <div class="avatar" style="background:var(--green);color:var(--dark);font-weight:900;">SA</div>
                     <div>
                         <strong>{{ user.first_name|default:"Super Admin" }}</strong>
-                        <small style="color:var(--muted)">root@touchline.football</small>
+                        <small style="color:var(--muted)">root@futbolix.football</small>
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:10px;">
@@ -2046,7 +2062,7 @@
                         <span class="hamburger-bar"></span>
                     </button>
                     <div class="breadcrumb">
-                        <span class="breadcrumb-prefix">Touchline Platform / </span>
+                        <span class="breadcrumb-prefix">Futbolix Platform / </span>
                         <span>⚡</span>
                         <strong id="topbarTitle">Super Admin Console</strong>
                     </div>
@@ -2097,7 +2113,7 @@
                         <div class="command-logo-box">⚡</div>
                         <div class="command-info">
                             <span class="status-pill" style="margin-bottom:4px;background:#b4f56b;color:#101b16;">PLATFORM ENGINE ONLINE</span>
-                            <h2>Touchline Platform Command</h2>
+                            <h2>Futbolix Platform Command</h2>
                             <div class="command-meta">
                                 <span>🛡️ {{ active_competitions_count }} Active Leagues</span>
                                 <span>👔 {{ total_organizers }} Organizers</span>
@@ -2122,9 +2138,9 @@
                             <div class="kpi-value">{{ active_competitions_count }}</div>
                             <div class="kpi-meta"><span style="color:var(--green)">✓</span> {{ total_competitions_count }} Total created · {{ upcoming_competitions_count }} Upcoming</div>
                         </div>
-                        <div class="kpi-card" onclick="openAdminTab('approvals')" style="cursor:pointer;border-left:3px solid {% if all_pending_count > 0 %}#f59e0b{% else %}var(--green){% endif %};" title="Click to review approvals">
+                        <div class="kpi-card {% if all_pending_count > 0 %}pending-alert{% else %}pending-clear{% endif %}" onclick="openAdminTab('approvals')" style="cursor:pointer;" title="Click to review approvals">
                             <div class="kpi-label">Pending Sanctions &amp; Approvals</div>
-                            <div class="kpi-value" style="color:{% if all_pending_count > 0 %}#b58105{% else %}var(--green-dark){% endif %}">{{ all_pending_count }}</div>
+                            <div class="kpi-value">{{ all_pending_count }}</div>
                             <div class="kpi-meta">
                                 {% if all_pending_count > 0 %}
                                     {% if pending_leagues_count > 0 %}<strong>{{ pending_leagues_count }} Leagues</strong> · {% endif %}{{ pending_count }} Organizers
@@ -2141,7 +2157,7 @@
                         <div class="kpi-card" onclick="openAdminTab('audit')" style="cursor:pointer;" title="Click to view activity logs">
                             <div class="kpi-label">Total Platform Users</div>
                             <div class="kpi-value">{{ total_users }}</div>
-                            <div class="kpi-meta"><span style="color:var(--green)">✓</span> Registered Touchline accounts</div>
+                            <div class="kpi-meta"><span style="color:var(--green)">✓</span> Registered Futbolix accounts</div>
                         </div>
                     </div>
 
@@ -2193,9 +2209,10 @@
                                 <!-- Segmented Status Progress Bar -->
                                 <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:14px;">
                                     {% if total_competitions_count > 0 %}
-                                    <div style="width:{% widthratio active_competitions_count total_competitions_count 100 %}%;background:#10b981;" title="Active: {{ active_competitions_count }}"></div>
-                                    <div style="width:{% widthratio upcoming_competitions_count total_competitions_count 100 %}%;background:#f59e0b;" title="Upcoming: {{ upcoming_competitions_count }}"></div>
-                                    <div style="width:{% widthratio completed_competitions_count total_competitions_count 100 %}%;background:#3b82f6;" title="Completed: {{ completed_competitions_count }}"></div>
+                                    <div class="stat-bar-seg" data-width="{% widthratio active_competitions_count total_competitions_count 100 %}" style="background:#10b981;" title="Active: {{ active_competitions_count }}"></div>
+                                    <div class="stat-bar-seg" data-width="{% widthratio upcoming_competitions_count total_competitions_count 100 %}" style="background:#f59e0b;" title="Upcoming: {{ upcoming_competitions_count }}"></div>
+                                    <div class="stat-bar-seg" data-width="{% widthratio completed_competitions_count total_competitions_count 100 %}" style="background:#3b82f6;" title="Completed: {{ completed_competitions_count }}"></div>
+                                    <script>document.querySelectorAll('.stat-bar-seg').forEach(function(el){if(el.dataset.width) el.style.width = el.dataset.width + '%';});</script>
                                     {% else %}
                                     <div style="width:100%;background:#cbd5e1;"></div>
                                     {% endif %}
@@ -2283,7 +2300,7 @@
                             <div class="card-heading">
                                 <div>
                                     <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚡ Live Activity &amp; Audit Stream</h3>
-                                    <p class="card-subtitle">Latest administrative and organizer operations on Touchline.</p>
+                                    <p class="card-subtitle">Latest administrative and organizer operations on Futbolix.</p>
                                 </div>
                                 <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('audit')">
                                     Full Audit Logs →
@@ -2752,7 +2769,7 @@
                         <div class="card-heading">
                             <div>
                                 <h2>⚙️ Platform Configuration</h2>
-                                <p class="card-subtitle">Global settings for TOUCHLINE tournament &amp; league management platform.</p>
+                                <p class="card-subtitle">Global settings for FUTBOLIX tournament &amp; league management platform.</p>
                             </div>
                         </div>
 

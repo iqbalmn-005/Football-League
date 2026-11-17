@@ -1,0 +1,1306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Competitions - Futbolix</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --dark: #101b16;
+            --dark-card: #17251e;
+            --green: #b4f56b;
+            --green-dark: #245d3c;
+            --cream: #f5f6ef;
+            --soft-green: #e9efdf;
+            --white: #ffffff;
+            --muted: #aab5ac;
+            --text: #17221b;
+            --border: #e0e5da;
+            --font-heading: "Barlow Condensed", sans-serif;
+            --font-body: "DM Sans", sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .container {
+            width: min(1200px, 90%);
+            margin: auto;
+        }
+
+        .section {
+            padding: 76px 0;
+        }
+
+        .eyebrow {
+            color: var(--green-dark);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin-bottom: 12px;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            line-height: .98;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: clamp(32px, 4vw, 46px);
+        }
+
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            background: var(--green);
+            color: var(--dark);
+            border: 1px solid var(--green);
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 800;
+            transition: .2s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: #c7ff88;
+            transform: translateY(-2px);
+        }
+
+        .btn-dark {
+            background: var(--dark);
+            color: white;
+            border-color: var(--dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: #58635b;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            color: var(--dark);
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .arrow {
+            font-size: 15px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: var(--dark);
+            color: white;
+            border-bottom: 1px solid #26342b;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: -.6px;
+            white-space: nowrap;
+            color: white;
+        }
+
+        .logo-mark {
+            color: var(--green);
+            letter-spacing: -5px;
+            margin-right: 7px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a,
+        .nav-actions a {
+            font-size: 11px;
+            color: #d8e0d9;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--green);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav-actions .btn {
+            color: var(--dark);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            color: white;
+            border: 0;
+            font-size: 26px;
+        }
+
+        .mobile-nav-auth {
+            display: none;
+        }
+
+        .mobile-signup-text {
+            display: none;
+        }
+
+        .desktop-signup-text {
+            display: inline;
+        }
+
+        /* PAGE HEADER HERO */
+        .page-header {
+            background: var(--dark);
+            color: white;
+            padding: 56px 0 44px;
+            border-bottom: 1px solid #26342b;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(180, 245, 107, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #b4c0b6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color .2s;
+        }
+
+        .back-link:hover {
+            color: var(--green);
+        }
+
+        .page-header .eyebrow {
+            color: var(--green);
+            margin-bottom: 0;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: clamp(38px, 5.2vw, 56px);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            color: white;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            color: var(--green);
+        }
+
+        .page-desc {
+            max-width: 620px;
+            color: #b4c0b6;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* CONTROLS CARD: SEARCH & FILTERS */
+        .controls-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 22px 24px;
+            margin: 32px 0 36px;
+            box-shadow: 0 4px 20px rgba(23, 35, 28, 0.04);
+        }
+
+        .search-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .search-box-wrap {
+            flex: 1;
+            min-width: 260px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1.5px solid #bfc9bc;
+            padding: 8px 0;
+            transition: border-color .2s;
+            position: relative;
+        }
+
+        .search-box-wrap:focus-within {
+            border-color: var(--green-dark);
+        }
+
+        .search-icon {
+            font-size: 16px;
+            color: var(--green-dark);
+            line-height: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            font-size: 12px;
+            color: var(--text);
+            padding-right: 28px;
+        }
+
+        .search-input::placeholder {
+            color: #8c978e;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 0;
+            border: 0;
+            background: transparent;
+            color: #8c978e;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            line-height: 1;
+            padding: 4px;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--text);
+        }
+
+        .status-select-wrap select {
+            background: white;
+            color: #526057;
+            border: 1px solid var(--border);
+            padding: 9px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+            min-width: 150px;
+            transition: border-color .15s;
+        }
+
+        .status-select-wrap select:focus {
+            border-color: var(--dark);
+            color: var(--dark);
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            color: #526057;
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: .15s;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--dark);
+            color: white;
+            border-color: var(--dark);
+        }
+
+        .results-meta {
+            font-size: 11px;
+            color: #68746a;
+            font-weight: 700;
+        }
+
+        .results-meta strong {
+            color: var(--green-dark);
+            font-weight: 800;
+        }
+
+        /* TOURNAMENT LIST VIEW */
+        .tournament-grid,
+        .tournament-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 70px;
+        }
+
+        .tournament-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+            box-shadow: 0 2px 6px rgba(23, 35, 28, 0.03);
+            position: relative;
+        }
+
+        .tournament-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(23, 35, 28, 0.08);
+            border-color: #c4d1be;
+        }
+
+        .list-left-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-symbol-wrap {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #17251e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+
+        .list-symbol-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .list-symbol-fallback {
+            width: 100%;
+            height: 100%;
+            background: #17251e;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-weight: 900;
+            font-size: 19px;
+            letter-spacing: 0.8px;
+        }
+
+        .list-main-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-kicker {
+            font-size: 10px;
+            color: var(--green-dark);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .list-kicker .dot {
+            color: #9cb09f;
+        }
+
+        .list-title {
+            font-family: var(--font-heading);
+            font-size: clamp(20px, 2.2vw, 25px);
+            font-weight: 800;
+            text-transform: uppercase;
+            line-height: 1.1;
+            margin-bottom: 6px;
+            color: var(--text);
+            letter-spacing: 0.3px;
+        }
+
+        .list-title a {
+            color: inherit;
+            transition: color .15s ease;
+        }
+
+        .list-title a:hover {
+            color: var(--green-dark);
+        }
+
+        .list-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #68746a;
+            font-weight: 500;
+        }
+
+        .list-meta .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--cream);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #e5ebe1;
+        }
+
+        .list-action-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        .pill-active {
+            background: #b4f56b;
+            color: #101b16;
+            border: 1px solid #9de44f;
+        }
+
+        .pill-upcoming {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .pill-completed {
+            background: #e2e8f0;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-view {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 18px;
+            background: var(--dark);
+            color: var(--white);
+            border: 1px solid var(--dark);
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            transition: .2s ease;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .btn-view:hover {
+            background: var(--green);
+            color: var(--dark);
+            border-color: var(--green);
+            transform: translateY(-1px);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border: 1px dashed var(--border);
+            border-radius: 5px;
+        }
+
+        .empty-state-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .empty-state p {
+            color: #68746a;
+            font-size: 12px;
+            max-width: 440px;
+            margin: 0 auto 18px;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 45px 0 20px;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr 1fr 1fr;
+            gap: 40px;
+            padding-bottom: 35px;
+        }
+
+        .footer-about p {
+            color: #aab6ab;
+            font-size: 11px;
+            max-width: 240px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        .footer-column h4 {
+            color: var(--green);
+            font-size: 12px;
+            margin-bottom: 13px;
+        }
+
+        .footer-column a {
+            display: block;
+            color: #b7c0b7;
+            font-size: 10px;
+            margin: 9px 0;
+            transition: color .2s;
+        }
+
+        .footer-column a:hover {
+            color: var(--green);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #29362d;
+            padding-top: 17px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: #8f9b90;
+            font-size: 9px;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 18px;
+        }
+
+        .footer-legal a:hover {
+            color: var(--green);
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 950px) {
+            .nav-links {
+                gap: 15px;
+            }
+
+            .tournament-grid,
+            .tournament-list {
+                gap: 10px;
+            }
+
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px 20px;
+            }
+
+            .footer-about {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: 90%;
+            }
+
+            .section {
+                padding: 55px 0;
+            }
+
+            .nav-inner {
+                min-height: 65px;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .logo {
+                font-size: 22px;
+                order: 1;
+            }
+
+            .nav-actions {
+                order: 2;
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .nav-actions>a:first-child {
+                display: none;
+            }
+
+            .nav-actions .btn {
+                padding: 8px 14px;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+                border-radius: 6px;
+                background: var(--green);
+                color: var(--dark) !important;
+                white-space: nowrap;
+            }
+
+            .menu-toggle {
+                display: block;
+                order: 3;
+                margin-left: 0;
+                background: transparent;
+                color: white;
+                border: 0;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 4px 6px;
+                line-height: 1;
+            }
+
+            .nav-links {
+                order: 4;
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 10px 0 16px;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 12px 0;
+                border-top: 1px solid #29362d;
+                font-size: 13px;
+            }
+
+            .mobile-signup-text {
+                display: inline;
+            }
+
+            .desktop-signup-text {
+                display: none;
+            }
+
+            .mobile-nav-auth {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding-top: 14px;
+                margin-top: 6px;
+                border-top: 1px solid #29362d;
+            }
+
+            .mobile-nav-auth .mobile-btn-primary {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--green);
+                color: var(--dark) !important;
+                padding: 11px 16px;
+                font-size: 13px;
+                font-weight: 800;
+                text-align: center;
+                border-radius: 8px;
+                text-decoration: none;
+                letter-spacing: 0.5px;
+                border-top: none;
+            }
+
+            .mobile-nav-auth .mobile-auth-link {
+                text-align: center;
+                font-size: 12px;
+                color: var(--muted);
+                padding: 4px 0;
+                text-decoration: none;
+                border-top: none !important;
+            }
+
+            .mobile-nav-auth .mobile-auth-link strong {
+                color: var(--green);
+            }
+
+            .page-header {
+                padding: 42px 0 32px;
+            }
+
+            .page-title {
+                font-size: clamp(34px, 8.5vw, 46px);
+            }
+
+            .controls-card {
+                padding: 18px 16px;
+                margin: 22px 0 28px;
+            }
+
+            .search-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .status-select-wrap select {
+                width: 100%;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .filters {
+                gap: 6px;
+            }
+
+            .filter-btn {
+                padding: 8px 10px;
+            }
+
+            .results-meta {
+                text-align: right;
+            }
+
+            .tournament-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 14px 14px;
+            }
+
+            .list-left-content {
+                width: 100%;
+                gap: 12px;
+            }
+
+            .list-symbol-wrap {
+                width: 52px;
+                height: 52px;
+                min-width: 52px;
+            }
+
+            .list-title {
+                font-size: 20px;
+            }
+
+            .list-action-wrap {
+                width: 100%;
+                justify-content: space-between;
+                border-top: 1px solid var(--border);
+                padding-top: 10px;
+            }
+
+            .btn-view {
+                flex: 1;
+                text-align: center;
+                padding: 8px 12px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 13px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .page-title {
+                font-size: 32px;
+            }
+
+            .filters {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .filter-btn {
+                text-align: center;
+            }
+
+            .footer-grid {
+                gap: 25px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar" id="home">
+        <div class="container nav-inner">
+            <a href="/" class="logo"><span class="logo-mark">//</span>FUTBOLIX</a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="/">Home</a>
+                <a href="{% url 'all_competitions' %}" style="color:var(--green);">Competitions</a>
+                <a href="/#tournaments">Tournaments</a>
+                <a href="/#leagues">Leagues</a>
+                <a href="/#organizers">For Organizers</a>
+                <a href="/#contact">Contact</a>
+
+                <div class="mobile-nav-auth">
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.profile.is_super_admin %}
+                            <a href="/super-admin/" class="btn mobile-btn-primary">Super Admin <span class="arrow">↗</span></a>
+                        {% elif user.profile.role == 'ORGANIZER' %}
+                            <a href="/organizer/" class="btn mobile-btn-primary">Organizer Dashboard <span class="arrow">↗</span></a>
+                        {% else %}
+                            <a href="/dashboard/" class="btn mobile-btn-primary">My Portal <span class="arrow">↗</span></a>
+                        {% endif %}
+                        <a href="/logout/" class="mobile-auth-link">Sign Out</a>
+                    {% else %}
+                        <a href="/register/" class="btn mobile-btn-primary">Sign Up <span class="arrow">↗</span></a>
+                        <a href="/login/" class="mobile-auth-link">Already registered? <strong>Sign In &rarr;</strong></a>
+                    {% endif %}
+                </div>
+            </nav>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.profile.is_super_admin %}
+                    <a href="/super-admin/" class="btn" style="background:var(--green);color:var(--dark);">Super Admin <span class="arrow">↗</span></a>
+                    {% elif user.profile.role == 'ORGANIZER' %}
+                    <a href="/organizer/" class="btn" style="background:var(--green);color:var(--dark);">Organizer Dashboard <span class="arrow">↗</span></a>
+                    {% else %}
+                    <a href="/dashboard/" class="btn btn-outline">My Portal</a>
+                    {% endif %}
+                    <a href="/logout/" style="font-size:11px;color:var(--muted);margin-left:6px;font-weight:700;">Sign Out</a>
+                {% else %}
+                    <a href="/login/" style="font-size:12px;color:#d8e0d9;font-weight:700;">Sign in</a>
+                    <a href="/register/" class="btn nav-signup-btn">
+                        <span class="desktop-signup-text">Get Started <span class="arrow">↗</span></span>
+                        <span class="mobile-signup-text">Sign Up</span>
+                    </a>
+                {% endif %}
+                <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAGE HEADER BANNER -->
+    <section class="page-header">
+        <div class="container">
+            <div class="header-top-row">
+                <a href="/" class="back-link">&larr; Back to Home</a>
+                <span class="eyebrow">&bull; Official Competitions Directory</span>
+            </div>
+            <h1 class="page-title">All Leagues &amp; <span>Tournaments</span></h1>
+            <p class="page-desc">
+                Explore, search, and track all {{ total_published }} official football competitions across grassroots leagues, cup showdowns, and youth tournaments.
+            </p>
+        </div>
+    </section>
+
+    <main class="container">
+        <!-- SEARCH & FILTER CONTROLS -->
+        <div class="controls-card">
+            <div class="search-row">
+                <div class="search-box-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input id="searchInput" class="search-input" type="search"
+                        placeholder="Search tournaments by name, location, or season..."
+                        value="{{ search_query|default:'' }}" autocomplete="off" aria-label="Search competitions">
+                    <button id="clearSearchBtn" class="clear-search-btn" type="button" aria-label="Clear search">&times;</button>
+                </div>
+
+                <div class="status-select-wrap">
+                    <select id="statusFilter" aria-label="Filter by status">
+                        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>🟢 Active</option>
+                        <option value="upcoming" {% if selected_status == 'upcoming' %}selected{% endif %}>🔵 Upcoming</option>
+                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>⚪ Completed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filters" id="categoryFilters">
+                    <button type="button" class="filter-btn {% if selected_category == 'all' %}active{% endif %}" data-category="all">All Formats</button>
+                    <button type="button" class="filter-btn {% if selected_category == '11-a-side' %}active{% endif %}" data-category="11-a-side">11-a-side</button>
+                    <button type="button" class="filter-btn {% if selected_category == '7-a-side' %}active{% endif %}" data-category="7-a-side">7-a-side</button>
+                    <button type="button" class="filter-btn {% if selected_category == '5-a-side' %}active{% endif %}" data-category="5-a-side">5-a-side</button>
+                    <button type="button" class="filter-btn {% if selected_category == 'youth' %}active{% endif %}" data-category="youth">Youth</button>
+                </div>
+
+                <div class="results-meta">
+                    Showing <strong id="visibleCount">{{ total_count }}</strong> of {{ total_published }} competitions
+                </div>
+            </div>
+        </div>
+
+        <!-- TOURNAMENT LIST -->
+        <div class="tournament-grid tournament-list" id="competitionsGrid">
+            {% for comp in competitions %}
+            <article class="tournament-card"
+                data-category="{{ comp.category|lower }}"
+                data-status="{{ comp.status|lower }}"
+                data-name="{{ comp.name|lower }}"
+                data-location="{{ comp.location|lower }}"
+                data-season="{{ comp.season|lower }}"
+                data-search="{{ comp.name|lower }} {{ comp.location|lower }} {{ comp.season|lower }} {{ comp.get_tournament_format_display|lower }}">
+                
+                <div class="list-left-content">
+                    <!-- Emblem / Logo -->
+                    <a href="/competition/{{ comp.id }}/" class="list-symbol-wrap" aria-label="View {{ comp.name }}">
+                        {% if comp.get_logo_url %}
+                        <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" loading="lazy">
+                        {% else %}
+                        <div class="list-symbol-fallback">
+                            {{ comp.name|slice:":3"|upper }}
+                        </div>
+                        {% endif %}
+                    </a>
+
+                    <!-- Main Info -->
+                    <div class="list-main-info">
+                        <div class="list-kicker">
+                            <span>{{ comp.get_category_display }}</span>
+                            <span class="dot">&bull;</span>
+                            <span>{{ comp.get_tournament_format_display }}</span>
+                        </div>
+                        <h3 class="list-title">
+                            <a href="/competition/{{ comp.id }}/">{{ comp.name }}</a>
+                        </h3>
+                        <div class="list-meta">
+                            <span class="meta-tag">📍 {{ comp.location|default:"Venue TBD" }}</span>
+                            <span class="meta-tag">◷ Season {{ comp.season }}</span>
+                            <span class="meta-tag">♟ {{ comp.teams.count }} / {{ comp.max_teams }} Teams</span>
+                            {% if comp.start_date %}
+                            <span class="meta-tag">📅 {{ comp.start_date|date:"d M Y" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Status & Action -->
+                <div class="list-action-wrap">
+                    <span class="pill {% if comp.status == 'ACTIVE' %}pill-active{% elif comp.status == 'UPCOMING' %}pill-upcoming{% else %}pill-completed{% endif %}">
+                        {{ comp.get_status_display }}
+                    </span>
+                    <a href="/competition/{{ comp.id }}/" class="btn-view">
+                        View Details ↗
+                    </a>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                <span class="empty-state-icon">🏆</span>
+                <h3>No Competitions Available</h3>
+                <p>There are no published competitions matching the criteria right now.</p>
+                <a href="/" class="btn">&larr; Return to Home</a>
+            </div>
+            {% endfor %}
+
+            <!-- CLIENT-SIDE EMPTY STATE (HIDDEN BY DEFAULT) -->
+            <div class="empty-state" id="clientEmptyState" style="display:none;">
+                <span class="empty-state-icon">🔍</span>
+                <h3>No Competitions Found</h3>
+                <p>We couldn't find any tournaments matching your search or filters.</p>
+                <button type="button" class="btn" onclick="resetFilters()">Clear Filters &amp; Search</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a href="/" class="logo"><span class="logo-mark">//</span>FUTBOLIX</a>
+                    <p>Next-generation football tournament infrastructure for grassroots leagues, youth championships, and professional academies.</p>
+                </div>
+                <div class="footer-column">
+                    <h4>Browse</h4>
+                    <a href="/">Home</a>
+                    <a href="{% url 'all_competitions' %}">All Competitions</a>
+                    <a href="/#tournaments">Tournaments</a>
+                    <a href="/#leagues">Leagues</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Organizers</h4>
+                    <a href="/organizer/apply/">Organizer application</a>
+                    <a href="/login/">Organizer login</a>
+                    <a href="/super-admin/">Super Admin</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Futbolix</h4>
+                    <a href="/#about">About platform</a>
+                    <a href="/#contact">Contact team</a>
+                    <a href="/#privacy">Privacy policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 FUTBOLIX. Your Game. Your League.</span>
+                <div class="footer-legal">
+                    <a href="/#privacy">Privacy policy</a>
+                    <a href="/#terms">Terms of use</a>
+                </div>
+                <span>Engineered for football everywhere.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE SEARCH, FILTER & MOBILE MENU JAVASCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Mobile Menu Toggle
+            const menuToggle = document.getElementById("menuToggle");
+            const navLinks = document.getElementById("navLinks");
+
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener("click", () => {
+                    const isOpen = navLinks.classList.toggle("open");
+                    menuToggle.setAttribute("aria-expanded", isOpen);
+                    menuToggle.textContent = isOpen ? "✕" : "☰";
+                });
+
+                navLinks.querySelectorAll("a").forEach(link => {
+                    link.addEventListener("click", () => {
+                        navLinks.classList.remove("open");
+                        menuToggle.setAttribute("aria-expanded", "false");
+                        menuToggle.textContent = "☰";
+                    });
+                });
+            }
+
+            // Search & Filters
+            const searchInput = document.getElementById("searchInput");
+            const clearSearchBtn = document.getElementById("clearSearchBtn");
+            const statusFilter = document.getElementById("statusFilter");
+            const filterButtons = document.querySelectorAll("#categoryFilters .filter-btn");
+            const cards = document.querySelectorAll("#competitionsGrid .tournament-card");
+            const visibleCountEl = document.getElementById("visibleCount");
+            const clientEmptyState = document.getElementById("clientEmptyState");
+
+            let currentCategory = "{{ selected_category|default:'all' }}";
+            let currentStatus = "{{ selected_status|default:'all' }}";
+
+            function updateFilter() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+                let visible = 0;
+
+                if (clearSearchBtn) {
+                    clearSearchBtn.style.display = query ? "block" : "none";
+                }
+
+                cards.forEach(card => {
+                    const cardCategory = card.dataset.category || "";
+                    const cardStatus = card.dataset.status || "";
+                    const cardSearch = card.dataset.search || "";
+
+                    const categoryMatch = (currentCategory === "all") || (cardCategory === currentCategory) || (currentCategory === "youth" && cardSearch.includes("youth"));
+                    const statusMatch = (currentStatus === "all") || (cardStatus === currentStatus);
+                    const queryMatch = !query || cardSearch.includes(query);
+
+                    if (categoryMatch && statusMatch && queryMatch) {
+                        card.style.display = "";
+                        visible++;
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+
+                if (visibleCountEl) {
+                    visibleCountEl.textContent = visible;
+                }
+
+                if (clientEmptyState) {
+                    clientEmptyState.style.display = (visible === 0 && cards.length > 0) ? "block" : "none";
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener("input", updateFilter);
+            }
+
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener("click", function () {
+                    searchInput.value = "";
+                    searchInput.focus();
+                    updateFilter();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener("change", function () {
+                    currentStatus = this.value;
+                    updateFilter();
+                });
+            }
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                    filterButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    currentCategory = this.dataset.category;
+                    updateFilter();
+                });
+            });
+
+            window.resetFilters = function () {
+                if (searchInput) searchInput.value = "";
+                if (statusFilter) statusFilter.value = "all";
+                currentStatus = "all";
+                currentCategory = "all";
+                filterButtons.forEach((b, idx) => {
+                    b.classList.toggle("active", idx === 0);
+                });
+                updateFilter();
+            };
+
+            // Run on load in case query or category was prefilled
+            updateFilter();
+        });
+    </script>
+
+</body>
+
+</html>

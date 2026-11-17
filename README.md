@@ -1,10 +1,10 @@
-# Touchline – Football League and Tournament Management System
+# Futbolix – Football League and Tournament Management System
 
 **Your Game. Your League.**
 
 ## About the Project
 
-Touchline is a web-based Football League and Tournament Management System designed to simplify the organization and management of football competitions. It provides a centralized platform to manage leagues, tournaments, teams, players, fixtures, match results, points tables, and player statistics.
+Futbolix is a web-based Football League and Tournament Management System designed to simplify the organization and management of football competitions. It provides a centralized platform to manage leagues, tournaments, teams, players, fixtures, match results, points tables, and player statistics.
 
 The system helps organizers maintain accurate competition information and allows viewers to follow matches, results, team performance, and league standings.
 
@@ -48,7 +48,7 @@ git clone <repository-url>
 ### 2. Open the Project Folder
 
 ```bash
-cd touchline
+cd futbolix
 ```
 
 ### 3. Create a Virtual Environment
@@ -99,6 +99,6 @@ http://127.0.0.1:8000/
 
 ## Conclusion
 
-Touchline aims to make football league and tournament management easier, faster, and more organized. It brings important competition information together in one platform and improves the experience for both organizers and viewers.
+Futbolix aims to make football league and tournament management easier, faster, and more organized. It brings important competition information together in one platform and improves the experience for both organizers and viewers.
 
-© 2026 TOUCHLINE Platform. Built for the love of the game.
+© 2026 FUTBOLIX Platform. Built for the love of the game.

@@ -128,10 +128,10 @@ def register_view(request):
         login(request, user, backend='accounts.backends.PhoneOrUsernameBackend')
 
         if target_role == UserRole.ORGANIZER:
-            messages.success(request, f"Welcome to Touchline, {user.first_name or user.username}! You can now create your league and submit it for review.")
+            messages.success(request, f"Welcome to Futbolix, {user.first_name or user.username}! You can now create your league and submit it for review.")
             return redirect('organizer_dashboard')
 
-        messages.success(request, f"Welcome to Touchline, {user.first_name or user.username}!")
+        messages.success(request, f"Welcome to Futbolix, {user.first_name or user.username}!")
         return redirect('landing_page')
 
     return render(request, 'registration.html')

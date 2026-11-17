@@ -1,5 +1,5 @@
 """
-Fixtures application services - Streamlined Fixture Scheduling & Generation Engine for Touchline.
+Fixtures application services - Streamlined Fixture Scheduling & Generation Engine for Futbolix.
 Automatically includes all league teams, divides groups equally, and schedules fixtures
 by user-specified matches per day and daily slot kickoff times.
 """
@@ -80,6 +80,8 @@ def generate_smart_fixtures(competition, config):
     2. Evenly divides teams among groups for Group Stage.
     3. Schedules by daily match capacity and user-input kickoff times.
     """
+    if competition.is_completed:
+        return {'success': False, 'errors': ["This competition is already completed. Fixtures cannot be generated."]}
     format_type = config.get('tournament_format', TournamentFormat.ROUND_ROBIN)
     tournament_type = config.get('tournament_type') or config.get('knockout_system', 'single_elimination')
     knockout_system = tournament_type
@@ -182,7 +184,19 @@ def generate_smart_fixtures(competition, config):
         num_groups = 1 if is_league_knockout else int(config.get('num_groups', 2) or 2)
         default_q = 4 if is_league_knockout else 2
         q_per_group = int(config.get('qualifiers_per_group', default_q) or default_q)
-        groups_dict = _allocate_groups_equally(teams_qs, num_groups)
+
+        # Check if competition already has established group assignments for teams
+        existing_comp_teams = competition.competitionteam_set.filter(group__isnull=False).select_related('team', 'group')
+        existing_groups_map = {}
+        for ct in existing_comp_teams:
+            if ct.group and ct.team in teams_qs:
+                existing_groups_map.setdefault(ct.group.name, []).append(ct.team)
+
+        if existing_groups_map and len(existing_groups_map) == num_groups and not is_league_knockout and sum(len(tl) for tl in existing_groups_map.values()) == len(teams_qs):
+            groups_dict = existing_groups_map
+        else:
+            groups_dict = _allocate_groups_equally(teams_qs, num_groups)
+
         groups_info = {
             g_name: [{'id': t.id, 'name': t.name, 'short_name': t.short_name, 'logo_url': t.get_logo_url()} for t in t_list]
             for g_name, t_list in groups_dict.items()
@@ -250,21 +264,7 @@ def generate_smart_fixtures(competition, config):
             knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=7), preferred_weekdays)
 
         if use_page_mcintyre:
-            if num_groups == 1:
-                q_teams = groups_dict[list(groups_dict.keys())[0]][:4]
-            elif num_groups == 2:
-                g_keys = sorted(list(groups_dict.keys()))
-                gA = groups_dict[g_keys[0]]
-                gB = groups_dict[g_keys[1]]
-                q_teams = [
-                    gA[0] if len(gA) > 0 else None,
-                    gB[0] if len(gB) > 0 else None,
-                    gA[1] if len(gA) > 1 else None,
-                    gB[1] if len(gB) > 1 else None,
-                ]
-            else:
-                g_keys = sorted(list(groups_dict.keys()))
-                q_teams = [groups_dict[g_keys[i]][0] if len(groups_dict[g_keys[i]]) > 0 else None for i in range(min(4, len(g_keys)))]
+            q_teams = [None, None, None, None]
             knockout_matches = _generate_page_mcintyre_fixtures(
                 teams=q_teams,
                 start_date=knockout_start_date,
@@ -751,33 +751,21 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
 
     seeds = {}
     for g in group_names:
-        g_teams = groups_dict[g]
         seeds[g] = []
         for q in range(q_per_group):
             suf = {1: 'st', 2: 'nd', 3: 'rd'}.get(q + 1, 'th')
             rank_str = f"{q + 1}{suf} Place" if num_groups == 1 else f"{q + 1}{suf} {g}"
-            if q < len(g_teams):
-                t = g_teams[q]
-                seeds[g].append({
-                    'id': t.id,
-                    'name': f"{rank_str} ({t.name})",
-                    'seed_label': rank_str,
-                    'team_name': t.name,
-                    'short_name': t.short_name,
-                    'get_logo_url': t.get_logo_url,
-                    'home_venue': getattr(t, 'home_venue', '')
-                })
-            else:
-                fallback_t = g_teams[-1] if g_teams else None
-                seeds[g].append({
-                    'id': fallback_t.id if fallback_t else None,
-                    'name': rank_str,
-                    'seed_label': rank_str,
-                    'team_name': rank_str,
-                    'short_name': f"P{q + 1}" if num_groups == 1 else f"{q + 1}{g[-1]}",
-                    'get_logo_url': fallback_t.get_logo_url if fallback_t else (lambda: ""),
-                    'home_venue': getattr(fallback_t, 'home_venue', '') if fallback_t else ''
-                })
+            short_suf = f"P{q + 1}" if num_groups == 1 else f"{q + 1}{g[-1]}"
+            seeds[g].append({
+                'id': None,
+                'name': rank_str,
+                'seed_label': rank_str,
+                'team_name': rank_str,
+                'short_name': short_suf,
+                'is_placeholder': True,
+                'get_logo_url': lambda: "",
+                'home_venue': ''
+            })
 
     total_q = num_groups * q_per_group
 
@@ -800,6 +788,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             'group_name': "Knockout",
             'home_team': home,
             'away_team': away,
+            'placeholder_home': home.get('name', ''),
+            'placeholder_away': away.get('name', ''),
             'match_date': f_date,
             'kickoff_time': f_time,
             'venue': f_ven,
@@ -811,15 +801,18 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     if total_q == 4:
         if num_groups == 2:
             # Classic 1A vs 2B and 1B vs 2A cross-pairing
-            sf1 = (seeds['Group A'][0], seeds['Group B'][1])
-            sf2 = (seeds['Group B'][0], seeds['Group A'][1])
+            gA, gB = group_names[0], group_names[1]
+            sf1 = (seeds[gA][0], seeds[gB][1])
+            sf2 = (seeds[gB][0], seeds[gA][1])
         elif num_groups == 4:
-            sf1 = (seeds['Group A'][0], seeds['Group B'][0])
-            sf2 = (seeds['Group C'][0], seeds['Group D'][0])
+            gA, gB, gC, gD = group_names[0], group_names[1], group_names[2], group_names[3]
+            sf1 = (seeds[gA][0], seeds[gB][0])
+            sf2 = (seeds[gC][0], seeds[gD][0])
         else:
             # 1 Group with top 4 qualifiers: 1st vs 4th, 2nd vs 3rd
-            sf1 = (seeds['Group A'][0], seeds['Group A'][3])
-            sf2 = (seeds['Group A'][1], seeds['Group A'][2])
+            g0 = group_names[0]
+            sf1 = (seeds[g0][0], seeds[g0][3])
+            sf2 = (seeds[g0][1], seeds[g0][2])
 
         sf_pairs = [sf1, sf2]
         sf_times = []
@@ -851,6 +844,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'group_name': "Knockout",
                 'home_team': h,
                 'away_team': a,
+                'placeholder_home': h.get('name', ''),
+                'placeholder_away': a.get('name', ''),
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
@@ -874,6 +869,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'group_name': "Knockout",
                     'home_team': a,
                     'away_team': h,
+                    'placeholder_home': a.get('name', ''),
+                    'placeholder_away': h.get('name', ''),
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
@@ -923,16 +920,18 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     # CASE C: 6 TOTAL QUALIFIERS -> Play-In / Quarter-Finals -> Semi-Finals -> Final
     if total_q == 6:
         if num_groups == 2:
-            qf1 = (seeds['Group A'][1], seeds['Group B'][2])  # 2A vs 3B
-            qf2 = (seeds['Group B'][1], seeds['Group A'][2])  # 2B vs 3A
-            bye1 = seeds['Group A'][0]
-            bye2 = seeds['Group B'][0]
+            gA, gB = group_names[0], group_names[1]
+            qf1 = (seeds[gA][1], seeds[gB][2])  # 2A vs 3B
+            qf2 = (seeds[gB][1], seeds[gA][2])  # 2B vs 3A
+            bye1 = seeds[gA][0]
+            bye2 = seeds[gB][0]
         else:
             # 1 Group: 1st & 2nd bye to SF; 3rd vs 6th & 4th vs 5th in QF
-            qf1 = (seeds['Group A'][2], seeds['Group A'][5])
-            qf2 = (seeds['Group A'][3], seeds['Group A'][4])
-            bye1 = seeds['Group A'][0]
-            bye2 = seeds['Group A'][1]
+            g0 = group_names[0]
+            qf1 = (seeds[g0][2], seeds[g0][5])
+            qf2 = (seeds[g0][3], seeds[g0][4])
+            bye1 = seeds[g0][0]
+            bye2 = seeds[g0][1]
 
         qf_pairs = [qf1, qf2]
         qf_times = []
@@ -950,6 +949,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'group_name': "Knockout",
                 'home_team': h,
                 'away_team': a,
+                'placeholder_home': h.get('name', ''),
+                'placeholder_away': a.get('name', ''),
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
@@ -973,6 +974,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'group_name': "Knockout",
                     'home_team': a,
                     'away_team': h,
+                    'placeholder_home': a.get('name', ''),
+                    'placeholder_away': h.get('name', ''),
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
@@ -1019,6 +1022,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'group_name': "Knockout",
                 'home_team': h,
                 'away_team': a,
+                'placeholder_home': h.get('name', ''),
+                'placeholder_away': a.get('name', ''),
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
@@ -1042,6 +1047,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'group_name': "Knockout",
                     'home_team': a,
                     'away_team': h,
+                    'placeholder_home': a.get('name', ''),
+                    'placeholder_away': h.get('name', ''),
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
@@ -1091,25 +1098,28 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     # CASE D: 8 TOTAL QUALIFIERS -> Quarter-Finals (4 matches) -> Semi-Finals (2 matches) -> Final (1 match)
     if total_q == 8:
         if num_groups == 4:
+            gA, gB, gC, gD = group_names[0], group_names[1], group_names[2], group_names[3]
             qfs = [
-                (seeds['Group A'][0], seeds['Group B'][1]),  # 1A vs 2B
-                (seeds['Group C'][0], seeds['Group D'][1]),  # 1C vs 2D
-                (seeds['Group B'][0], seeds['Group A'][1]),  # 1B vs 2A
-                (seeds['Group D'][0], seeds['Group C'][1]),  # 1D vs 2C
+                (seeds[gA][0], seeds[gB][1]),  # 1A vs 2B
+                (seeds[gC][0], seeds[gD][1]),  # 1C vs 2D
+                (seeds[gB][0], seeds[gA][1]),  # 1B vs 2A
+                (seeds[gD][0], seeds[gC][1]),  # 1D vs 2C
             ]
         elif num_groups == 2:
+            gA, gB = group_names[0], group_names[1]
             qfs = [
-                (seeds['Group A'][0], seeds['Group B'][3]),  # 1A vs 4B
-                (seeds['Group A'][1], seeds['Group B'][2]),  # 2A vs 3B
-                (seeds['Group B'][0], seeds['Group A'][3]),  # 1B vs 4A
-                (seeds['Group B'][1], seeds['Group A'][2]),  # 2B vs 3A
+                (seeds[gA][0], seeds[gB][3]),  # 1A vs 4B
+                (seeds[gA][1], seeds[gB][2]),  # 2A vs 3B
+                (seeds[gB][0], seeds[gA][3]),  # 1B vs 4A
+                (seeds[gB][1], seeds[gA][2]),  # 2B vs 3A
             ]
         else:
+            g0 = group_names[0]
             qfs = [
-                (seeds['Group A'][0], seeds['Group A'][7]),
-                (seeds['Group A'][1], seeds['Group A'][6]),
-                (seeds['Group A'][2], seeds['Group A'][5]),
-                (seeds['Group A'][3], seeds['Group A'][4]),
+                (seeds[g0][0], seeds[g0][7]),
+                (seeds[g0][1], seeds[g0][6]),
+                (seeds[g0][2], seeds[g0][5]),
+                (seeds[g0][3], seeds[g0][4]),
             ]
 
         qf_times = []
@@ -1141,6 +1151,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'group_name': "Knockout",
                 'home_team': h,
                 'away_team': a,
+                'placeholder_home': h.get('name', ''),
+                'placeholder_away': a.get('name', ''),
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
@@ -1164,6 +1176,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'group_name': "Knockout",
                     'home_team': a,
                     'away_team': h,
+                    'placeholder_home': a.get('name', ''),
+                    'placeholder_away': h.get('name', ''),
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
@@ -1196,6 +1210,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'group_name': "Knockout",
                 'home_team': h,
                 'away_team': a,
+                'placeholder_home': h.get('name', ''),
+                'placeholder_away': a.get('name', ''),
                 'match_date': m_date,
                 'kickoff_time': k_time,
                 'venue': v_name,
@@ -1219,6 +1235,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'group_name': "Knockout",
                     'home_team': a,
                     'away_team': h,
+                    'placeholder_home': a.get('name', ''),
+                    'placeholder_away': h.get('name', ''),
                     'match_date': l2_date,
                     'kickoff_time': l2_time,
                     'venue': l2_ven,
@@ -1801,6 +1819,59 @@ def advance_knockout_bracket(competition):
     """
     matches = list(competition.matches.all())
 
+    # 0. Group Stage & League Qualification Progression:
+    # Promote qualified teams into knockout placeholder fixtures (e.g. "1st Group A", "2nd Group B", "1st Place")
+    # when group stage matches conclude.
+    if getattr(competition, 'is_group_stage', False) or competition.groups.exists():
+        from standings.models import StandingEntry
+        by_group_rank = {}
+        for grp in competition.groups.all():
+            grp_matches = competition.matches.filter(group=grp)
+            if grp_matches.exists() and not grp_matches.exclude(status=MatchStatus.COMPLETED).exists():
+                entries = list(StandingEntry.objects.filter(competition=competition, group=grp).order_by('position'))
+                for r, e in enumerate(entries, start=1):
+                    by_group_rank[(grp.name.lower(), r)] = e.team
+
+        # For single group / league table
+        if competition.groups.count() <= 1:
+            all_grp_matches = competition.matches.filter(group__isnull=False) if competition.groups.exists() else competition.matches.filter(tournament_round__icontains='Matchweek')
+            if all_grp_matches.exists() and not all_grp_matches.exclude(status=MatchStatus.COMPLETED).exists():
+                entries = list(StandingEntry.objects.filter(competition=competition).order_by('position'))
+                for r, e in enumerate(entries, start=1):
+                    by_group_rank[('league', r)] = e.team
+
+        for m in matches:
+            if m.status == MatchStatus.SCHEDULED:
+                updated_fields = []
+                for side, f_ph, f_team in [('home', m.placeholder_home, 'home_team'), ('away', m.placeholder_away, 'away_team')]:
+                    if f_ph and not getattr(m, f_team):
+                        ph = f_ph.strip().lower()
+                        target_rank = None
+                        if ph.startswith('1st') or ph.startswith('winner') or '1st' in ph:
+                            target_rank = 1
+                        elif ph.startswith('2nd') or ph.startswith('runner') or '2nd' in ph:
+                            target_rank = 2
+                        elif ph.startswith('3rd') or '3rd' in ph:
+                            target_rank = 3
+                        elif ph.startswith('4th') or '4th' in ph:
+                            target_rank = 4
+
+                        matched_team = None
+                        if target_rank:
+                            for grp in competition.groups.all():
+                                if grp.name.lower() in ph:
+                                    matched_team = by_group_rank.get((grp.name.lower(), target_rank))
+                                    break
+                            if not matched_team and ('place' in ph or 'seed' in ph):
+                                matched_team = by_group_rank.get(('league', target_rank))
+
+                        if matched_team:
+                            setattr(m, f_team, matched_team)
+                            setattr(m, f"placeholder_{side}", '')
+                            updated_fields.extend([f_team, f"placeholder_{side}"])
+                if updated_fields:
+                    m.save(update_fields=list(set(updated_fields)))
+
     # 1. Page-McIntyre Playoff Progression
     qf = next((m for m in matches if 'Qualifying Final' in m.tournament_round), None)
     ef = next((m for m in matches if 'Elimination Final' in m.tournament_round), None)
@@ -1982,6 +2053,9 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
     Atomically writes previewed/edited fixtures into database Match and TournamentGroup records.
     Supports placeholder fixtures (e.g. Finals with placeholder_home / placeholder_away before SFs conclude).
     """
+    if competition.is_completed:
+        return []
+
     with transaction.atomic():
         if tournament_format:
             if tournament_format in dict(TournamentFormat.choices):
@@ -2018,16 +2092,25 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
             home_id = m.get('home_team_id')
             away_id = m.get('away_team_id')
 
-            home_team = (teams_cache.get(home_id) or Team.objects.filter(id=home_id).first()) if home_id else None
-            away_team = (teams_cache.get(away_id) or Team.objects.filter(id=away_id).first()) if away_id else None
+            # Do not predict/pre-assign teams for future knockout placeholder fixtures
+            is_placeholder_match = bool(m.get('is_placeholder') or m.get('is_knockout_future'))
+            if is_placeholder_match or m.get('home_is_placeholder'):
+                home_team = None
+            else:
+                home_team = (teams_cache.get(home_id) or Team.objects.filter(id=home_id).first()) if home_id else None
+
+            if is_placeholder_match or m.get('away_is_placeholder'):
+                away_team = None
+            else:
+                away_team = (teams_cache.get(away_id) or Team.objects.filter(id=away_id).first()) if away_id else None
 
             placeholder_home = ""
             if not home_team:
-                placeholder_home = m.get('home_team_name') or m.get('placeholder_home') or 'TBD'
+                placeholder_home = m.get('placeholder_home') or m.get('home_team_name') or 'TBD'
 
             placeholder_away = ""
             if not away_team:
-                placeholder_away = m.get('away_team_name') or m.get('placeholder_away') or 'TBD'
+                placeholder_away = m.get('placeholder_away') or m.get('away_team_name') or 'TBD'
 
             if not home_team and not placeholder_home:
                 continue
@@ -2041,6 +2124,15 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
             round_num = int(m.get('round_number', 1) or 1)
             grp_name = m.get('group_name', '')
             grp_obj = group_objects_map.get(grp_name) if grp_name else None
+            if not grp_obj and grp_name and grp_name != 'Knockout':
+                grp_obj, _ = TournamentGroup.objects.get_or_create(competition=competition, name=grp_name)
+                group_objects_map[grp_name] = grp_obj
+
+            if grp_obj and grp_name != 'Knockout':
+                if home_team:
+                    CompetitionTeam.objects.filter(competition=competition, team_id=home_team.id).update(group=grp_obj)
+                if away_team:
+                    CompetitionTeam.objects.filter(competition=competition, team_id=away_team.id).update(group=grp_obj)
 
             round_byes = m.get('round_byes', [])
             notes_str = ""

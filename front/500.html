@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Server Error | Futbolix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #060b08;
+            --bg-card: #0d1711;
+            --bg-card-border: #182a1f;
+            --accent-green: #00e676;
+            --accent-green-glow: rgba(0, 230, 118, 0.2);
+            --danger-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 50% 20%, rgba(239, 68, 68, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 90% 80%, rgba(0, 230, 118, 0.04) 0%, transparent 40%);
+        }
+
+        /* Top Bar */
+        .navbar {
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--bg-card-border);
+            background: rgba(13, 23, 17, 0.6);
+            backdrop-filter: blur(12px);
+        }
+
+        .brand-logo {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-logo span {
+            color: var(--accent-green);
+        }
+
+        /* Hero Error Box */
+        .error-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 16px;
+            padding: 48px 36px;
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .error-badge {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .error-code {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -2px;
+        }
+
+        .error-code span {
+            color: var(--danger-red);
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .error-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent-green);
+            color: #060b08;
+            box-shadow: 0 4px 14px var(--accent-green-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--bg-card-border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #2e4a37;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #475569;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="brand-logo">// FUTBOLIX<span>.</span></a>
+        <div>
+            <a href="/" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem;">Browse Leagues</a>
+        </div>
+    </nav>
+
+    <div class="error-container">
+        <div class="error-card">
+            <div class="error-badge">Technical Stoppage</div>
+            <div class="error-code">5<span>0</span>0</div>
+            <h1 class="error-title">Internal Server Error</h1>
+            <p class="error-desc">
+                An unexpected server condition was encountered while processing your match request. Our platform administrators have been logged.
+            </p>
+            <div class="btn-group">
+                <a href="/" class="btn btn-primary">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Return to Homepage
+                </a>
+                <a href="javascript:location.reload()" class="btn btn-outline">Reload Match</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2026 Futbolix Management System. All rights reserved.
+    </footer>
+
+</body>
+</html>

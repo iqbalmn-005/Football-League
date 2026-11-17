@@ -68,6 +68,7 @@ venv.bak/
 # Environment variables
 .env
 .env.*
+sqlite_data_backup.json
 
 # IDEs
 .vscode/

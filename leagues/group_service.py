@@ -71,6 +71,8 @@ def distribute_teams_automatically(competition, num_groups=None):
       (e.g., 18 teams into 4 groups: Group A: 5, Group B: 5, Group C: 4, Group D: 4).
     - Prevents duplicate team assignments and ensures no teams are left unassigned.
     """
+    if competition.is_completed:
+        return {'success': False, 'error': "This competition is already completed. Teams and groups cannot be modified."}
     if num_groups is None:
         num_groups = competition.num_groups or 2
     num_groups = max(1, int(num_groups))
@@ -108,6 +110,11 @@ def distribute_teams_automatically(competition, num_groups=None):
 
         competition.distribution_method = 'automatic'
         competition.save(update_fields=['distribution_method'])
+        recalculate_competition_standings(competition)
+
+        # If group fixtures already exist, automatically regenerate them to reflect new group rosters
+        if competition.matches.filter(group__isnull=False).exists():
+            generate_group_fixtures(competition)
 
     return {
         'success': True,
@@ -128,6 +135,8 @@ def distribute_teams_manually(competition, group_assignments):
     2. No duplicate team assignments across groups.
     3. No registered teams left unassigned.
     """
+    if competition.is_completed:
+        return {'success': False, 'error': "This competition is already completed. Teams and groups cannot be modified."}
     comp_teams = list(CompetitionTeam.objects.filter(competition=competition).select_related('team'))
     valid_team_ids = {ct.team_id for ct in comp_teams}
     groups = {g.id: g for g in competition.groups.all()}
@@ -167,6 +176,11 @@ def distribute_teams_manually(competition, group_assignments):
 
         competition.distribution_method = 'manual'
         competition.save(update_fields=['distribution_method'])
+        recalculate_competition_standings(competition)
+
+        # If group fixtures already exist, automatically regenerate them to reflect new group rosters
+        if competition.matches.filter(group__isnull=False).exists():
+            generate_group_fixtures(competition)
 
     return {'success': True}
 
@@ -221,6 +235,8 @@ def confirm_group_assignments(competition):
     """
     Validates and marks group assignments as confirmed.
     """
+    if competition.is_completed:
+        return {'success': False, 'error': "This competition is already completed. Group assignments cannot be modified."}
     status = get_group_distribution_status(competition)
     if not status['is_valid']:
         if status['unassigned_teams']:
@@ -229,6 +245,9 @@ def confirm_group_assignments(competition):
 
     competition.groups_confirmed = True
     competition.save(update_fields=['groups_confirmed'])
+    recalculate_competition_standings(competition)
+    if competition.matches.filter(group__isnull=False).exists():
+        generate_group_fixtures(competition)
     return {'success': True}
 
 
@@ -242,6 +261,8 @@ def generate_group_fixtures(competition, double_round=False, start_date=None, pr
     - Assigns match.group = group_obj and round_name = 'Group X - Matchweek Y'.
     - Deletes only previously scheduled group-stage matches, leaving completed results intact.
     """
+    if competition.is_completed:
+        return {'success': False, 'error': "This competition is already completed. Fixtures cannot be generated."}
     groups = list(competition.groups.order_by('name'))
     if not groups:
         return {'success': False, 'error': "No groups found. Please create groups and distribute teams first."}
@@ -359,18 +380,52 @@ def get_group_standings_data(competition):
     """
     Returns independent standings tables for every group in the competition.
     Includes qualification highlight badges based on qualifiers_per_group.
+    Ensures stale entries from previous group redistributions are pruned.
     """
     groups = list(competition.groups.order_by('name'))
-    standings_entries = StandingEntry.objects.filter(competition=competition).select_related('group', 'team').order_by('group__name', 'position')
-    
+    if not groups:
+        return {}
+
+    comp_teams = list(CompetitionTeam.objects.filter(competition=competition).select_related('team', 'group'))
+    valid_team_ids_by_group = {
+        grp.id: {ct.team_id for ct in comp_teams if ct.group_id == grp.id}
+        for grp in groups
+    }
+
+    standings_entries = list(
+        StandingEntry.objects.filter(competition=competition, group__in=groups)
+        .select_related('group', 'team')
+        .order_by('group__name', 'position')
+    )
+
+    # Check if standings are out of sync with current group assignments
+    needs_recalc = False
+    for grp in groups:
+        valid_ids = valid_team_ids_by_group.get(grp.id, set())
+        grp_entries = [e for e in standings_entries if e.group_id == grp.id]
+        grp_entry_team_ids = {e.team_id for e in grp_entries}
+        if grp_entry_team_ids != valid_ids:
+            needs_recalc = True
+            break
+
+    if needs_recalc:
+        recalculate_competition_standings(competition)
+        standings_entries = list(
+            StandingEntry.objects.filter(competition=competition, group__in=groups)
+            .select_related('group', 'team')
+            .order_by('group__name', 'position')
+        )
+
     q_per_group = competition.qualifiers_per_group or 2
     group_tables = {}
 
     for grp in groups:
-        entries = [e for e in standings_entries if e.group_id == grp.id]
+        grp_completed = check_group_stage_completed(competition, grp)
+        valid_ids = valid_team_ids_by_group.get(grp.id, set())
+        entries = [e for e in standings_entries if e.group_id == grp.id and e.team_id in valid_ids]
         entries_data = []
         for e in entries:
-            is_qualified_pos = (e.position <= q_per_group)
+            is_qualified_pos = bool(grp_completed and (e.position <= q_per_group))
             entries_data.append({
                 'entry': e,
                 'team': e.team,
@@ -479,6 +534,13 @@ def generate_knockout_from_qualified_teams(competition, start_date=None, preferr
        Uses Futbolix's distributed BYE system (`plan_knockout_byes`) with top seeds receiving BYEs!
     4. Connects seamlessly with `advance_knockout_bracket` and marks `knockout_generated = True`.
     """
+    if getattr(competition, 'knockout_generated', False):
+        return {'success': False, 'error': "Knockout stage has already been generated for this tournament."}
+    if competition.is_completed and competition.matches.filter(group__isnull=True, status=MatchStatus.COMPLETED).exists():
+        return {'success': False, 'error': "This tournament and its knockout stage are already completed."}
+    if competition.status == CompetitionStatus.COMPLETED and not getattr(competition, 'knockout_generated', False):
+        competition.status = CompetitionStatus.ACTIVE
+        competition.save(update_fields=['status'])
     # Verify/update qualified teams
     q_result = update_qualified_teams(competition)
     if not q_result.get('success'):

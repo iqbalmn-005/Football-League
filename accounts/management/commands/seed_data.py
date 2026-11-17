@@ -16,16 +16,16 @@ from fixtures.services import generate_round_robin_fixtures
 
 
 class Command(BaseCommand):
-    help = "Populate the database with complete demonstration data for TOUCHLINE."
+    help = "Populate the database with complete demonstration data for FUTBOLIX."
 
     def handle(self, *args, **options):
-        self.stdout.write("Seeding TOUCHLINE platform database...")
+        self.stdout.write("Seeding FUTBOLIX platform database...")
 
         # 1. Platform Settings
         settings_obj = PlatformSetting.get_settings()
-        settings_obj.platform_name = "TOUCHLINE"
+        settings_obj.platform_name = "FUTBOLIX"
         settings_obj.tagline = "Your Game. Your League."
-        settings_obj.contact_email = "admin@touchline.football"
+        settings_obj.contact_email = "admin@futbolix.football"
         settings_obj.allow_organizer_registration = True
         settings_obj.auto_publish_fixtures = True
         settings_obj.save()
@@ -33,7 +33,7 @@ class Command(BaseCommand):
         # 2. Users & Roles
         # Super Admin
         admin_user, created = User.objects.get_or_create(username="admin", defaults={
-            "email": "admin@touchline.football",
+            "email": "admin@futbolix.football",
             "first_name": "Super",
             "last_name": "Administrator",
             "is_staff": True,
@@ -148,7 +148,7 @@ class Command(BaseCommand):
 
         # Viewer User: John Doe
         viewer_user, _ = User.objects.get_or_create(username="viewer", defaults={
-            "email": "viewer@touchline.football",
+            "email": "viewer@futbolix.football",
             "first_name": "Alex",
             "last_name": "Taylor",
         })
@@ -508,5 +508,5 @@ class Command(BaseCommand):
         ActivityLog.log("FIXTURES_GENERATED", "Generated round-robin fixtures for Metropolis Premier League.", user=sarah)
         ActivityLog.log("MATCH_RESULT_ENTERED", "Entered score: Greenfield FC 3 - 2 United SC.", user=sarah)
 
-        self.stdout.write(self.style.SUCCESS("TOUCHLINE database seeded successfully!"))
+        self.stdout.write(self.style.SUCCESS("FUTBOLIX database seeded successfully!"))
 

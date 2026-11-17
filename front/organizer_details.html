@@ -4,11 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ organizer.get_full_name|default:organizer.username }} | Hosted Leagues | Touchline</title>
+    <title>{{ organizer.get_full_name|default:organizer.username }} | Hosted Leagues | Futbolix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
@@ -340,7 +342,8 @@
         /* METRICS / STATS STRIP */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            width: 100%;
             gap: 14px;
         }
 
@@ -718,7 +721,6 @@
                         <h1>{{ organizer.get_full_name|default:organizer.username }}</h1>
                         <div class="profile-org">
                             <span>🏢 {{ profile.organization_name|default:"Independent League Organizer" }}</span>
-                            <span class="profile-handle">(@{{ organizer.username }})</span>
                         </div>
                         <div class="profile-badges">
                             {% if profile.organizer_status == 'APPROVED' and profile.is_active_organizer %}
@@ -731,8 +733,6 @@
                             <span class="badge-pill badge-neutral">{{ profile.organizer_status }}</span>
                             {% endif %}
 
-                            <span class="badge-pill badge-neutral">🏅 {{ profile.experience_years|default:"0" }} Years Experience</span>
-                            <span class="badge-pill badge-neutral">🛡️ Sanctioned Organizer</span>
                         </div>
                     </div>
                 </div>
@@ -747,7 +747,6 @@
                         <button class="btn btn-danger" type="submit">Suspend Organizer</button>
                         {% endif %}
                     </form>
-                    <small style="font-size:11px;color:var(--muted)">Admin Oversight Mode</small>
                 </div>
                 {% endif %}
             </div>
@@ -807,12 +806,6 @@
 
         <!-- 3. LEAGUES & TOURNAMENTS HOSTED SECTION -->
         <section id="leaguesSection">
-            <div class="section-header">
-                <h2>🏆 Leagues Hosted by {{ organizer.get_full_name|default:organizer.username }}</h2>
-                <div style="font-size:13px;color:var(--muted);font-weight:600;">
-                    Showing <strong id="leagueCountDisplay">{{ competitions|length }}</strong> of {{ total_leagues_count }} tournaments
-                </div>
-            </div>
 
             <!-- Filter Controls for Leagues -->
             <div class="filter-bar">
@@ -837,21 +830,25 @@
 
                 <div>
                     <!-- Search Input for Leagues -->
-                    <input type="text" class="search-input" id="leagueSearchInput" placeholder="Search league or city..."
-                        value="{{ search_query }}" onkeyup="searchLeaguesClient(this.value)">
+                    <input type="text" class="search-input" id="leagueSearchInput"
+                        placeholder="Search league or city..." value="{{ search_query }}"
+                        onkeyup="searchLeaguesClient(this.value)">
                 </div>
             </div>
 
             {% if competitions %}
             <div class="leagues-grid" id="leaguesContainer">
                 {% for comp in competitions %}
-                <div class="league-card" data-name="{{ comp.name|lower }}" data-location="{{ comp.location|lower }}" data-season="{{ comp.season|lower }}">
+                <div class="league-card" data-name="{{ comp.name|lower }}" data-location="{{ comp.location|lower }}"
+                    data-season="{{ comp.season|lower }}">
                     <div class="league-card-top">
                         <div class="league-logo-box">
                             {% if comp.logo_url %}
-                            <img src="{{ comp.logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ comp.logo_url }}" alt="{{ comp.name }}"
+                                style="width:100%;height:100%;object-fit:cover;">
                             {% elif comp.logo %}
-                            <img src="{{ comp.logo.url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ comp.logo.url }}" alt="{{ comp.name }}"
+                                style="width:100%;height:100%;object-fit:cover;">
                             {% else %}
                             🏆
                             {% endif %}
@@ -860,32 +857,38 @@
                             <div class="league-card-title">{{ comp.name }}</div>
                             <small style="color:var(--muted);font-size:11px;">📍 {{ comp.location }}</small>
                         </div>
-                        <span class="badge-pill {% if comp.status == 'ACTIVE' %}badge-live{% elif comp.status == 'COMPLETED' %}badge-neutral{% else %}badge-neutral{% endif %}">
+                        <span
+                            class="badge-pill {% if comp.status == 'ACTIVE' %}badge-live{% elif comp.status == 'COMPLETED' %}badge-neutral{% else %}badge-neutral{% endif %}">
                             {{ comp.get_status_display }}
                         </span>
                     </div>
 
                     <div class="league-card-details">
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Season</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Season</span>
                             <strong>{{ comp.season }}</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Format</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Format</span>
                             <strong>{{ comp.get_tournament_format_display }}</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Category</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Category</span>
                             <strong>{{ comp.get_category_display }}</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Teams</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);display:block;">Teams</span>
                             <strong>{{ comp.teams.count }} / {{ comp.max_teams }}</strong>
                         </div>
                     </div>
 
                     <div style="display:flex;align-items:center;justify-content:flex-end;padding-top:4px;">
-                        <a href="/competition/{{ comp.id }}/" class="btn btn-primary" style="font-size:12px;padding:6px 16px;width:100%;text-align:center;">
+                        <a href="/competition/{{ comp.id }}/" class="btn btn-primary"
+                            style="font-size:12px;padding:6px 16px;width:100%;text-align:center;">
                             View League Portal
                         </a>
                     </div>

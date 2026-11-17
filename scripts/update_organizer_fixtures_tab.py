@@ -37,7 +37,7 @@ new_empty = """                                    {% empty %}
                                         <td colspan="7" style="text-align:center;padding:40px 20px;color:var(--muted)">
                                             <div style="font-size:36px;margin-bottom:8px;">📅</div>
                                             <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No fixtures scheduled yet</strong>
-                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">Use the Touchline Smart Fixture Generator to configure format, rest days, venues, and blackout dates to generate a balanced schedule automatically.</p>
+                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">Use the Futbolix Smart Fixture Generator to configure format, rest days, venues, and blackout dates to generate a balanced schedule automatically.</p>
                                             <a href="/organizer/{{ active_competition.id }}/fixture-generator/" class="btn btn-primary" style="font-size:13px;padding:9px 20px;">
                                                 ⚡ Open Fixture Generation Wizard →
                                             </a>

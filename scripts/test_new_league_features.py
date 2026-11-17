@@ -23,7 +23,7 @@ def run_tests():
     # Authenticate as superuser or organizer
     user = User.objects.filter(is_superuser=True).first()
     if not user:
-        user = User.objects.create_superuser('admin_tester', 'admin@touchline.football', 'password123')
+        user = User.objects.create_superuser('admin_tester', 'admin@futbolix.football', 'password123')
     client.force_login(user)
 
     comp = Competition.objects.first()

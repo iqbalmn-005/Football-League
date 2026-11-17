@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixture Generation Wizard | {{ competition.name }} | Touchline</title>
+    <title>Fixture Generation Wizard | {{ competition.name }} | Futbolix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -753,7 +753,7 @@
     <header class="topbar">
         <div class="topbar-left">
             <a href="/organizer/" class="brand-link">
-                <span>Ⅲ</span> TOUCHLINE
+                <span>Ⅲ</span> FUTBOLIX
             </a>
             <div class="breadcrumb">
                 <span>/</span>
@@ -824,7 +824,6 @@
                             <input type="radio" name="tournament_format" value="GROUP_KNOCKOUT">
                             <div class="format-card-icon">🏆</div>
                             <div class="format-card-title">Group-wise League</div>
-                            <div class="format-card-desc">Clubs divided into groups with independent points tables, followed by tournament qualification.</div>
                         </label>
 
                         <label class="format-card" id="cardKnockout" onclick="selectFormat('KNOCKOUT')">
@@ -857,8 +856,6 @@
                     <div class="section-title">
                         <div>
                             <h2 id="groupSectionTitle">Tournament &amp; Playoff Settings</h2>
-                            <p class="section-hint" id="groupSectionHint">Configure tournament type and elimination
-                                stages.</p>
                         </div>
                     </div>
                     <span class="hero-pill" id="groupSectionBadge" style="font-size:10px;">TOURNAMENT MODE</span>
@@ -875,17 +872,14 @@
                             <option value="2" selected>2 Groups (Group A &amp; Group B)</option>
                             <option value="4">4 Groups (Groups A, B, C, D)</option>
                         </select>
-                        <span class="input-hint">Clubs will be distributed equally between these groups.</span>
                     </div>
 
                     <div class="form-group" id="singleGroupInfoContainer" style="display:none;">
                         <label class="form-label">League Structure</label>
                         <div
                             style="background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;font-weight:700;color:var(--dark);">
-                            🛡️ 1 Group (All Clubs in Single League Table)
+                            🛡️ 1 Group
                         </div>
-                        <span class="input-hint">Every club competes in 1 single league table before the tournament
-                            playoff.</span>
                     </div>
 
                     <div class="form-group" id="tournamentTypeContainer">
@@ -898,8 +892,6 @@
                             </option>
                             <option value="page_mcintyre">Page–McIntyre System</option>
                         </select>
-                        <span class="input-hint" id="tournamentTypeHint">Choose Standard Seeded Single-Elimination or
-                            Page–McIntyre System.</span>
                     </div>
 
                     <div class="form-group" id="knockoutLegsContainer">
@@ -911,8 +903,6 @@
                             <option value="single" selected>Single Leg (1 match per knockout pairing)</option>
                             <option value="double">Double Leg (Home &amp; Away 2-legged ties)</option>
                         </select>
-                        <span class="input-hint" id="knockoutLegsHint">Single leg = 1 sudden death match. Double leg =
-                            2-legged home &amp; away ties before final.</span>
                     </div>
 
                     <div class="form-group" id="qualifiersContainer">
@@ -926,21 +916,7 @@
                             <option value="4" selected>Top 4 Teams Advance (Semi-Finals &amp; Final)</option>
                             <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
-                        <span class="input-hint" id="qualifiersHint">Number of top clubs qualifying for the tournament
-                            stage.</span>
                     </div>
-                </div>
-
-                <!-- Equal Division Notice -->
-                <div
-                    style="background:#f4f8f1;border:1.5px solid #cce0c2;border-radius:6px;padding:12px 16px;margin-top:4px;">
-                    <strong style="color:var(--green-dark);font-size:13px;" id="equalDivisionNoticeText">
-                        ⚖️ Equal Group Allocation: 4 teams in Group A, 4 teams in Group B
-                    </strong>
-                    <p style="font-size:11px;color:var(--muted);margin-top:2px;">
-                        Teams are evenly and fairly distributed. Each group plays internal round-robin matchweeks before
-                        qualifying for the knockout rounds.
-                    </p>
                 </div>
             </section>
 
@@ -953,8 +929,6 @@
                     <div class="section-title">
                         <div>
                             <h2>Scheduling, Dates &amp; Daily Match Slots</h2>
-                            <p class="section-hint">Set start date, end date, matchdays, matches per day, and configure
-                                kickoff time slots.</p>
                         </div>
                     </div>
                 </div>
@@ -966,7 +940,6 @@
                         </label>
                         <input type="date" class="form-control" name="start_date" id="startDateInput"
                             value="{{ default_start_date }}" required onchange="handleStartDateChange()">
-                        <span class="input-hint">Earliest date matchweeks will commence.</span>
                     </div>
 
                     <div class="form-group">
@@ -975,12 +948,11 @@
                         </label>
                         <input type="date" class="form-control" name="end_date" id="endDateInput"
                             value="{{ default_end_date }}" required onchange="updateSummaryKpis()">
-                        <span class="input-hint">Target date by which all fixtures conclude.</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">
-                            How Many Matches in a Day? <span class="badge-req">*</span>
+                            Matches in a Day? <span class="badge-req">*</span>
                         </label>
                         <select class="form-control" id="matchesPerDaySelect" onchange="renderDailySlotsInputs()">
                             <option value="1">1 Match per day</option>
@@ -990,7 +962,6 @@
                             <option value="5">5 Matches per day</option>
                             <option value="6">6 Matches per day</option>
                         </select>
-                        <span class="input-hint">Defines how many fixtures take place on each matchday.</span>
                     </div>
                 </div>
 
@@ -999,10 +970,6 @@
                     <div class="daily-slots-header">
                         <div>
                             <strong style="font-size:13px;color:var(--dark);">⏰ Daily Kickoff Time Slots</strong>
-                            <div style="font-size:11px;color:var(--muted);">
-                                Pre-filled with sample times. You can customize the exact kickoff time for each daily
-                                match.
-                            </div>
                         </div>
                         <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;"
                             onclick="resetDailySlotsToDefaults()">
@@ -1029,8 +996,6 @@
                         <span class="chip active" data-day="Saturday" onclick="toggleChip(this)">✓ Saturday</span>
                         <span class="chip active" data-day="Sunday" onclick="toggleChip(this)">✓ Sunday</span>
                     </div>
-                    <span class="input-hint">Matches will be allocated across these days using your daily capacity
-                        slots.</span>
                 </div>
             </section>
 

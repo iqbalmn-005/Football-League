@@ -331,8 +331,8 @@ console.log("Updated Topbar breadcrumb with logo icon.");
 // 5. Add JavaScript for Logo Upload & Management
 const logoScript = `
         // --- LEAGUE LOGO MANAGEMENT ---
-        let leagueLogoData = localStorage.getItem("touchline_league_logo") || "";
-        let leagueEmblemPreset = localStorage.getItem("touchline_league_emblem") || "🛡️";
+        let leagueLogoData = localStorage.getItem("futbolix_league_logo") || "";
+        let leagueEmblemPreset = localStorage.getItem("futbolix_league_emblem") || "🛡️";
 
         function updateLogoDisplays() {
             const bannerImg = document.getElementById("bannerLogoImg");
@@ -395,7 +395,7 @@ const logoScript = `
             const reader = new FileReader();
             reader.onload = function(evt) {
                 leagueLogoData = evt.target.result;
-                localStorage.setItem("touchline_league_logo", leagueLogoData);
+                localStorage.setItem("futbolix_league_logo", leagueLogoData);
                 const urlInput = document.getElementById("leagueLogoUrlInput");
                 if (urlInput) urlInput.value = "";
                 updateLogoDisplays();
@@ -411,7 +411,7 @@ const logoScript = `
             const img = new Image();
             img.onload = function() {
                 leagueLogoData = cleanUrl;
-                localStorage.setItem("touchline_league_logo", cleanUrl);
+                localStorage.setItem("futbolix_league_logo", cleanUrl);
                 updateLogoDisplays();
                 showToast("✓ League logo loaded from URL!");
             };
@@ -424,8 +424,8 @@ const logoScript = `
         function selectEmblemPreset(emblem) {
             leagueEmblemPreset = emblem;
             leagueLogoData = "";
-            localStorage.removeItem("touchline_league_logo");
-            localStorage.setItem("touchline_league_emblem", emblem);
+            localStorage.removeItem("futbolix_league_logo");
+            localStorage.setItem("futbolix_league_emblem", emblem);
             const urlInput = document.getElementById("leagueLogoUrlInput");
             if (urlInput) urlInput.value = "";
             updateLogoDisplays();
@@ -435,8 +435,8 @@ const logoScript = `
         function removeLeagueLogo() {
             leagueLogoData = "";
             leagueEmblemPreset = "🛡️";
-            localStorage.removeItem("touchline_league_logo");
-            localStorage.removeItem("touchline_league_emblem");
+            localStorage.removeItem("futbolix_league_logo");
+            localStorage.removeItem("futbolix_league_emblem");
             const urlInput = document.getElementById("leagueLogoUrlInput");
             if (urlInput) urlInput.value = "";
             updateLogoDisplays();

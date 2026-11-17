@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Touchline | League Dashboard</title>
+    <title>Futbolix | League Dashboard</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
@@ -405,7 +405,8 @@
         }
 
         .league-info,
-        .league-actions {
+        .league-actions,
+        .banner-actions {
             position: relative;
             z-index: 1;
         }
@@ -424,30 +425,50 @@
             font-size: 11px;
         }
 
-        .league-actions {
+        .league-actions,
+        .banner-actions {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
+            align-items: center;
+            flex-wrap: nowrap;
         }
 
-        .league-actions .btn {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.22);
-            color: #ffffff;
-        }
-
-        .league-actions .btn:hover {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .league-actions .btn-primary {
-            background: var(--green);
+        .league-actions .btn,
+        .banner-actions .btn {
+            background: #ffffff;
+            border: 1px solid var(--border);
             color: var(--dark);
-            border-color: var(--green);
+            padding: 9px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: .2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
 
-        .league-actions .btn-primary:hover {
+        .league-actions .btn:hover,
+        .banner-actions .btn:hover {
+            background: var(--soft-green);
+            border-color: var(--green-dark);
+        }
+
+        .league-actions .btn-primary,
+        .banner-actions .btn-primary {
+            background: var(--green, #B4F56B);
+            color: var(--dark);
+            border: 1px solid var(--green, #B4F56B);
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(180, 245, 107, 0.28);
+        }
+
+        .league-actions .btn-primary:hover,
+        .banner-actions .btn-primary:hover {
             background: #c7ff88;
         }
 
@@ -1412,15 +1433,23 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                max-width: 130px;
+                max-width: 90px;
+            }
+
+            .top-actions {
+                display: flex !important;
+                align-items: center !important;
+                gap: 5px !important;
+                margin-left: auto !important;
+                flex-shrink: 0 !important;
             }
 
             .topbar-fixture-gen-btn {
                 display: inline-flex !important;
                 align-items: center !important;
                 gap: 4px !important;
-                padding: 6px 9px !important;
-                font-size: 11px !important;
+                padding: 6px clamp(6px, 1.8vw, 10px) !important;
+                font-size: clamp(10px, 2.7vw, 11.5px) !important;
                 font-weight: 800 !important;
                 border-radius: 6px !important;
                 background: var(--green, #B4F56B) !important;
@@ -1435,8 +1464,8 @@
                 display: inline-flex !important;
                 align-items: center !important;
                 gap: 4px !important;
-                padding: 6px 9px !important;
-                font-size: 11px !important;
+                padding: 6px clamp(6px, 1.8vw, 10px) !important;
+                font-size: clamp(10px, 2.7vw, 11.5px) !important;
                 font-weight: 700 !important;
                 border-radius: 6px !important;
                 white-space: nowrap !important;
@@ -1444,6 +1473,16 @@
                 background: #ffffff !important;
                 color: var(--dark) !important;
                 border: 1px solid var(--border) !important;
+            }
+
+            .topbar-gen-full,
+            .topbar-add-full {
+                display: inline !important;
+            }
+
+            .topbar-gen-short,
+            .topbar-add-short {
+                display: none !important;
             }
 
             .topbar-desktop-action {
@@ -1588,17 +1627,44 @@
                 font-size: 11px;
             }
 
-            .league-actions {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-                width: 100%;
+            .league-actions,
+            .banner-actions {
+                display: grid !important;
+                grid-auto-flow: column !important;
+                grid-auto-columns: 1fr !important;
+                gap: 6px !important;
+                width: 100% !important;
+                margin-top: 14px !important;
             }
 
-            .league-actions .btn {
-                width: 100%;
-                justify-content: center;
-                padding: 10px 8px;
+            .league-actions .btn,
+            .banner-actions .btn {
+                width: 100% !important;
+                min-width: 0 !important;
+                justify-content: center !important;
+                padding: 8px clamp(3px, 1.2vw, 8px) !important;
+                font-size: clamp(9.5px, 2.6vw, 11px) !important;
+                font-weight: 700 !important;
+                white-space: nowrap !important;
+                border-radius: 6px !important;
+                background: #ffffff !important;
+                color: var(--dark) !important;
+                border: 1px solid var(--border) !important;
+                text-decoration: none !important;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+                gap: 4px !important;
+                line-height: 1.2 !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            .league-actions .btn-primary,
+            .banner-actions .btn-primary {
+                background: var(--green, #B4F56B) !important;
+                color: #101b16 !important;
+                border-color: var(--green, #B4F56B) !important;
+                font-weight: 800 !important;
+                box-shadow: 0 2px 8px rgba(180, 245, 107, 0.28) !important;
             }
 
             /* Tabs */
@@ -5178,13 +5244,46 @@
 
     
         @media (max-width: 360px) {
+            .topbar {
+                padding: 0 8px !important;
+                gap: 4px !important;
+            }
+
+            .breadcrumb {
+                max-width: 58px !important;
+            }
+
+            .top-actions {
+                gap: 4px !important;
+            }
+
+            .topbar-fixture-gen-btn,
+            .topbar-add-fixture-btn {
+                padding: 5px 6px !important;
+                font-size: 9.5px !important;
+                gap: 2px !important;
+            }
+
             .topbar-gen-full,
             .topbar-add-full {
-                display: none !important;
+                display: inline !important;
             }
+
             .topbar-gen-short,
             .topbar-add-short {
-                display: inline !important;
+                display: none !important;
+            }
+
+            .banner-actions,
+            .league-actions {
+                gap: 4px !important;
+            }
+
+            .banner-actions .btn,
+            .league-actions .btn {
+                padding: 7px 2px !important;
+                font-size: 9px !important;
+                gap: 2px !important;
             }
         }
 
@@ -5304,7 +5403,7 @@
 </style>
 </head>
 
-<body>
+<body data-competition-id="{{ active_competition.id|default:'' }}" data-is-pure-knockout="{% if active_competition.is_pure_knockout %}true{% else %}false{% endif %}">
 
 
 
@@ -5318,7 +5417,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header-row">
                 <a href="/organizer/" class="logo">
-                    <span class="logo-mark">Ⅲ</span> TOUCHLINE
+                    <span class="logo-mark">Ⅲ</span> FUTBOLIX
                 </a>
                 <button type="button" class="sidebar-close-btn" onclick="closeMobileMenu(event, true)"
                     aria-label="Close menu">✕</button>
@@ -5434,16 +5533,22 @@
                 </div>
                 <div class="top-actions">
                     {% if active_competition %}
-                    <a href="/organizer/{{ active_competition.id }}/fixture-generator/"
-                        class="btn btn-primary topbar-fixture-gen-btn" title="Open Fixture Generator">
-                        ⚡ <span class="topbar-gen-full">Fixture Generator</span><span class="topbar-gen-short">Generator</span>
-                    </a>
-                    <button class="btn btn-outline topbar-add-fixture-btn" type="button" onclick="openAddFixtureModal()" title="Add Match Manually">
-                        <span>+</span> <span class="topbar-add-full">Add Match</span><span class="topbar-add-short">Match</span>
-                    </button>
-                    <button class="btn btn-primary topbar-desktop-action" type="button" onclick="openAddTeamModal()">
-                        <span>+</span> Add Team
-                    </button>
+                        {% if active_competition.is_completed %}
+                        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,0.15);color:#16a34a;border:1px solid rgba(22,163,74,0.35);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:0.04em;">
+                            <i class="fa-solid fa-trophy"></i> TOURNAMENT COMPLETED
+                        </span>
+                        {% else %}
+                        <a href="/organizer/{{ active_competition.id }}/fixture-generator/"
+                            class="btn btn-primary topbar-fixture-gen-btn" title="Open Fixture Generator">
+                            ⚡ <span class="topbar-gen-full">Fixture Generator</span><span class="topbar-gen-short">Generator</span>
+                        </a>
+                        <button class="btn btn-outline topbar-add-fixture-btn" type="button" onclick="openAddFixtureModal()" title="Add Match Manually">
+                            <span>+</span> <span class="topbar-add-full">Add Match</span><span class="topbar-add-short">Match</span>
+                        </button>
+                        <button class="btn btn-primary topbar-desktop-action" type="button" onclick="openAddTeamModal()">
+                            <span>+</span> Add Team
+                        </button>
+                        {% endif %}
                     {% else %}
                     <button class="btn btn-primary" type="button" onclick="openCreateCompetitionModal()">
                         <span>+</span> Create Competition
@@ -5518,25 +5623,102 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="banner-actions">
-                            <a href="/competition/{{ active_competition.id }}/" class="btn" target="_blank">👁 Public
-                                View</a>
-                            <button class="btn btn-primary" type="button" onclick="openAddFixtureModal()">+ Add
-                                Match</button>
+                        <div class="banner-actions league-actions">
+                            <a href="/competition/{{ active_competition.id }}/" class="btn" target="_blank">👁 Public View</a>
+                            {% if not active_competition.is_completed %}
+                            <button class="btn btn-primary" type="button" onclick="openAddFixtureModal()">+ Add Match</button>
+                            {% endif %}
                             <button class="btn" type="button" onclick="openTab('settings')">⚙ Edit Details</button>
                         </div>
                     </section>
                     <div class="overview-grid {% if active_competition.is_pure_knockout %}single-col{% endif %}">
-                        <!-- UPCOMING FIXTURES PREVIEW -->
-                        <div class="card">
+                        <!-- UPCOMING FIXTURES / LEAGUE WINNER PREVIEW -->
+                        <div class="card" {% if active_competition.winner %}style="border-color:rgba(180,245,107,0.4);"{% endif %}>
                             <div class="card-heading">
                                 <div>
+                                    {% if active_competition.winner %}
+                                    <h2>&#127942; Winner of the League</h2>
+                                    <p class="card-subtitle">Tournament concluded &middot; Official Champion</p>
+                                    {% else %}
                                     <h2>&#128197; Next Upcoming Matches</h2>
                                     <p class="card-subtitle">Scheduled competition fixtures</p>
+                                    {% endif %}
                                 </div>
+                                {% if active_competition.winner %}
+                                <button class="btn" onclick="openTab('results')">View Results &rarr;</button>
+                                {% else %}
                                 <button class="btn" onclick="openTab('fixtures')">View All &rarr;</button>
+                                {% endif %}
                             </div>
 
+                            {% if active_competition.winner %}
+                            <!-- LEAGUE WINNER / CHAMPION SHOWCASE -->
+                            <div class="league-winner-dashboard-card" style="background: radial-gradient(ellipse at 50% -20%, rgba(180, 245, 107, 0.22), transparent 75%), linear-gradient(145deg, #0e1712 0%, #15261c 60%, #0d1510 100%); border-radius: 12px; padding: 24px 20px; text-align: center; border: 1px solid rgba(180, 245, 107, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 0 20px rgba(180,245,107,0.12); margin-top: 4px;">
+                                <!-- Champion Pill -->
+                                <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(180,245,107,0.18); border:1px solid rgba(180,245,107,0.45); padding:4px 14px; border-radius:100px; margin-bottom:14px;">
+                                    <span style="font-size:14px;">🏆</span>
+                                    <span style="font-family:var(--font-heading); font-size:11px; font-weight:900; color:#B4F56B; letter-spacing:1px; text-transform:uppercase;">Official League Winner</span>
+                                    <span style="background:rgba(255,255,255,0.2); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:100px;">COMPLETED</span>
+                                </div>
+
+                                <!-- Crest & Name -->
+                                <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:14px;">
+                                    <div style="width:78px; height:78px; border-radius:50%; background:#142019; border:3px solid #B4F56B; box-shadow:0 0 22px rgba(180,245,107,0.45); display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:10px;">
+                                        {% if active_competition.winner.get_logo_url %}
+                                        <img src="{{ active_competition.winner.get_logo_url }}" alt="{{ active_competition.winner.name }}" style="width:54px; height:54px; object-fit:contain;">
+                                        {% else %}
+                                        <span style="font-family:var(--font-heading); font-size:26px; font-weight:900; color:#B4F56B;">{{ active_competition.winner.short_name|default:active_competition.winner.name|slice:":3"|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <h3 style="font-family:var(--font-heading); font-size:24px; font-weight:900; color:#ffffff; margin:0 0 4px; letter-spacing:0.5px; text-transform:uppercase;">
+                                        {{ active_competition.winner.name }}
+                                    </h3>
+                                    <p style="font-size:13px; color:rgba(255,255,255,0.85); margin:0;">
+                                        Champions of <strong>{{ active_competition.name }}</strong> ({{ active_competition.season }})
+                                    </p>
+                                </div>
+
+                                <!-- Stats row if standings entry exists -->
+                                {% if not active_competition.is_pure_knockout and active_competition.winner_entry %}
+                                <div style="display:inline-flex; gap:14px; align-items:center; background:rgba(0,0,0,0.35); padding:10px 18px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); margin-bottom:16px; flex-wrap:wrap; justify-content:center;">
+                                    <div style="text-align:center; min-width:50px;">
+                                        <div style="font-size:9.5px; color:rgba(255,255,255,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Played</div>
+                                        <div style="font-size:16px; font-weight:900; color:#fff;">{{ active_competition.winner_entry.played }}</div>
+                                    </div>
+                                    <div style="width:1px; height:20px; background:rgba(255,255,255,0.15);"></div>
+                                    <div style="text-align:center; min-width:50px;">
+                                        <div style="font-size:9.5px; color:rgba(255,255,255,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Won</div>
+                                        <div style="font-size:16px; font-weight:900; color:#B4F56B;">{{ active_competition.winner_entry.won }}</div>
+                                    </div>
+                                    <div style="width:1px; height:20px; background:rgba(255,255,255,0.15);"></div>
+                                    <div style="text-align:center; min-width:50px;">
+                                        <div style="font-size:9.5px; color:rgba(255,255,255,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Goal Diff</div>
+                                        <div style="font-size:16px; font-weight:900; color:#fff;">{% if active_competition.winner_entry.goal_difference > 0 %}+{% endif %}{{ active_competition.winner_entry.goal_difference }}</div>
+                                    </div>
+                                    <div style="width:1px; height:20px; background:rgba(255,255,255,0.15);"></div>
+                                    <div style="text-align:center; min-width:50px;">
+                                        <div style="font-size:9.5px; color:rgba(255,255,255,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Points</div>
+                                        <div style="font-size:16px; font-weight:900; color:#B4F56B;">{{ active_competition.winner_entry.points }}</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Action buttons -->
+                                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                                    <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:12px; padding:6px 14px;">
+                                        ⚡ View Results
+                                    </button>
+                                    {% if not active_competition.is_pure_knockout %}
+                                    <button class="btn" type="button" onclick="openTab('standings')" style="font-size:12px; padding:6px 14px; background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.25);">
+                                        📊 Standings
+                                    </button>
+                                    {% endif %}
+                                    <a href="/organizer/team/{{ active_competition.winner.id }}/?competition={{ active_competition.id }}" class="btn" style="font-size:12px; padding:6px 14px; background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.25);">
+                                        🛡️ Team Squad
+                                    </a>
+                                </div>
+                            </div>
+                            {% else %}
                             <!-- DESKTOP TABLE VIEW (Screens > 768px) -->
                             <div class="table-wrap upcoming-desktop-table">
                                 <table>
@@ -5579,9 +5761,13 @@
                                         {% empty %}
                                         <tr>
                                             <td colspan="4" style="text-align:center;padding:25px;color:var(--muted)">
+                                                {% if active_competition.is_completed %}
+                                                <i class="fa-solid fa-flag-checkered" style="margin-right:6px;color:#16a34a;"></i> Tournament concluded. All fixtures have been played.
+                                                {% else %}
                                                 No upcoming matches. <a href="javascript:void(0)"
                                                     onclick="openTab('fixtures')"
                                                     style="text-decoration:underline;">Generate fixtures here</a>.
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -5637,11 +5823,16 @@
                                 </div>
                                 {% empty %}
                                 <div style="text-align:center;padding:25px;color:var(--muted)">
+                                    {% if active_competition.is_completed %}
+                                    <i class="fa-solid fa-flag-checkered" style="margin-right:6px;color:#16a34a;"></i> Tournament concluded. All fixtures have been played.
+                                    {% else %}
                                     No upcoming matches. <a href="javascript:void(0)" onclick="openTab('fixtures')"
                                         style="text-decoration:underline;">Generate fixtures here</a>.
+                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>
+                            {% endif %}
                         </div>
 
                         {% if not active_competition.is_pure_knockout %}
@@ -5830,17 +6021,23 @@
                                     adjust match times.</p>
                             </div>
                             <div class="fixtures-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                {% if active_competition.is_completed %}
+                                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,0.15);color:#16a34a;border:1px solid rgba(22,163,74,0.35);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:0.04em;">
+                                    <i class="fa-solid fa-lock"></i> TOURNAMENT CONCLUDED · FIXTURES LOCKED
+                                </span>
+                                {% else %}
                                 <a href="/organizer/{{ active_competition.id }}/fixture-generator/"
                                     class="btn btn-primary fixtures-card-gen-btn">
                                     ⚡ Smart Fixture Generator Wizard
                                 </a>
                                 {% if active_competition.is_group_stage and groups.exists %}
-                                <button class="btn btn-primary" type="button" onclick="quickGenerateGroupFixtures({{ active_competition.id }})" style="background:#047857;border-color:#047857;color:#fff;">
+                                <button class="btn btn-primary" type="button" onclick="quickGenerateGroupFixtures()" style="background:#047857;border-color:#047857;color:#fff;">
                                     ⚽ Generate Group Fixtures
                                 </button>
                                 {% endif %}
                                 <button class="btn btn-outline" type="button" onclick="openAddFixtureModal()">+ Add
                                     Match Manually</button>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -5925,10 +6122,10 @@
                                     {% empty %}
                                     <tr>
                                         <td colspan="4" style="text-align:center;padding:40px 20px;color:var(--muted)">
-                                            {% if active_competition.is_completed and active_competition.winner %}
+                                            {% if active_competition.is_completed %}
                                             <div style="font-size:36px;margin-bottom:8px;">🏆</div>
                                             <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
-                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!</p>
+                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished{% if active_competition.winner %} and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!{% else %} and the tournament has concluded.{% endif %}</p>
                                             <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-right:6px;">
                                                 View Match Results →
                                             </button>
@@ -6043,10 +6240,10 @@
                             </div>
                             {% empty %}
                             <div style="text-align:center;padding:40px 20px;color:var(--muted)">
-                                {% if active_competition.is_completed and active_competition.winner %}
+                                {% if active_competition.is_completed %}
                                 <div style="font-size:36px;margin-bottom:8px;">🏆</div>
                                 <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
-                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!</p>
+                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished{% if active_competition.winner %} and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!{% else %} and the tournament has concluded.{% endif %}</p>
                                 <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-bottom:8px;">
                                     View Match Results →
                                 </button>
@@ -6104,6 +6301,11 @@
                                 <div class="poster-big-score">{{ last_match.home_score }}</div>
                                 <div class="poster-ft-container">
                                     <div class="poster-ft-badge">FT</div>
+                                    {% if last_match.penalties and last_match.home_penalties is not None %}
+                                    <div style="font-size:11px;font-weight:900;color:#B4F56B;margin-top:3px;letter-spacing:0.5px;">
+                                        ({{ last_match.home_penalties }} - {{ last_match.away_penalties }})
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 <div class="poster-big-score">{{ last_match.away_score }}</div>
                             </div>
@@ -6194,7 +6396,7 @@
                                             onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
                                             <span
                                                 style="background:var(--dark);color:#B4F56B;padding:3px 8px;border-radius:4px;display:inline-block;">
-                                                {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <small style="font-size:11px;color:#fff;">({{ m.home_penalties }}–{{ m.away_penalties }} pens)</small>{% endif %}
+                                                {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <small style="font-size:11px;color:#B4F56B;font-weight:800;">({{ m.home_penalties }} - {{ m.away_penalties }})</small>{% endif %}
                                             </span>
                                         </td>
                                         <td>
@@ -6281,8 +6483,8 @@
                                             <span class="rmc-score-val">{{ m.away_score }}</span>
                                         </div>
                                         {% if m.penalties and m.home_penalties is not None %}
-                                        <div style="font-size:11px;font-weight:800;color:var(--green-dark,#047857);margin-top:2px;">
-                                            ({{ m.home_penalties }}–{{ m.away_penalties }} pens)
+                                        <div style="font-size:11px;font-weight:900;color:var(--green-dark,#047857);margin-top:2px;">
+                                            ({{ m.home_penalties }} - {{ m.away_penalties }})
                                         </div>
                                         {% endif %}
                                     </div>
@@ -6393,59 +6595,13 @@
                         {% endif %}
 
                         {% if group_tables %}
-                        <!-- GROUP-WISE STANDINGS & QUALIFICATION OVERVIEW -->
-                        <div style="background:#17251e;border:1px solid #26342b;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
-                                <div>
-                                    <div style="display:flex;align-items:center;gap:8px;">
-                                        <span style="font-size:18px;">🎯</span>
-                                        <h3 style="margin:0;font-size:16px;font-weight:900;color:#F7FAFC;letter-spacing:0.5px;">Knockout Stage Qualification Overview</h3>
-                                        {% if is_group_stage_completed %}
-                                        <span style="background:#047857;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">✓ GROUP STAGE CONCLUDED</span>
-                                        {% else %}
-                                        <span style="background:rgba(181, 129, 5, 0.2);color:#eab308;border:1px solid rgba(234, 179, 8, 0.3);font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:100px;">⏳ GROUP STAGE IN PROGRESS</span>
-                                        {% endif %}
-                                    </div>
-                                    <p style="margin:4px 0 0;font-size:12px;color:#B5C0CB;">
-                                        Top <strong>{{ active_competition.qualifiers_per_group }}</strong> teams from each group qualify for the Single-Elimination Knockout Stage.
-                                    </p>
-                                </div>
-
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    {% if is_group_stage_completed %}
-                                    <button class="btn btn-primary" type="button" onclick="triggerKnockoutGeneration({{ active_competition.id }})" style="font-weight:900;padding:8px 16px;">
-                                        ⚡ Generate Knockout Stage from Qualified Teams
-                                    </button>
-                                    {% else %}
-                                    <div style="display:flex;align-items:center;gap:6px;">
-                                        <label style="font-size:11px;color:#B5C0CB;font-weight:700;">Qualify per group:</label>
-                                        <select class="field" style="padding:4px 8px;font-size:11px;background:#101820;color:#fff;border-color:#344451;" onchange="updateQualifiersCount({{ active_competition.id }}, this.value)">
-                                            <option value="1" {% if active_competition.qualifiers_per_group == 1 %}selected{% endif %}>Top 1</option>
-                                            <option value="2" {% if active_competition.qualifiers_per_group == 2 %}selected{% endif %}>Top 2</option>
-                                            <option value="3" {% if active_competition.qualifiers_per_group == 3 %}selected{% endif %}>Top 3</option>
-                                            <option value="4" {% if active_competition.qualifiers_per_group == 4 %}selected{% endif %}>Top 4</option>
-                                        </select>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            {% if qualified_teams %}
-                            <div>
-                                <span style="font-size:11px;font-weight:800;color:#B8F34A;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">
-                                    ✓ Qualified Teams for Knockout Bracket ({{ qualified_teams|length }} Teams):
-                                </span>
-                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                    {% for qt in qualified_teams %}
-                                    <div style="background:#101820;border:1px solid rgba(184,243,74,0.4);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;">
-                                        <span class="group-qualify-pill">{{ qt.group.name }} #{{ qt.rank_in_group }}</span>
-                                        <strong style="color:#F7FAFC;font-size:12px;">{{ qt.team.name }}</strong>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
+                        {% if is_group_stage_completed and not active_competition.is_completed %}
+                        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+                            <button class="btn btn-primary" type="button" onclick="triggerKnockoutGeneration()" style="font-weight:900;padding:8px 16px;">
+                                ⚡ Generate Knockout Stage from Qualified Teams
+                            </button>
                         </div>
+                        {% endif %}
 
                         <!-- INDEPENDENT GROUP POINTS TABLES -->
                         {% for grp, rows in group_tables.items %}
@@ -6481,7 +6637,7 @@
                                             <td class="col-pos">
                                                 <div style="display:flex;align-items:center;gap:6px;">
                                                     <strong>{{ row.position }}</strong>
-                                                    {% if row.is_qualified_position %}
+                                                    {% if is_group_stage_completed and row.is_qualified_position %}
                                                     <span style="width:6px;height:6px;border-radius:50%;background:#B4F56B;display:inline-block;" title="Qualifying Position"></span>
                                                     {% endif %}
                                                 </div>
@@ -6496,7 +6652,7 @@
                                                         {% endif %}
                                                     </div>
                                                     <strong class="standings-team-name">{{ row.team.name }}</strong>
-                                                    {% if row.is_qualified_position %}
+                                                    {% if is_group_stage_completed and row.is_qualified_position %}
                                                     <span class="group-qualify-pill" style="margin-left:6px;font-size:9px;">Q</span>
                                                     {% endif %}
                                                 </a>
@@ -6618,12 +6774,18 @@
                                     manage players.</p>
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                {% if active_competition.is_completed %}
+                                <span style="font-size:12px;font-weight:700;color:#10B981;background:rgba(16,185,129,0.12);padding:6px 12px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);">
+                                    <i class="fa-solid fa-lock"></i> TOURNAMENT COMPLETED · ROSTERS LOCKED
+                                </span>
+                                {% else %}
                                 {% if active_competition.is_group_stage and groups.exists %}
-                                <button class="btn btn-primary" type="button" onclick="runAutoDistribute({{ active_competition.id }})" style="background:#047857;border-color:#047857;color:#fff;">
+                                <button class="btn btn-primary" type="button" onclick="runAutoDistribute()" style="background:#047857;border-color:#047857;color:#fff;">
                                     ⚡ Auto Distribute Teams
                                 </button>
                                 {% endif %}
                                 <button class="btn btn-primary" onclick="openAddTeamModal()">+ Register New Team</button>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -6646,14 +6808,16 @@
                                     </p>
                                 </div>
 
+                                {% if not active_competition.is_completed %}
                                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                    <button class="btn btn-outline" type="button" onclick="runAutoDistribute({{ active_competition.id }})" style="font-size:11.5px;">
+                                    <button class="btn btn-outline" type="button" onclick="runAutoDistribute()" style="font-size:11.5px;">
                                         ⚡ Automatic Equal Distribution
                                     </button>
-                                    <button class="btn btn-primary" type="button" onclick="confirmGroupAssignments({{ active_competition.id }})" style="font-size:11.5px;">
+                                    <button class="btn btn-primary" type="button" onclick="confirmGroupAssignments()" style="font-size:11.5px;">
                                         ✓ Confirm Group Assignments
                                     </button>
                                 </div>
+                                {% endif %}
                             </div>
 
                             {% if group_status.unassigned_teams %}
@@ -6668,7 +6832,7 @@
                                     {% for ut in group_status.unassigned_teams %}
                                     <div style="background:#101820;border:1px solid #344451;border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;">
                                         <strong style="color:#F7FAFC;font-size:12px;">{{ ut.name }}</strong>
-                                        <select class="field" style="padding:2px 6px;font-size:11px;background:#1D2A35;color:#B8F34A;border-color:#344451;" onchange="assignTeamToGroup({{ active_competition.id }}, {{ ut.id }}, this.value)">
+                                        <select class="field" data-team-id="{{ ut.id }}" style="padding:2px 6px;font-size:11px;background:#1D2A35;color:#B8F34A;border-color:#344451;" onchange="handleGroupAssignment(this)">
                                             <option value="">+ Assign Group...</option>
                                             {% for grp in groups %}
                                             <option value="{{ grp.id }}">{{ grp.name }}</option>
@@ -6692,7 +6856,7 @@
                                         {% for t in g_data.teams %}
                                         <div class="group-team-chip">
                                             <span style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">{{ t.name }}</span>
-                                            <select style="background:transparent;border:0;color:#B5C0CB;font-size:10px;cursor:pointer;" onchange="assignTeamToGroup({{ active_competition.id }}, {{ t.id }}, this.value)">
+                                            <select data-team-id="{{ t.id }}" style="background:transparent;border:0;color:#B5C0CB;font-size:10px;cursor:pointer;" onchange="handleGroupAssignment(this)">
                                                 <option value="{{ g_data.id }}" selected>Move →</option>
                                                 {% for target_g in groups %}
                                                 {% if target_g.id != g_data.id %}
@@ -7011,6 +7175,27 @@
                                             / City</label>
                                         <input type="text" class="field" name="location"
                                             value="{{ active_competition.location }}" style="width:100%;">
+                                    </div>
+                                </div>
+
+                                <div class="settings-grid-2col"
+                                    style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                                    <div>
+                                        <label
+                                            style="display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">
+                                            Number of Teams (Max Teams)
+                                        </label>
+                                        <input type="number" class="field" name="max_teams"
+                                            value="{{ active_competition.max_teams|default:8 }}" min="2" max="64" required style="width:100%;">
+                                        <small style="color:var(--muted);font-size:11px;margin-top:2px;display:block;">Currently registered: {{ active_competition.teams.count }} teams</small>
+                                    </div>
+                                    <div>
+                                        <label
+                                            style="display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">
+                                            Season / Year
+                                        </label>
+                                        <input type="text" class="field" name="season"
+                                            value="{{ active_competition.season|default:'' }}" placeholder="e.g. 2026/2027" style="width:100%;">
                                     </div>
                                 </div>
 
@@ -7652,12 +7837,10 @@
 
     <script>
         function openTab(tabName, clickedBtn) {
-            {% if active_competition.is_pure_knockout %}
-            if (tabName === 'standings') {
+            if (!tabName) return;
+            if (document.body.dataset.isPureKnockout === 'true' && tabName === 'standings') {
                 tabName = 'fixtures';
             }
-            {% endif %}
-            closeMobileMenu(null, true);
 
             document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
             const target = document.getElementById(tabName);
@@ -7678,6 +7861,9 @@
             const bnavEl = document.getElementById(bnavId);
             if (bnavEl) bnavEl.classList.add("active");
 
+            // Close mobile menu drawer smoothly
+            closeMobileMenu(null, true);
+
             try {
                 const url = new URL(window.location);
                 url.searchParams.set('tab', tabName);
@@ -7692,7 +7878,6 @@
             if (e) {
                 if (typeof e.preventDefault === 'function') e.preventDefault();
                 if (typeof e.stopPropagation === 'function') e.stopPropagation();
-                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
             }
             const now = Date.now();
             if (now - _mobileMenuCooldown < 200) {
@@ -7707,18 +7892,8 @@
             const isOpen = sidebar.classList.contains("open") || sidebar.classList.contains("mobile-open");
             if (!isOpen) {
                 sidebar.classList.add("open", "mobile-open");
-                sidebar.style.setProperty("transform", "translateX(0)", "important");
-                sidebar.style.setProperty("visibility", "visible", "important");
-                sidebar.style.setProperty("opacity", "1", "important");
-                sidebar.style.setProperty("display", "flex", "important");
-                sidebar.style.setProperty("z-index", "1000001", "important");
-                sidebar.style.setProperty("pointer-events", "auto", "important");
                 if (backdrop) {
                     backdrop.classList.add("open", "active");
-                    backdrop.style.setProperty("display", "block", "important");
-                    backdrop.style.setProperty("opacity", "1", "important");
-                    backdrop.style.setProperty("pointer-events", "auto", "important");
-                    backdrop.style.setProperty("z-index", "1000000", "important");
                 }
                 document.body.style.overflow = "hidden";
                 _menuOpenedAt = Date.now();
@@ -7731,7 +7906,6 @@
             if (e && typeof e.stopPropagation === 'function') {
                 e.stopPropagation();
             }
-            // Prevent synthetic ghost touch/click immediately after menu opens
             if (!force && Date.now() - _menuOpenedAt < 150) {
                 return;
             }
@@ -7740,19 +7914,9 @@
             const backdrop = document.getElementById("sidebarBackdrop") || document.querySelector(".sidebar-backdrop");
             if (sidebar) {
                 sidebar.classList.remove("open", "mobile-open");
-                sidebar.style.removeProperty("transform");
-                sidebar.style.removeProperty("visibility");
-                sidebar.style.removeProperty("opacity");
-                sidebar.style.removeProperty("display");
-                sidebar.style.removeProperty("z-index");
-                sidebar.style.removeProperty("pointer-events");
             }
             if (backdrop) {
                 backdrop.classList.remove("open", "active");
-                backdrop.style.setProperty("display", "none", "important");
-                backdrop.style.removeProperty("opacity");
-                backdrop.style.removeProperty("pointer-events");
-                backdrop.style.removeProperty("z-index");
             }
             document.body.style.overflow = "";
         }
@@ -8304,6 +8468,8 @@
         }
 
         function runAutoDistribute(compId) {
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId) return;
             if (!confirm("Run automatic equal distribution of registered teams across groups?")) return;
             fetch(`/organizer/${compId}/groups/distribute/`, {
                 method: 'POST',
@@ -8324,8 +8490,18 @@
             .catch(err => alert("Request failed: " + err));
         }
 
-        function assignTeamToGroup(compId, teamId, targetGroupId) {
+        function handleGroupAssignment(selectEl) {
+            if (!selectEl) return;
+            const targetGroupId = selectEl.value;
             if (!targetGroupId) return;
+            const teamId = parseInt(selectEl.getAttribute('data-team-id'), 10);
+            const compId = document.body.dataset.competitionId;
+            assignTeamToGroup(compId, teamId, targetGroupId);
+        }
+
+        function assignTeamToGroup(compId, teamId, targetGroupId) {
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId || !targetGroupId) return;
             fetch(`/api/competition/${compId}/groups/status/`)
             .then(res => res.json())
             .then(data => {
@@ -8363,6 +8539,8 @@
         }
 
         function confirmGroupAssignments(compId) {
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId) return;
             fetch(`/organizer/${compId}/groups/confirm/`, {
                 method: 'POST',
                 headers: {
@@ -8383,6 +8561,8 @@
         }
 
         function quickGenerateGroupFixtures(compId) {
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId) return;
             if (!confirm("Generate independent round-robin group fixtures for all groups now?")) return;
             fetch(`/organizer/${compId}/groups/generate-fixtures/`, {
                 method: 'POST',
@@ -8404,7 +8584,14 @@
             .catch(err => alert("Request failed: " + err));
         }
 
-        function updateQualifiersCount(compId, count) {
+        function updateQualifiersCount(count, compId) {
+            if (typeof count === 'string' && isNaN(Number(count)) && typeof compId !== 'undefined') {
+                const temp = count;
+                count = compId;
+                compId = temp;
+            }
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId) return;
             fetch(`/organizer/${compId}/groups/qualification/`, {
                 method: 'POST',
                 headers: {
@@ -8425,6 +8612,8 @@
         }
 
         function triggerKnockoutGeneration(compId) {
+            compId = compId || document.body.dataset.competitionId;
+            if (!compId) return;
             if (!confirm("Generate the Single-Elimination Knockout bracket from qualified teams now?")) return;
             fetch(`/organizer/${compId}/groups/generate-knockout/`, {
                 method: 'POST',
@@ -8473,9 +8662,9 @@
                     document.getElementById('matchModalRound').textContent = data.tournament_round || 'Official Match';
                     document.getElementById('matchModalMeta').textContent = (data.match_date || '') + (data.kickoff_time ? ' @ ' + data.kickoff_time : '') + (data.venue ? ' · ' + data.venue : '');
                     document.getElementById('matchModalHomeName').textContent = data.home_team.name;
-                    const mHomeLink = document.getElementById('matchModalHomeLink'); if (mHomeLink && data.home_team.id) mHomeLink.href = '/organizer/team/' + data.home_team.id + '/?competition=' + (data.competition_id || '{{ active_competition.id }}');
+                    const mHomeLink = document.getElementById('matchModalHomeLink'); if (mHomeLink && data.home_team.id) mHomeLink.href = '/organizer/team/' + data.home_team.id + '/?competition=' + (data.competition_id || document.body.dataset.competitionId || '');
                     document.getElementById('matchModalAwayName').textContent = data.away_team.name;
-                    const mAwayLink = document.getElementById('matchModalAwayLink'); if (mAwayLink && data.away_team.id) mAwayLink.href = '/organizer/team/' + data.away_team.id + '/?competition=' + (data.competition_id || '{{ active_competition.id }}');
+                    const mAwayLink = document.getElementById('matchModalAwayLink'); if (mAwayLink && data.away_team.id) mAwayLink.href = '/organizer/team/' + data.away_team.id + '/?competition=' + (data.competition_id || document.body.dataset.competitionId || '');
 
                     // Team logos or fallbacks
                     const hLogo = document.getElementById('matchModalHomeLogo');
@@ -8594,12 +8783,12 @@
 
         // Initialize event listeners
         document.addEventListener('DOMContentLoaded', function () {
-            // Auto close mobile drawer when any sidebar link is clicked
-            document.querySelectorAll('#sidebar .nav-link').forEach(function (link) {
-                link.addEventListener('click', function () {
-                    closeMobileMenu(null, true);
-                });
-            });
+            const backdrop = document.getElementById("sidebarBackdrop");
+            if (backdrop) {
+                backdrop.addEventListener('touchstart', function(e) {
+                    closeMobileMenu(e, true);
+                }, { passive: true });
+            }
         });
 
     </script>

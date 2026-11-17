@@ -1,5 +1,5 @@
 """
-URL configuration for Football project (TOUCHLINE).
+URL configuration for Football project (FUTBOLIX).
 Pure Django application routing across all modular Django apps.
 """
 from django.contrib import admin
@@ -21,9 +21,13 @@ urlpatterns = [
 
     # Public / Viewer Routes (leagues & teams apps)
     path('', league_views.landing_page, name='landing_page'),
+    path('competitions/', league_views.all_competitions_view, name='all_competitions'),
+    path('leagues/', league_views.all_competitions_view, name='all_leagues'),
     path('competition/<int:comp_id>/', league_views.competition_viewer, name='competition_viewer'),
     path('league/<int:comp_id>/', league_views.competition_viewer, name='league_viewer'),
     path('team/<int:team_id>/', team_views.team_profile, name='team_profile'),
+    path('404/', league_views.custom_404_view, name='custom_404'),
+    path('500/', league_views.custom_500_view, name='custom_500'),
 
     # JSON APIs for Interactive Modals (matches & teams apps)
     path('api/match/<int:match_id>/', match_views.api_match_details, name='api_match_details'),
@@ -87,6 +91,15 @@ urlpatterns = [
     path('organizer/<int:comp_id>/edit/', league_views.update_competition_view, name='edit_competition'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+from django.views.static import serve
+from django.urls import re_path
+
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATICFILES_DIRS[0]}),
+]
+
+# Custom production error handlers
+handler404 = 'leagues.public_views.custom_404_view'
+handler500 = 'leagues.public_views.custom_500_view'
+

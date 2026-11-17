@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Touchline | League Organizer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Futbolix | League Organizer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --dark: #101b16;
@@ -474,7 +476,8 @@
             color: #5e6a60;
         }
 
-        .status.pending, .status.under_review {
+        .status.pending,
+        .status.under_review {
             background: #fef3c7;
             color: #92400e;
             border: 1px solid #fde68a;
@@ -638,59 +641,72 @@
             align-items: center;
             justify-content: space-between;
         }
+
         .alert-error {
             background: #fde8e8;
             color: #9b1c1c;
             border: 1px solid #f8b4b4;
         }
-        .alert-success, .alert-info {
+
+        .alert-success,
+        .alert-info {
             background: #def7ec;
             color: #03543f;
             border: 1px solid #bcf0da;
         }
-    
+
         @media(max-width:768px) {
             .navbar {
                 position: static !important;
             }
+
             .page-heading {
                 flex-direction: column !important;
                 align-items: flex-start !important;
                 gap: 12px !important;
                 margin-bottom: 18px !important;
             }
+
             .page-heading h1 {
                 font-size: 32px !important;
                 line-height: 1.1 !important;
             }
+
             .page-heading .btn {
                 width: 100% !important;
                 justify-content: center !important;
             }
+
             .metrics {
                 grid-template-columns: 1fr 1fr !important;
                 gap: 8px !important;
                 margin-bottom: 18px !important;
             }
+
             .metric-card {
                 padding: 12px !important;
                 border-radius: 10px !important;
             }
+
             .metric-label {
                 font-size: 10px !important;
             }
+
             .metric-value {
                 font-size: 26px !important;
                 margin: 4px 0 !important;
             }
+
             .metric-note {
                 font-size: 9.5px !important;
             }
+
             .filter-bar {
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 8px !important;
             }
+
             .filter-bar input.search,
             .filter-bar select.filter {
                 width: 100% !important;
@@ -698,14 +714,14 @@
                 min-width: 0 !important;
             }
         }
-</style>
+    </style>
 </head>
 
 <body>
     <!-- TOP NAVBAR -->
     <header class="navbar">
         <div class="container nav-inner">
-            <a class="logo" href="/"><span class="logo-mark">//</span>TOUCHLINE</a>
+            <a class="logo" href="/"><span class="logo-mark">//</span>FUTBOLIX</a>
             <nav class="nav-links">
                 <a href="/">Home</a>
                 <a href="/organizer/" class="active">My Leagues</a>
@@ -714,7 +730,8 @@
             </nav>
             <div class="profile">
                 <div class="avatar">{{ user.username|slice:":2"|upper }}</div>
-                <span class="profile-name"><strong>{{ user.first_name|default:user.username }}</strong> · Organizer</span>
+                <span class="profile-name"><strong>{{ user.first_name|default:user.username }}</strong> ·
+                    Organizer</span>
                 <a href="/logout/" style="font-size:11px;color:#fca5a5;margin-left:8px;font-weight:700;">Sign Out</a>
             </div>
         </div>
@@ -726,7 +743,8 @@
         {% for message in messages %}
         <div class="alert-banner alert-{{ message.tags|default:'success' }}">
             <span>● {{ message }}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;color:inherit;">✕</button>
+            <button onclick="this.parentElement.remove()"
+                style="background:none;border:none;cursor:pointer;font-weight:900;color:inherit;">✕</button>
         </div>
         {% endfor %}
     </div>
@@ -735,9 +753,7 @@
     <main class="container">
         <section class="page-heading">
             <div>
-                <div class="eyebrow">Your control room / 01</div>
                 <h1>League Organizer</h1>
-                <p class="subtext">Create competitions, manage your leagues, and keep every team in the game.</p>
             </div>
             <a class="btn" href="#add-league">＋ &nbsp; CREATE A LEAGUE <span>↗</span></a>
         </section>
@@ -747,32 +763,32 @@
             <a href="/organizer/?status=all" class="metric-card accent-green" title="View all hosted competitions">
                 <div class="metric-label">🏆 Hosted leagues</div>
                 <div class="metric-value">{{ total_count|stringformat:"02d" }}</div>
-                <div class="metric-note">All competitions you organize</div>
             </a>
-            <a href="/organizer/?status=COMPLETED" class="metric-card accent-purple" title="View completed competitions">
+            <a href="/organizer/?status=COMPLETED" class="metric-card accent-purple"
+                title="View completed competitions">
                 <div class="metric-label">🟢 Completed leagues</div>
                 <div class="metric-value">{{ completed_count|stringformat:"02d" }}</div>
-                <div class="metric-note">Concluded tournaments</div>
             </a>
             <a href="/organizer/?status=ACTIVE" class="metric-card accent-blue" title="View ongoing competitions">
                 <div class="metric-label">⚡ Ongoing leagues</div>
                 <div class="metric-value">{{ active_count|stringformat:"02d" }}</div>
-                <div class="metric-note">Currently running</div>
             </a>
             <a href="/organizer/?status=UPCOMING" class="metric-card accent-amber" title="View upcoming competitions">
                 <div class="metric-label">⏳ Upcoming leagues</div>
                 <div class="metric-value">{{ upcoming_count|stringformat:"02d" }}</div>
-                <div class="metric-note">Ready for kickoff</div>
             </a>
         </section>
 
         {% if pending_count > 0 %}
-        <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;padding:14px 18px;border-radius:6px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div
+            style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;padding:14px 18px;border-radius:6px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <div>
                 <strong style="color:#92400e;font-size:13px;display:block;">⏳ League Submission Under Review</strong>
                 <p style="margin:4px 0 0;font-size:12px;color:#b45309;">You have {{ pending_count }} competition{{ pending_count|pluralize }} currently under review by the platform administrator. Once approved, full fixture scheduling and team management will be activated.</p>
             </div>
-            <span style="font-size:10.5px;font-weight:800;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;border:1px solid #fde68a;white-space:nowrap;">IN REVIEW</span>
+            <span
+                style="font-size:10.5px;font-weight:800;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;border:1px solid #fde68a;white-space:nowrap;">IN
+                REVIEW</span>
         </div>
         {% endif %}
 
@@ -782,7 +798,6 @@
                 <div class="panel-head">
                     <div>
                         <h2>My Leagues</h2>
-                        <p>Competitions you organize and manage.</p>
                     </div>
                     <div>
                         <span id="visibleCount" style="font-size:11px;font-weight:800;color:var(--green-dark)">
@@ -792,8 +807,10 @@
                 </div>
 
                 <!-- SEARCH & FILTER BAR (Pure Django GET Form) -->
-                <form method="get" action="/organizer/" class="filter-bar" style="display:flex;gap:10px;align-items:center;">
-                    <input type="search" name="q" class="search" id="searchInput" value="{{ search_query|default:'' }}" placeholder="Search leagues by name, venue, or format..." style="flex:1;">
+                <form method="get" action="/organizer/" class="filter-bar"
+                    style="display:flex;gap:10px;align-items:center;">
+                    <input type="search" name="q" class="search" id="searchInput" value="{{ search_query|default:'' }}"
+                        placeholder="Search leagues by name, venue, or format..." style="flex:1;">
                     <select name="status" class="filter" id="statusFilter" onchange="this.form.submit()">
                         <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All statuses</option>
                         <option value="ACTIVE" {% if status_filter == 'ACTIVE' or status_filter == 'Active' %}selected{% endif %}>Active</option>
@@ -802,19 +819,25 @@
                         <option value="COMPLETED" {% if status_filter == 'COMPLETED' or status_filter == 'Completed' %}selected{% endif %}>Completed</option>
                     </select>
                     {% if search_query or status_filter and status_filter != 'all' %}
-                    <a href="/organizer/" style="font-size:11px;font-weight:700;color:#d93838;text-decoration:none;white-space:nowrap;padding:0 8px;">✕ Clear</a>
+                    <a href="/organizer/"
+                        style="font-size:11px;font-weight:700;color:#d93838;text-decoration:none;white-space:nowrap;padding:0 8px;">✕
+                        Clear</a>
                     {% endif %}
                 </form>
 
                 <!-- LEAGUES LIST -->
                 <div class="league-list" id="leagueList">
                     {% for comp in user_competitions %}
-                    <article class="league-item" data-name="{{ comp.name|lower }} {{ comp.location|lower }} {{ comp.category|lower }}" data-status="{{ comp.get_status_display }}">
+                    <article class="league-item"
+                        data-name="{{ comp.name|lower }} {{ comp.location|lower }} {{ comp.category|lower }}"
+                        data-status="{{ comp.get_status_display }}">
                         <div class="league-symbol">
                             {% if comp.get_logo_url %}
-                            <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">
+                            <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}"
+                                style="width:100%;height:100%;object-fit:cover;border-radius:4px;">
                             {% else %}
-                            <div style="width:100%;height:100%;background:rgba(180,245,107,0.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);">
+                            <div
+                                style="width:100%;height:100%;background:rgba(180,245,107,0.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;border-radius:4px;border:1px solid rgba(180,245,107,0.3);">
                                 {{ comp.name|slice:":3"|upper }}
                             </div>
                             {% endif %}
@@ -834,10 +857,14 @@
                             <span class="status {{ comp.status|lower }}">{{ comp.get_status_display }}</span>
                             <div class="league-actions">
                                 {% if comp.status == 'PENDING' %}
-                                <span class="badge" style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:4px;font-size:10px;font-weight:800;border:1px solid #fde68a;">⏳ Under Review</span>
+                                <span class="badge"
+                                    style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:4px;font-size:10px;font-weight:800;border:1px solid #fde68a;">⏳
+                                    Under Review</span>
                                 {% else %}
-                                <a href="/organizer/{{ comp.id }}/" class="btn" style="padding:6px 12px;font-size:10px;">Manage ↗</a>
-                                <a href="/competition/{{ comp.id }}/" class="icon-btn" target="_blank" title="View Public Match Center">Public View ↗</a>
+                                <a href="/organizer/{{ comp.id }}/" class="btn"
+                                    style="padding:6px 12px;font-size:10px;">Manage ↗</a>
+                                <a href="/competition/{{ comp.id }}/" class="icon-btn" target="_blank"
+                                    title="View Public Match Center">Public View ↗</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -860,17 +887,17 @@
                 <div class="panel-head">
                     <div>
                         <h2>Add New League</h2>
-                        <p>Set up the details for your next competition.</p>
                     </div>
                     <span style="font-size:23px;color:var(--green-dark)">＋</span>
                 </div>
                 <div class="panel-body">
-                    <form id="leagueForm" method="post" action="/organizer/competition/create/" enctype="multipart/form-data">
+                    <form id="leagueForm" method="post" action="/organizer/competition/create/"
+                        enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="form-grid">
                             <div class="field full">
                                 <label for="leagueName">League name *</label>
-                                <input id="leagueName" name="name" required maxlength="70" placeholder="e.g. Malabar Champions League">
+                                <input id="leagueName" name="name" required maxlength="70">
                             </div>
                             <div class="field">
                                 <label for="leagueFormat">Competition format *</label>
@@ -892,12 +919,13 @@
                                     <option value="custom">Enter number of teams</option>
                                 </select>
                                 <div id="customTeamsWrapper" style="display: none; margin-top: 8px;">
-                                    <input type="number" id="customTeams" name="custom_teams" min="2" max="128" placeholder="Enter number of teams (e.g. 16)">
+                                    <input type="number" id="customTeams" name="custom_teams" min="2" max="128"
+                                        placeholder="Enter number of teams (e.g. 16)">
                                 </div>
                             </div>
                             <div class="field full">
                                 <label for="venue">Location / venue *</label>
-                                <input id="venue" name="location" required placeholder="e.g. City Sports Ground, Kozhikode">
+                                <input id="venue" name="location" required>
                             </div>
                             <div class="field">
                                 <label for="startDate">Start date *</label>
@@ -910,18 +938,21 @@
                             <div class="field full">
                                 <label for="leagueLogo">League Logo / Crest (Optional)</label>
                                 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                    <input type="file" id="leagueLogo" name="logo" accept="image/*" style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
-                                    <input type="url" id="leagueLogoUrl" name="logo_url" placeholder="Or enter logo URL (optional)" style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
+                                    <input type="file" id="leagueLogo" name="logo" accept="image/*"
+                                        style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
+                                    <input type="url" id="leagueLogoUrl" name="logo_url"
+                                        placeholder="Or enter logo URL (optional)"
+                                        style="flex:1;min-width:180px;padding:8px 10px;background:#0d1712;border:1px solid #23352a;border-radius:4px;color:white;font-size:12px;">
                                 </div>
                             </div>
                             <div class="field full">
                                 <label for="leagueDescription">Description (optional)</label>
-                                <textarea id="leagueDescription" name="description" maxlength="250" placeholder="A short note about the league, rules, or eligibility..."></textarea>
+                                <textarea id="leagueDescription" name="description" maxlength="250"
+                                    placeholder="A short note about the league, rules, or eligibility..."></textarea>
                             </div>
                         </div>
                         <div class="form-actions">
                             <button class="btn" type="submit" id="submitBtn">SUBMIT LEAGUE FOR REVIEW ↗</button>
-                            <button class="btn btn-ghost" type="button" onclick="fillDummyForm()">⚡ SAMPLE LEAGUE DATA</button>
                             <button class="btn btn-ghost" type="reset" id="resetBtn">CLEAR FORM</button>
                         </div>
                     </form>
@@ -932,7 +963,7 @@
 
     <footer class="footer">
         <div class="container footer-inner">
-            <span>© 2026 <b>TOUCHLINE</b> — PLAY. ORGANIZE. COMPETE.</span>
+            <span>© 2026 <b>FUTBOLIX</b> — PLAY. ORGANIZE. COMPETE.</span>
             <span>LEAGUE ORGANIZER DASHBOARD</span>
         </div>
     </footer>
@@ -1000,7 +1031,7 @@
 
         // Sample data filler
         function fillDummyForm() {
-            document.getElementById('leagueName').value = 'Touchline Premier Championship';
+            document.getElementById('leagueName').value = 'Futbolix Premier Championship';
             document.getElementById('leagueFormat').value = '11-a-side';
             document.getElementById('teamLimit').value = '8';
             toggleCustomTeams();
@@ -1016,4 +1047,5 @@
         }
     </script>
 </body>
+
 </html>

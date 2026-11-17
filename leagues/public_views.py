@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.db.models import Q
 from accounts.models import UserRole, OrganizerStatus
 from leagues.models import Competition, CompetitionCategory, CompetitionStatus
@@ -65,15 +65,67 @@ def landing_page(request):
     return render(request, 'list.html', context)
 
 
+def all_competitions_view(request):
+    """
+    Dedicated view for browsing and searching all published leagues and tournaments (front/competitions_list.html).
+    Allows public viewers, coaches, and players to search and filter through all competitions.
+    """
+    category = request.GET.get('category', 'all')
+    status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('q', '').strip()
+
+    competitions_qs = Competition.objects.filter(is_published=True).select_related('primary_organizer').prefetch_related('teams')
+
+    if category != 'all':
+        competitions_qs = competitions_qs.filter(category=category)
+
+    if status_filter != 'all':
+        competitions_qs = competitions_qs.filter(status=status_filter.upper())
+
+    if search_query:
+        competitions_qs = competitions_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(season__icontains=search_query)
+        )
+
+    competitions = list(competitions_qs.order_by('-created_at'))
+    total_published = Competition.objects.filter(is_published=True).count()
+
+    context = {
+        'competitions': competitions,
+        'total_count': len(competitions),
+        'total_published': total_published,
+        'selected_category': category,
+        'selected_status': status_filter,
+        'search_query': search_query,
+    }
+    return render(request, 'competitions_list.html', context)
+
+
 def competition_viewer(request, comp_id):
     """
     Public viewer for a specific league or tournament (front/user_dashboard.html).
     Contains: Upcoming Matches, Results, Standings, Statistics, Teams.
+    Permits public access when published. Unpublished/draft competitions can only
+    be previewed by their creator, assigned organizers, or platform administrators.
     """
-    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
-        competition = get_object_or_404(Competition, id=comp_id)
-    else:
-        competition = get_object_or_404(Competition, id=comp_id, is_published=True)
+    competition = get_object_or_404(Competition, id=comp_id)
+    user = getattr(request, 'user', None)
+
+    is_authorized = (
+        competition.is_published or
+        (user and user.is_authenticated and (
+            user.is_staff or
+            user.is_superuser or
+            competition.created_by_id == user.id or
+            (hasattr(competition, 'organizers') and competition.organizers.filter(id=user.id).exists())
+        ))
+    )
+
+    if not is_authorized:
+        raise Http404("Competition not found or not yet published.")
 
     tab = request.GET.get('tab', 'upcoming')
     if tab == 'matches':
@@ -98,14 +150,27 @@ def competition_viewer(request, comp_id):
         'events', 'events__player', 'events__team'
     ).order_by('-match_date', '-kickoff_time')
 
-    next_match = upcoming_matches.first()
+    next_match = upcoming_matches.filter(home_team__isnull=False, away_team__isnull=False).first() or upcoming_matches.first()
     last_match = completed_matches.first()
+
+    groups = list(competition.groups.all().order_by('name'))
+    group_tables = {}
+    is_group_stage_completed = False
+    qualified_teams = []
 
     if competition.is_pure_knockout:
         standings = []
         if tab == 'table':
             tab = 'upcoming'
     else:
+        if competition.is_group_stage or bool(groups):
+            from leagues.group_service import (
+                get_group_standings_data, check_group_stage_completed
+            )
+            group_tables = get_group_standings_data(competition)
+            is_group_stage_completed = check_group_stage_completed(competition)
+            qualified_teams = list(competition.qualified_teams.select_related('team', 'group').order_by('group__name', 'rank_in_group'))
+
         standings = StandingEntry.objects.filter(competition=competition).select_related('team').order_by('position')
     stats = get_competition_statistics(competition)
 
@@ -114,6 +179,10 @@ def competition_viewer(request, comp_id):
         'active_tab': tab,
         'fixture_filter': fixture_filter,
         'teams': teams,
+        'groups': groups,
+        'group_tables': group_tables,
+        'is_group_stage_completed': is_group_stage_completed,
+        'qualified_teams': qualified_teams,
         'upcoming_matches': upcoming_matches,
         'completed_matches': completed_matches,
         'next_match': next_match,
@@ -286,4 +355,15 @@ def api_player_details(request, player_id):
         'clean_sheets': player.clean_sheets,
     }
     return JsonResponse(data)
+
+
+def custom_404_view(request, exception=None):
+    """Custom 404 handler rendering branded Futbolix Stadium Night error page."""
+    return render(request, '404.html', status=404)
+
+
+def custom_500_view(request):
+    """Custom 500 handler rendering branded Futbolix Stadium Night error page."""
+    return render(request, '500.html', status=500)
+
 

@@ -9,16 +9,16 @@ from standings.models import StandingEntry
 
 
 class Command(BaseCommand):
-    help = 'Executes end-to-end integration tests for all TOUCHLINE workflows'
+    help = 'Executes end-to-end integration tests for all FUTBOLIX workflows'
 
     def handle(self, *args, **options):
         client = Client()
-        self.stdout.write("=== STARTING TOUCHLINE DJANGO INTEGRATION TESTS ===")
+        self.stdout.write("=== STARTING FUTBOLIX DJANGO INTEGRATION TESTS ===")
 
         # Test 1: Landing Page
         res = client.get('/')
         assert res.status_code == 200, f"Landing page failed with {res.status_code}"
-        assert b"TOUCHLINE" in res.content, "TOUCHLINE brand missing on landing page"
+        assert b"FUTBOLIX" in res.content, "FUTBOLIX brand missing on landing page"
         self.stdout.write(self.style.SUCCESS("[OK] Test 1 Passed: Landing page renders dynamically."))
 
         # Test 2: Competition Viewer

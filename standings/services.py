@@ -2,6 +2,7 @@ from django.db import transaction
 from .models import StandingEntry
 from matches.models import Match, MatchStatus
 from teams.models import Team
+from leagues.models import CompetitionTeam
 
 
 def recalculate_competition_standings(competition):
@@ -17,6 +18,16 @@ def recalculate_competition_standings(competition):
         return []
 
     with transaction.atomic():
+        # Ensure CompetitionTeam.group is kept synchronized with actual group matches
+        group_matches = competition.matches.filter(group__isnull=False)
+        if group_matches.exists():
+            for gm in group_matches.select_related('home_team', 'away_team', 'group'):
+                if gm.group_id:
+                    if gm.home_team_id:
+                        CompetitionTeam.objects.filter(competition=competition, team_id=gm.home_team_id).exclude(group_id=gm.group_id).update(group_id=gm.group_id)
+                    if gm.away_team_id:
+                        CompetitionTeam.objects.filter(competition=competition, team_id=gm.away_team_id).exclude(group_id=gm.group_id).update(group_id=gm.group_id)
+
         # Get all registered teams
         comp_teams = competition.competitionteam_set.select_related('team', 'group').all()
         if not comp_teams.exists():
@@ -24,8 +35,22 @@ def recalculate_competition_standings(competition):
 
         # Find distinct groups or None
         groups = list(competition.groups.all())
-        if not groups:
+        if groups:
+            # Clean up stale entries:
+            # 1. Any entry where group is None when groups exist
+            StandingEntry.objects.filter(competition=competition, group__isnull=True).delete()
+            # 2. Any entry where group does not belong to this competition's current groups
+            StandingEntry.objects.filter(competition=competition).exclude(group__in=groups).delete()
+            # 3. For each group, delete any StandingEntry for teams not currently assigned to that group
+            for grp in groups:
+                grp_team_ids = [ct.team_id for ct in comp_teams if ct.group_id == grp.id]
+                StandingEntry.objects.filter(competition=competition, group=grp).exclude(team_id__in=grp_team_ids).delete()
+        else:
             groups = [None]
+            # Clean up stale entries with a group when competition has no groups
+            StandingEntry.objects.filter(competition=competition, group__isnull=False).delete()
+            reg_team_ids = [ct.team_id for ct in comp_teams]
+            StandingEntry.objects.filter(competition=competition).exclude(team_id__in=reg_team_ids).delete()
 
         updated_entries = []
 
@@ -33,6 +58,14 @@ def recalculate_competition_standings(competition):
             if group is not None:
                 group_teams = [ct.team for ct in comp_teams if ct.group_id == group.id]
                 matches_qs = competition.matches.filter(group=group, status=MatchStatus.COMPLETED)
+                # Safeguard: ensure all teams that have completed matches in this group are included in group_teams
+                match_team_ids = set(matches_qs.values_list('home_team_id', flat=True)) | set(matches_qs.values_list('away_team_id', flat=True))
+                match_team_ids.discard(None)
+                existing_team_ids = {t.id for t in group_teams}
+                missing_team_ids = match_team_ids - existing_team_ids
+                if missing_team_ids:
+                    missing_teams = list(Team.objects.filter(id__in=missing_team_ids))
+                    group_teams.extend(missing_teams)
             else:
                 group_teams = [ct.team for ct in comp_teams]
                 matches_qs = competition.matches.filter(status=MatchStatus.COMPLETED)
