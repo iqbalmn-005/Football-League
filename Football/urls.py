@@ -89,6 +89,8 @@ urlpatterns = [
     path('api/competition/<int:comp_id>/groups/status/', league_views.api_group_status, name='api_group_status'),
     path('organizer/<int:comp_id>/update/', league_views.update_competition_view, name='update_competition'),
     path('organizer/<int:comp_id>/edit/', league_views.update_competition_view, name='edit_competition'),
+    path('organizer/<int:comp_id>/delete/', league_views.delete_competition_view, name='delete_competition'),
+    path('super-admin/competition/<int:comp_id>/delete/', league_views.delete_competition_view, name='delete_competition_admin'),
 ]
 
 from django.views.static import serve

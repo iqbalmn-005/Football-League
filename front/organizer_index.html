@@ -7269,6 +7269,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- DANGER ZONE: DELETE LEAGUE / TOURNAMENT -->
+                    <div class="card" style="max-width:700px;margin-bottom:24px;border:1px solid rgba(239, 68, 68, 0.4);background:rgba(239, 68, 68, 0.02);">
+                        <div class="card-heading" style="border-bottom:1px solid rgba(239, 68, 68, 0.2);padding:16px 22px;">
+                            <div>
+                                <h2 style="color:#ef4444;font-size:16px;display:flex;align-items:center;gap:6px;">⚠️ Danger Zone: Delete Competition</h2>
+                                <p class="card-subtitle">Permanently delete this tournament or league and all its data.</p>
+                            </div>
+                        </div>
+                        <div class="settings-card-body" style="padding:22px;">
+                            <p style="font-size:12.5px;color:var(--text);margin-bottom:16px;line-height:1.55;">
+                                Deleting <strong>{{ active_competition.name }}</strong> is permanent. All associated matches, recorded results, points tables, team entries, and penalty shootouts will be completely deleted.
+                            </p>
+                            <button type="button" class="btn" style="background:#ef4444;color:white;border:none;font-weight:700;padding:9px 18px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;" onclick="openDeleteCompetitionModal('{{ active_competition.id }}', '{{ active_competition.name|escapejs }}')">
+                                🗑️ Delete This Competition
+                            </button>
+                        </div>
+                    </div>
                 </section>
 
                 {% endif %}
@@ -7830,6 +7848,31 @@
                 <div class="modal-footer">
                     <button class="btn" type="button" onclick="closeCreateCompetitionModal()">Cancel</button>
                     <button class="btn btn-primary" type="submit">✓ Create Competition</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE COMPETITION MODAL (ORGANIZER) -->
+    <div class="modal-backdrop" id="deleteCompetitionModal" onclick="closeDeleteCompetitionModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:440px;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(239, 68, 68, 0.25);">
+                <h3 style="color:#ef4444;display:flex;align-items:center;gap:8px;">🗑️ Delete Competition</h3>
+                <button class="modal-close-btn" type="button" onclick="closeDeleteCompetitionModal()">✕</button>
+            </div>
+            <form id="deleteCompetitionForm" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body" style="padding:20px;">
+                    <p style="font-size:13px;line-height:1.55;color:var(--text);margin-bottom:16px;">
+                        Are you sure you want to permanently delete <strong id="deleteCompName" style="color:var(--dark);">this competition</strong>?
+                    </p>
+                    <div style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.3);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:#b91c1c;">
+                        ⚠️ <strong>Warning:</strong> All scheduled fixtures, recorded results, points tables, team entries, and penalty shootouts for this league will be permanently erased.
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border);background:var(--cream);">
+                    <button type="button" class="btn" onclick="closeDeleteCompetitionModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background:#ef4444;color:white;border:none;font-weight:700;">Delete Permanently</button>
                 </div>
             </form>
         </div>
@@ -8445,6 +8488,20 @@
             if (event && event.target !== event.currentTarget && !event.target.classList.contains("modal-close-btn")) return;
             const modal = document.getElementById("createCompetitionModal");
             if (modal) modal.classList.remove("active");
+        }
+
+        function openDeleteCompetitionModal(compId, compName) {
+            const form = document.getElementById('deleteCompetitionForm');
+            const nameEl = document.getElementById('deleteCompName');
+            if (form) form.action = `/organizer/${compId}/delete/`;
+            if (nameEl) nameEl.textContent = `"${compName}"`;
+            const modal = document.getElementById('deleteCompetitionModal');
+            if (modal) modal.classList.add('active');
+        }
+        function closeDeleteCompetitionModal(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains("modal-close-btn")) return;
+            const modal = document.getElementById('deleteCompetitionModal');
+            if (modal) modal.classList.remove('active');
         }
 
         /* GROUP-WISE TOURNAMENT MANAGEMENT FUNCTIONS */

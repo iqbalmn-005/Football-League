@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
@@ -1130,6 +1131,50 @@ def api_group_status(request, comp_id):
         'qualified_teams': qualified,
         'knockout_generated': competition.knockout_generated
     })
+
+
+@login_required
+def delete_competition_view(request, comp_id):
+    """
+    Deletes a competition/tournament permanently.
+    - Super Admins can delete any competition.
+    - Approved Organizers can delete competitions they own/created or are assigned to.
+    - Other users receive HTTP 403 Forbidden.
+    """
+    competition = get_object_or_404(Competition, id=comp_id)
+    user = request.user
+    is_admin = user.is_superuser or (hasattr(user, 'profile') and user.profile.is_super_admin)
+
+    if not is_admin:
+        if not (hasattr(user, 'profile') and user.profile.is_approved_organizer):
+            messages.error(request, "Permission denied. Only approved organizers and administrators can delete competitions.")
+            return HttpResponseForbidden("Permission denied.")
+
+        user_comps = get_organizer_competitions(user)
+        if competition not in user_comps:
+            messages.error(request, "Permission denied: you cannot delete a competition you do not manage.")
+            return HttpResponseForbidden("Permission denied.")
+
+    comp_name = competition.name
+
+    if request.method == 'POST':
+        # Log deletion in ActivityLog
+        ActivityLog.log(
+            'COMPETITION_DELETED',
+            f"{user.username} deleted competition '{comp_name}' (ID {comp_id}).",
+            user=user
+        )
+        competition.delete()
+        messages.success(request, f"✓ Competition '{comp_name}' has been permanently deleted.")
+        if is_admin:
+            return redirect('/super-admin/?tab=leagues')
+        return redirect('organizer_dashboard')
+
+    messages.warning(request, "Deletion requires POST confirmation.")
+    if is_admin:
+        return redirect('/super-admin/?tab=leagues')
+    return redirect(f"/organizer/{comp_id}/?tab=settings")
+
 
 
 

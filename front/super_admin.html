@@ -2606,9 +2606,14 @@
                                             </span>
                                         </td>
                                         <td style="text-align:right;">
-                                            <a href="/competition/{{ comp.id }}/" class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
-                                                View League
-                                            </a>
+                                            <div style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;">
+                                                <a href="/competition/{{ comp.id }}/" class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
+                                                    View League
+                                                </a>
+                                                <button type="button" class="btn" style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;font-weight:700;" onclick="event.stopPropagation();openAdminDeleteLeagueModal('{{ comp.id }}', '{{ comp.name|escapejs }}')">
+                                                    🗑️ Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     {% empty %}
@@ -3407,6 +3412,13 @@
                     openRejectLeagueModal(compId, data.name || '');
                 };
             }
+            const deleteBtn = document.getElementById('modalDeleteLeagueBtn');
+            if (deleteBtn) {
+                deleteBtn.onclick = function() {
+                    closeLeagueDetailModal();
+                    openAdminDeleteLeagueModal(compId, data.name || '');
+                };
+            }
 
             const modal = document.getElementById('leagueDetailModal');
             if (modal) {
@@ -3429,6 +3441,29 @@
         function closeOrganizerModal(event) {
             if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close-btn')) return;
             const modal = document.getElementById('organizerDetailModal');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.classList.remove('open');
+                modal.style.display = 'none';
+            }
+        }
+
+        function openAdminDeleteLeagueModal(compId, compName) {
+            const modal = document.getElementById('adminDeleteLeagueModal');
+            const form = document.getElementById('adminDeleteLeagueForm');
+            const nameEl = document.getElementById('adminDeleteCompName');
+            if (form) form.action = '/super-admin/competition/' + compId + '/delete/';
+            if (nameEl) nameEl.textContent = compName || 'this competition';
+            if (modal) {
+                modal.classList.add('active');
+                modal.classList.add('open');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeAdminDeleteLeagueModal(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close-btn')) return;
+            const modal = document.getElementById('adminDeleteLeagueModal');
             if (modal) {
                 modal.classList.remove('active');
                 modal.classList.remove('open');
@@ -3575,9 +3610,14 @@
 
             <!-- Footer Actions -->
             <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="modalDeclineBtn" class="btn btn-danger" style="font-size:12px;padding:8px 16px;font-weight:700;">
-                    ✕ Decline Request
-                </button>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button type="button" id="modalDeclineBtn" class="btn btn-danger" style="font-size:12px;padding:8px 16px;font-weight:700;">
+                        ✕ Decline Request
+                    </button>
+                    <button type="button" id="modalDeleteLeagueBtn" class="btn" style="font-size:12px;padding:8px 16px;font-weight:700;background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);border-radius:4px;cursor:pointer;">
+                        🗑️ Delete League
+                    </button>
+                </div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <button class="btn btn-outline" type="button" onclick="closeLeagueDetailModal()" style="font-size:12px;padding:8px 16px;">Close</button>
                     <form id="modalApproveLeagueForm" method="post" action="" style="display:inline;margin:0;">
@@ -3721,6 +3761,32 @@
     </div>
 
 
+    <!-- ADMIN DELETE LEAGUE MODAL -->
+    <div class="modal-backdrop" id="adminDeleteLeagueModal" onclick="closeAdminDeleteLeagueModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:440px;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(239, 68, 68, 0.25);">
+                <h3 style="color:#ef4444;display:flex;align-items:center;gap:8px;">🗑️ Delete Competition</h3>
+                <button class="modal-close-btn" type="button" onclick="closeAdminDeleteLeagueModal()">✕</button>
+            </div>
+            <form id="adminDeleteLeagueForm" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body" style="padding:20px;">
+                    <p style="font-size:13px;line-height:1.55;color:var(--text);margin-bottom:16px;">
+                        Are you sure you want to permanently delete <strong id="adminDeleteCompName" style="color:var(--dark);">this competition</strong>?
+                    </p>
+                    <div style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.3);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:#b91c1c;">
+                        ⚠️ <strong>Warning:</strong> All scheduled fixtures, recorded results, points tables, team entries, and penalty shootouts for this league will be permanently erased. This action cannot be undone.
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border);background:var(--cream);">
+                    <button type="button" class="btn" onclick="closeAdminDeleteLeagueModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background:#ef4444;color:white;border:none;font-weight:700;padding:8px 18px;border-radius:6px;cursor:pointer;">
+                        Yes, Delete Permanently
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 
