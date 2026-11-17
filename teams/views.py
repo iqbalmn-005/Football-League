@@ -188,11 +188,18 @@ def add_team_view(request, comp_id):
             }
             if logo_file:
                 create_kwargs['logo'] = logo_file
-            team = Team.objects.create(**create_kwargs)
+            try:
+                team = Team.objects.create(**create_kwargs)
+            except Exception:
+                create_kwargs.pop('logo', None)
+                team = Team.objects.create(**create_kwargs)
         else:
             if logo_file and not team.logo:
-                team.logo = logo_file
-                team.save()
+                try:
+                    team.logo = logo_file
+                    team.save()
+                except Exception:
+                    pass
 
         # Check if already registered in this competition
         if CompetitionTeam.objects.filter(competition=comp, team=team).exists():
@@ -287,14 +294,24 @@ def add_player_view(request, team_id):
             messages.error(request, f"Jersey #{jersey_number} is already assigned to a player in {team.name}. Player not submitted.")
             return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
 
-        Player.objects.create(
-            team=team,
-            full_name=full_name,
-            jersey_number=jersey_number,
-            position=position,
-            photo=photo_file,
-            photo_url=photo_url
-        )
+        try:
+            Player.objects.create(
+                team=team,
+                full_name=full_name,
+                jersey_number=jersey_number,
+                position=position,
+                photo=photo_file,
+                photo_url=photo_url
+            )
+        except Exception:
+            Player.objects.create(
+                team=team,
+                full_name=full_name,
+                jersey_number=jersey_number,
+                position=position,
+                photo=None,
+                photo_url=photo_url
+            )
         messages.success(request, f"✓ Player '{full_name}' (#{jersey_number}) added to {team.name} successfully!")
 
     return redirect(request.META.get('HTTP_REFERER', f'/organizer/team/{team.id}/'))
@@ -345,8 +362,13 @@ def edit_player_view(request, team_id, player_id):
         player.jersey_number = jersey_number
         player.position = position
         if photo_file:
-            player.photo = photo_file
-        player.save()
+            try:
+                player.photo = photo_file
+                player.save()
+            except Exception:
+                player.save()
+        else:
+            player.save()
 
         messages.success(request, f"✓ Player '{player.full_name}' (#{player.jersey_number}) updated successfully!")
 

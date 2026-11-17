@@ -289,9 +289,13 @@ def create_competition(request):
             create_or_sync_groups(comp, num_groups)
 
         # Handle logo upload if provided
-        if 'logo' in request.FILES:
-            comp.logo = request.FILES['logo']
-            comp.save()
+        if 'logo' in request.FILES and request.FILES['logo']:
+            try:
+                comp.logo = request.FILES['logo']
+                comp.save()
+            except Exception:
+                comp.logo = None
+                comp.save()
 
         if assigned_organizer:
             CompetitionAssignment.objects.get_or_create(

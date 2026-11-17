@@ -256,9 +256,13 @@ def organizer_create_competition(request):
             from leagues.group_service import create_or_sync_groups
             create_or_sync_groups(comp, num_groups)
 
-        if 'logo' in request.FILES:
-            comp.logo = request.FILES['logo']
-            comp.save()
+        if 'logo' in request.FILES and request.FILES['logo']:
+            try:
+                comp.logo = request.FILES['logo']
+                comp.save()
+            except Exception as e:
+                comp.logo = None
+                comp.save()
 
         CompetitionAssignment.objects.create(
             competition=comp,
@@ -617,8 +621,11 @@ def add_team_view(request, comp_id):
             created = True
 
         if 'logo' in request.FILES and request.FILES['logo']:
-            team.logo = request.FILES['logo']
-            team.save()
+            try:
+                team.logo = request.FILES['logo']
+                team.save()
+            except Exception:
+                pass
 
         # Associate team to this competition
         group_obj = None
@@ -709,9 +716,12 @@ def add_player_view(request, team_id):
             photo_url=photo_url or f"/static/img/players/p{(jersey_number % 6) + 1}.jpg"
         )
 
-        if 'photo' in request.FILES:
-            player.photo = request.FILES['photo']
-            player.save()
+        if 'photo' in request.FILES and request.FILES['photo']:
+            try:
+                player.photo = request.FILES['photo']
+                player.save()
+            except Exception:
+                pass
 
         ActivityLog.log('PLAYER_ADDED', f"Added player #{jersey_number} {full_name} to {team.name}.", user=request.user)
         messages.success(request, f"Player #{jersey_number} {full_name} added to {team.name}!")
@@ -831,13 +841,19 @@ def update_competition_view(request, comp_id):
             if 'distribution_method' in request.POST:
                 competition.distribution_method = request.POST.get('distribution_method')
 
-        if 'logo' in request.FILES:
-            competition.logo = request.FILES['logo']
-            competition.logo_url = ""
+        if 'logo' in request.FILES and request.FILES['logo']:
+            try:
+                competition.logo = request.FILES['logo']
+                competition.logo_url = ""
+                competition.save()
+            except Exception as e:
+                competition.logo = None
+                if logo_url:
+                    competition.logo_url = logo_url
+                competition.save()
         elif logo_url:
             competition.logo_url = logo_url
-
-        competition.save()
+            competition.save()
 
         # Also update organizer user/profile fields if provided in request
         org_user = competition.primary_organizer or competition.created_by
