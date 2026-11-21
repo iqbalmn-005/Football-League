@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from functools import cached_property
 from teams.models import Team
 
 
@@ -121,6 +122,10 @@ class Competition(models.Model):
 
     @property
     def total_teams_count(self):
+        if hasattr(self, 'teams_count'):
+            return self.teams_count
+        if hasattr(self, '_prefetched_objects_cache') and 'teams' in self._prefetched_objects_cache:
+            return len(self.teams.all())
         return self.teams.count()
 
     @property
@@ -161,19 +166,18 @@ class Competition(models.Model):
             'GROUP_KNOCKOUT'
         ]
 
-    @property
+    @cached_property
     def is_group_stage_completed(self):
         group_matches = self.matches.filter(group__isnull=False)
         return group_matches.exists() and not group_matches.exclude(status='COMPLETED').exists()
 
-    @property
+    @cached_property
     def is_completed(self):
         if self.status == CompetitionStatus.COMPLETED:
             return True
-        total = self.matches.count()
-        return total > 0 and not self.matches.exclude(status='COMPLETED').exists()
+        return self.matches.filter(status='COMPLETED').exists() and not self.matches.exclude(status='COMPLETED').exists()
 
-    @property
+    @cached_property
     def winner_entry(self):
         if not self.is_completed:
             return None
@@ -184,7 +188,7 @@ class Competition(models.Model):
                 return entry
         return self.standings.order_by('position').first()
 
-    @property
+    @cached_property
     def winner(self):
         if not self.is_completed:
             return None

@@ -1112,7 +1112,7 @@
                         <div class="list-meta">
                             <span class="meta-tag">📍 {{ comp.location|default:"Venue TBD" }}</span>
                             <span class="meta-tag">◷ Season {{ comp.season }}</span>
-                            <span class="meta-tag">♟ {{ comp.teams.count }} / {{ comp.max_teams }} Teams</span>
+                            <span class="meta-tag">♟ {{ comp.total_teams_count }} / {{ comp.max_teams }} Teams</span>
                             {% if comp.start_date %}
                             <span class="meta-tag">📅 {{ comp.start_date|date:"d M Y" }}</span>
                             {% endif %}

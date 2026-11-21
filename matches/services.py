@@ -8,12 +8,10 @@ def get_competition_statistics(competition):
     Computes top scorers, assist leaders, clean sheet records, disciplinary stats,
     and competition overview KPIs.
     """
-    completed_matches = competition.matches.filter(status=MatchStatus.COMPLETED)
-    total_matches_played = completed_matches.count()
+    completed_matches_list = list(competition.matches.filter(status=MatchStatus.COMPLETED))
+    total_matches_played = len(completed_matches_list)
 
-    total_goals = 0
-    for m in completed_matches:
-        total_goals += (m.home_score or 0) + (m.away_score or 0)
+    total_goals = sum((m.home_score or 0) + (m.away_score or 0) for m in completed_matches_list)
 
     avg_goals_per_game = round(total_goals / total_matches_played, 2) if total_matches_played > 0 else 0.0
 
@@ -143,14 +141,26 @@ def get_competition_statistics(competition):
             'red_cards': c['reds']
         })
 
-    # Clean sheets: count for goalkeepers where opponent score was 0
-    teams = competition.teams.all()
+    # Clean sheets: count for goalkeepers where opponent score was 0 (optimized batch queries)
+    teams = list(competition.teams.all())
+    all_gks = list(Player.objects.filter(team__in=teams, position='GK').select_related('team'))
+    gks_by_team = {}
+    for gk in all_gks:
+        gks_by_team.setdefault(gk.team_id, []).append(gk)
+
+    explicit_cs_events = list(
+        MatchEvent.objects.filter(
+            match__in=completed_matches_list,
+            event_type=MatchEventType.CLEAN_SHEET
+        ).values('match_id', 'team_id', 'player_id')
+    )
+
     clean_sheets = []
     for t in teams:
-        gks = list(t.players.filter(position='GK'))
+        gks = gks_by_team.get(t.id, [])
         if not gks:
-            home_cs = completed_matches.filter(home_team=t, away_score=0).count()
-            away_cs = completed_matches.filter(away_team=t, home_score=0).count()
+            home_cs = sum(1 for m in completed_matches_list if m.home_team_id == t.id and m.away_score == 0)
+            away_cs = sum(1 for m in completed_matches_list if m.away_team_id == t.id and m.home_score == 0)
             total_cs = home_cs + away_cs
             if total_cs > 0:
                 clean_sheets.append({
@@ -159,16 +169,12 @@ def get_competition_statistics(competition):
                     'goalkeeper_name': f"{t.name} Goalkeeper"
                 })
         else:
+            explicit_matches_for_team = {e['match_id'] for e in explicit_cs_events if e['team_id'] == t.id}
             for gk in gks:
-                explicit = MatchEvent.objects.filter(
-                    match__in=completed_matches,
-                    team=t,
-                    player=gk,
-                    event_type=MatchEventType.CLEAN_SHEET
-                ).count()
+                explicit = sum(1 for e in explicit_cs_events if e['team_id'] == t.id and e['player_id'] == gk.id)
                 if len(gks) == 1:
-                    unassigned_home = completed_matches.filter(home_team=t, away_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET, events__team=t).count()
-                    unassigned_away = completed_matches.filter(away_team=t, home_score=0).exclude(events__event_type=MatchEventType.CLEAN_SHEET, events__team=t).count()
+                    unassigned_home = sum(1 for m in completed_matches_list if m.home_team_id == t.id and m.away_score == 0 and m.id not in explicit_matches_for_team)
+                    unassigned_away = sum(1 for m in completed_matches_list if m.away_team_id == t.id and m.home_score == 0 and m.id not in explicit_matches_for_team)
                     total = explicit + unassigned_home + unassigned_away
                 else:
                     total = explicit

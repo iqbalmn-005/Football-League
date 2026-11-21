@@ -100,13 +100,13 @@ def team_profile(request, team_id):
         if comp_team:
             active_competition = comp_team.competition
 
-    players = team.players.filter(is_active=True).order_by('jersey_number')
+    players = list(team.players.filter(is_active=True).order_by('jersey_number'))
     stats = _get_team_stats(team, active_competition)
 
-    gk_count = players.filter(position=PositionChoice.GK).count()
-    def_count = players.filter(position=PositionChoice.DEF).count()
-    mid_count = players.filter(position=PositionChoice.MID).count()
-    fwd_count = players.filter(position=PositionChoice.FWD).count()
+    gk_count = sum(1 for p in players if p.position == PositionChoice.GK)
+    def_count = sum(1 for p in players if p.position == PositionChoice.DEF)
+    mid_count = sum(1 for p in players if p.position == PositionChoice.MID)
+    fwd_count = sum(1 for p in players if p.position == PositionChoice.FWD)
 
     context = {
         'team': team,
@@ -119,7 +119,10 @@ def team_profile(request, team_id):
         'positions': PositionChoice.choices,
         **stats,
     }
-    return render(request, 'team.html', context)
+    response = render(request, 'team.html', context)
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        response['Cache-Control'] = 'public, max-age=60, s-maxage=120, stale-while-revalidate=300'
+    return response
 
 
 def api_player_details(request, player_id):

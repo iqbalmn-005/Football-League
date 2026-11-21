@@ -251,7 +251,7 @@ def confirm_group_assignments(competition):
     return {'success': True}
 
 
-def generate_group_fixtures(competition, double_round=False, start_date=None, preferred_weekdays=None, matches_per_day=2, slot_times=None, venues=None):
+def generate_group_fixtures(competition, double_round=False, start_date=None, preferred_weekdays=None, matches_per_day=1, slot_times=None, venues=None):
     """
     Generates fixtures independently for every group in the competition.
     - Teams play ONLY against teams in their own group.
@@ -276,10 +276,10 @@ def generate_group_fixtures(competition, double_round=False, start_date=None, pr
     if preferred_weekdays is None:
         preferred_weekdays = [5, 6]  # Saturday, Sunday
 
-    matches_per_day = max(1, int(matches_per_day or 2))
+    matches_per_day = max(1, int(matches_per_day or 1))
 
     if slot_times is None:
-        slot_times = [time(15, 0), time(17, 30)]
+        slot_times = [time(15, 0)] if matches_per_day == 1 else [time(15, 0), time(17, 30)]
     while len(slot_times) < matches_per_day:
         last_t = slot_times[-1]
         slot_times.append(time(min(last_t.hour + 2, 22), last_t.minute))
@@ -419,8 +419,14 @@ def get_group_standings_data(competition):
     q_per_group = competition.qualifiers_per_group or 2
     group_tables = {}
 
+    group_matches_qs = list(competition.matches.filter(group__in=groups).values('group_id', 'status'))
+    group_matches_by_id = {}
+    for gm in group_matches_qs:
+        group_matches_by_id.setdefault(gm['group_id'], []).append(gm['status'])
+
     for grp in groups:
-        grp_completed = check_group_stage_completed(competition, grp)
+        grp_m_statuses = group_matches_by_id.get(grp.id, [])
+        grp_completed = bool(grp_m_statuses and all(s == MatchStatus.COMPLETED for s in grp_m_statuses))
         valid_ids = valid_team_ids_by_group.get(grp.id, set())
         entries = [e for e in standings_entries if e.group_id == grp.id and e.team_id in valid_ids]
         entries_data = []
@@ -524,7 +530,7 @@ def update_qualified_teams(competition):
     }
 
 
-def generate_knockout_from_qualified_teams(competition, start_date=None, preferred_weekdays=None, matches_per_day=2, slot_times=None, venues=None):
+def generate_knockout_from_qualified_teams(competition, start_date=None, preferred_weekdays=None, matches_per_day=1, slot_times=None, venues=None):
     """
     Generates the Knockout Stage from Qualified Teams:
     1. Validates that group stage is completed and qualified teams are identified.
@@ -562,7 +568,7 @@ def generate_knockout_from_qualified_teams(competition, start_date=None, preferr
     if preferred_weekdays is None:
         preferred_weekdays = [5, 6]  # Saturday, Sunday
 
-    matches_per_day = max(1, int(matches_per_day or 2))
+    matches_per_day = max(1, int(matches_per_day or 1))
     if slot_times is None:
         slot_times = [time(15, 0), time(17, 30)]
     slot_times = slot_times[:matches_per_day]

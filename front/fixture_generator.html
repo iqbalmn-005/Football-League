@@ -952,11 +952,11 @@
 
                     <div class="form-group">
                         <label class="form-label">
-                            Matches in a Day? <span class="badge-req">*</span>
+                            How Many Matches in a Day? <span class="badge-req">*</span>
                         </label>
                         <select class="form-control" id="matchesPerDaySelect" onchange="renderDailySlotsInputs()">
-                            <option value="1">1 Match per day</option>
-                            <option value="2" selected>2 Matches per day (Sample default)</option>
+                            <option value="1" selected>1 Match per day (Default)</option>
+                            <option value="2">2 Matches per day</option>
                             <option value="3">3 Matches per day</option>
                             <option value="4">4 Matches per day</option>
                             <option value="5">5 Matches per day</option>
@@ -1289,8 +1289,8 @@
 
         // DYNAMIC MATCHES PER DAY AND SLOT TIMES
         function renderDailySlotsInputs() {
-            const count = parseInt(document.getElementById('matchesPerDaySelect').value) || 2;
-            document.getElementById('summaryDailyMatches').innerText = `${count} Matches / Day`;
+            const count = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            document.getElementById('summaryDailyMatches').innerText = `${count} ${count === 1 ? 'Match' : 'Matches'} / Day`;
 
             const container = document.getElementById('slotsInputsContainer');
             container.innerHTML = '';
@@ -1438,7 +1438,7 @@
             }
 
             // Matches per day & slot times
-            const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 2;
+            const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
             const slotInputs = Array.from(document.querySelectorAll('.daily-slot-time-input'));
             const dailyKickoffTimes = slotInputs.map(input => input.value || "15:00");
 
@@ -1496,7 +1496,27 @@
                 });
         }
 
-        // RENDER PREVIEW TABLE WITH INLINE EDITING
+        // FORMAT MATCH DAY HEADER (DD-MM-YYYY)
+        function formatMatchDayHeader(dateStr) {
+            if (!dateStr || dateStr === 'TBD') return "UNSCHEDULED MATCH DAY";
+            try {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const d = new Date(year, month, day);
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    const dayName = dayNames[d.getDay()] || '';
+                    const dStr = String(day).padStart(2, '0');
+                    const mStr = String(month + 1).padStart(2, '0');
+                    return `MATCH DAY: ${dStr}-${mStr}-${year}${dayName ? ' (' + dayName + ')' : ''}`;
+                }
+            } catch (e) {}
+            return `MATCH DAY: ${dateStr}`;
+        }
+
+        // RENDER PREVIEW TABLE GROUPED BY MATCH DATE (NOT MATCHWEEK)
         function renderPreviewTable(matches, summary) {
             const container = document.getElementById('previewContainer');
             const list = document.getElementById('previewMatchesList');
@@ -1506,18 +1526,24 @@
             document.getElementById('previewStatsText').innerText =
                 `${summary.total_matches} ${summary.total_matches === 1 ? 'Match' : 'Matches'} | ${summary.matches_per_day} ${summary.matches_per_day === 1 ? 'Match/Day' : 'Matches/Day'} | From ${summary.start_date} to ${summary.end_date}`;
 
+            // Group matches by match_date so that all matches on the same match day show in one section
             const grouped = {};
             matches.forEach(m => {
-                if (!grouped[m.round_name]) grouped[m.round_name] = [];
-                grouped[m.round_name].push(m);
+                const dateKey = m.match_date || 'TBD';
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(m);
             });
 
-            for (const [roundName, rMatches] of Object.entries(grouped)) {
+            // Sort dates chronologically
+            const sortedDates = Object.keys(grouped).sort();
+
+            for (const dateKey of sortedDates) {
+                const dMatches = grouped[dateKey];
                 const block = document.createElement('div');
                 block.className = 'matchweek-group-block';
 
                 let rowsHtml = '';
-                rMatches.forEach((m) => {
+                dMatches.forEach((m) => {
                     rowsHtml += `
                     <tr data-temp-id="${m.temp_id}">
                         <td style="width:140px;">
@@ -1529,6 +1555,7 @@
                         <td style="font-weight:700;">
                             ${m.home_team_name}
                             ${m.group_name ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
+                            ${m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600;">${m.round_name}</span>` : ''}
                         </td>
                         <td style="text-align:center;width:40px;">
                             <span class="vs-tag">VS</span>
@@ -1543,11 +1570,19 @@
                     `;
                 });
 
-                // Find if there are round byes
-                const roundByes = (rMatches.find(m => m.round_byes && m.round_byes.length) || {}).round_byes || [];
+                // Find if there are round byes on this date
+                const roundByes = [];
+                dMatches.forEach(m => {
+                    if (m.round_byes && Array.isArray(m.round_byes)) {
+                        m.round_byes.forEach(b => {
+                            const bName = (typeof b === 'object' && b.name) ? b.name : b;
+                            if (bName && !roundByes.includes(bName)) roundByes.push(bName);
+                        });
+                    }
+                });
                 let byesHtml = '';
-                if (roundByes && roundByes.length > 0) {
-                    const byeNames = roundByes.map(b => (typeof b === 'object' && b.name) ? b.name : b).join(', ');
+                if (roundByes.length > 0) {
+                    const byeNames = roundByes.join(', ');
                     byesHtml = `
                     <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; padding: 8px 14px; margin: 8px 12px 12px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 8px;">
                         <span style="background: #10b981; color: #fff; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">BYE</span>
@@ -1558,8 +1593,8 @@
 
                 block.innerHTML = `
                     <div class="matchweek-header">
-                        <span>📅 ${roundName}</span>
-                        <span style="font-size:11px;font-weight:600;text-transform:none;">${rMatches.length} ${rMatches.length === 1 ? 'Match' : 'Matches'}</span>
+                        <span>📅 ${formatMatchDayHeader(dateKey)}</span>
+                        <span style="font-size:11px;font-weight:600;text-transform:none;">${dMatches.length} ${dMatches.length === 1 ? 'Match' : 'Matches'}</span>
                     </div>
                     ${byesHtml}
                     <table class="preview-table">

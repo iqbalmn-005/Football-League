@@ -1,12 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, Http404
-from django.db.models import Q
+from django.db.models import Q, Count
 from accounts.models import UserRole, OrganizerStatus
 from leagues.models import Competition, CompetitionCategory, CompetitionStatus
 from teams.models import Team, Player
 from matches.models import Match, MatchStatus
 from standings.models import StandingEntry
 from matches.services import get_competition_statistics
+
+
+def _add_anonymous_cache_headers(request, response):
+    """
+    Safely adds Edge and browser cache headers for anonymous public requests.
+    Authenticated users always receive private/uncached responses.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        response['Cache-Control'] = 'public, max-age=60, s-maxage=120, stale-while-revalidate=300'
+    return response
 
 
 def landing_page(request):
@@ -31,7 +41,7 @@ def landing_page(request):
     category = request.GET.get('category', 'all')
     search_query = request.GET.get('q', '').strip()
 
-    competitions_qs = Competition.objects.filter(is_published=True).select_related('primary_organizer').prefetch_related('teams')
+    competitions_qs = Competition.objects.filter(is_published=True).select_related('primary_organizer').prefetch_related('teams').annotate(teams_count=Count('teams', distinct=True))
 
     if category != 'all':
         competitions_qs = competitions_qs.filter(category=category)
@@ -62,7 +72,7 @@ def landing_page(request):
         'total_teams': total_teams,
         'total_matches': total_matches,
     }
-    return render(request, 'list.html', context)
+    return _add_anonymous_cache_headers(request, render(request, 'list.html', context))
 
 
 def all_competitions_view(request):
@@ -74,7 +84,7 @@ def all_competitions_view(request):
     status_filter = request.GET.get('status', 'all')
     search_query = request.GET.get('q', '').strip()
 
-    competitions_qs = Competition.objects.filter(is_published=True).select_related('primary_organizer').prefetch_related('teams')
+    competitions_qs = Competition.objects.filter(is_published=True).select_related('primary_organizer').prefetch_related('teams').annotate(teams_count=Count('teams', distinct=True))
 
     if category != 'all':
         competitions_qs = competitions_qs.filter(category=category)
@@ -101,7 +111,7 @@ def all_competitions_view(request):
         'selected_status': status_filter,
         'search_query': search_query,
     }
-    return render(request, 'competitions_list.html', context)
+    return _add_anonymous_cache_headers(request, render(request, 'competitions_list.html', context))
 
 
 def competition_viewer(request, comp_id):
@@ -133,7 +143,7 @@ def competition_viewer(request, comp_id):
 
     teams = competition.teams.all().prefetch_related('players')
     fixture_filter = request.GET.get('fixture_filter', 'all')
-    upcoming_matches = competition.matches.filter(
+    upcoming_matches_qs = competition.matches.filter(
         status__in=[MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.POSTPONED]
     ).select_related('home_team', 'away_team', 'group').order_by('match_date', 'kickoff_time')
 
@@ -142,16 +152,19 @@ def competition_viewer(request, comp_id):
         from datetime import timedelta
         today = timezone.localdate()
         end_of_week = today + timedelta(days=7)
-        upcoming_matches = upcoming_matches.filter(match_date__gte=today, match_date__lte=end_of_week)
+        upcoming_matches_qs = upcoming_matches_qs.filter(match_date__gte=today, match_date__lte=end_of_week)
 
-    completed_matches = competition.matches.filter(
+    completed_matches_qs = competition.matches.filter(
         status=MatchStatus.COMPLETED
     ).select_related('home_team', 'away_team', 'group').prefetch_related(
         'events', 'events__player', 'events__team'
     ).order_by('-match_date', '-kickoff_time')
 
-    next_match = upcoming_matches.filter(home_team__isnull=False, away_team__isnull=False).first() or upcoming_matches.first()
-    last_match = completed_matches.first()
+    upcoming_matches = list(upcoming_matches_qs)
+    completed_matches = list(completed_matches_qs)
+
+    next_match = next((m for m in upcoming_matches if m.home_team_id and m.away_team_id), None) or (upcoming_matches[0] if upcoming_matches else None)
+    last_match = completed_matches[0] if completed_matches else None
 
     groups = list(competition.groups.all().order_by('name'))
     group_tables = {}
@@ -190,7 +203,7 @@ def competition_viewer(request, comp_id):
         'standings': standings,
         'stats': stats,
     }
-    return render(request, 'user_dashboard.html', context)
+    return _add_anonymous_cache_headers(request, render(request, 'user_dashboard.html', context))
 
 
 def team_profile(request, team_id):
@@ -276,7 +289,7 @@ def team_profile(request, team_id):
         'clean_sheets': clean_sheets,
         'form_results': form_results,
     }
-    return render(request, 'team.html', context)
+    return _add_anonymous_cache_headers(request, render(request, 'team.html', context))
 
 
 def api_match_details(request, match_id):

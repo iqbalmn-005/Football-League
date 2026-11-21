@@ -76,6 +76,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -116,7 +117,7 @@ if not DATABASE_URL and IS_VERCEL:
     DATABASE_URL = DEFAULT_NEON_URL
 
 if DATABASE_URL and dj_database_url:
-    conn_max_age = int(os.environ.get('DJANGO_CONN_MAX_AGE', '0' if IS_VERCEL else '600'))
+    conn_max_age = int(os.environ.get('DJANGO_CONN_MAX_AGE', '60' if IS_VERCEL else '600'))
     db_config = dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=conn_max_age,
@@ -199,3 +200,5 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'same-origin'

@@ -63,8 +63,8 @@ def generate_round_robin_fixtures(competition, start_date=None, double_round=Fal
         'tournament_format': TournamentFormat.ROUND_ROBIN,
         'start_date': start_date or competition.start_date or date.today(),
         'round_robin_type': 'double' if double_round else 'single',
-        'matches_per_day': 2,
-        'daily_kickoff_times': ["15:00", "17:30"],
+        'matches_per_day': 1,
+        'daily_kickoff_times': ["15:00"],
         'preferred_days': ['Saturday', 'Sunday'],
     }
     res = generate_smart_fixtures(competition, config)
@@ -122,7 +122,7 @@ def generate_smart_fixtures(competition, config):
         preferred_weekdays = [5, 6]  # Saturday & Sunday
 
     # Matches per day & slot times
-    matches_per_day = int(config.get('matches_per_day', 2) or 2)
+    matches_per_day = int(config.get('matches_per_day', 1) or 1)
     raw_slot_times = config.get('daily_kickoff_times', [])
     if not raw_slot_times:
         raw_slot_times = SLOT_PRESETS.get(matches_per_day, [f"{12 + i * 2}:00" for i in range(matches_per_day)])
@@ -723,7 +723,7 @@ def _extract_team_val(team_obj, key, default=''):
     return default
 
 
-def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekdays, slot_times, venues, qualifiers_per_group=2, two_legged=False, end_date=None, booked_slots=None, matches_per_day=2):
+def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekdays, slot_times, venues, qualifiers_per_group=2, two_legged=False, end_date=None, booked_slots=None, matches_per_day=1):
     """
     Generates single-elimination knockout fixtures tailored strictly to Teams Qualifying Per Group
     and the Number of Groups.
@@ -1477,7 +1477,7 @@ def get_knockout_stage_names(n, plan):
         return names
 
 
-def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, slot_times, venues, two_legged=False, end_date=None, booked_slots=None, matches_per_day=2):
+def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, slot_times, venues, two_legged=False, end_date=None, booked_slots=None, matches_per_day=1):
     """
     Generates single elimination knockout bracket for pure knockout tournaments,
     guaranteed to conclude on or before end_date.
@@ -1665,7 +1665,7 @@ def _normalize_team_seed(t, default_label, default_short):
     }
 
 
-def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot_times, venues, end_date=None, prefix="", booked_slots=None, matches_per_day=2):
+def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot_times, venues, end_date=None, prefix="", booked_slots=None, matches_per_day=1):
     """
     Generates the authentic Page–McIntyre Playoff System (Final Four) fixtures:
     Requires 4 teams (Seed 1 to 4).

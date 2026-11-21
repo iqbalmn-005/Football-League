@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from datetime import datetime, date, time
 import json
 
@@ -170,12 +170,13 @@ def organizer_dashboard(request, comp_id=None):
     if status_f and status_f != 'all':
         filtered_competitions = filtered_competitions.filter(status=status_f)
 
-    total_count = user_competitions.count()
-    active_count = user_competitions.filter(status=CompetitionStatus.ACTIVE).count()
-    upcoming_count = user_competitions.filter(status=CompetitionStatus.UPCOMING).count()
-    completed_count = user_competitions.filter(status=CompetitionStatus.COMPLETED).count()
-    pending_count = user_competitions.filter(status=CompetitionStatus.PENDING).count()
-    total_teams = sum(c.teams.count() for c in user_competitions)
+    status_counts = dict(user_competitions.values('status').annotate(cnt=Count('id')).values_list('status', 'cnt'))
+    total_count = sum(status_counts.values())
+    active_count = status_counts.get(CompetitionStatus.ACTIVE, 0)
+    upcoming_count = status_counts.get(CompetitionStatus.UPCOMING, 0)
+    completed_count = status_counts.get(CompetitionStatus.COMPLETED, 0)
+    pending_count = status_counts.get(CompetitionStatus.PENDING, 0)
+    total_teams = CompetitionTeam.objects.filter(competition__in=user_competitions).count()
 
     context = {
         'user_competitions': filtered_competitions,
@@ -983,7 +984,7 @@ def api_generate_group_fixtures(request, comp_id):
         data = request.POST
 
     double_round = str(data.get('double_round', '')).lower() in ['1', 'true', 'on', 'double']
-    matches_per_day = int(data.get('matches_per_day', 2) or 2)
+    matches_per_day = int(data.get('matches_per_day', 1) or 1)
 
     from leagues.group_service import generate_group_fixtures
     res = generate_group_fixtures(competition, double_round=double_round, matches_per_day=matches_per_day)
