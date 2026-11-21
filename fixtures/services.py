@@ -171,9 +171,14 @@ def calculate_required_matches(
             if is_double_leg:
                 ko_rounds = (ko_rounds - 1) * 2 + 1
 
+        min_ko_days = ko_rounds
+        if total_qualifiers >= 4 and not is_double_leg:
+            # Semi-finals on separate days (+1 day)
+            min_ko_days += 1
+
         total_matches = group_matches + ko_matches
         total_rounds = max_group_rounds + ko_rounds
-        min_stage_days = max_group_rounds + ko_rounds
+        min_stage_days = max_group_rounds + min_ko_days
 
         return {
             'total_matches': total_matches,
@@ -191,10 +196,10 @@ def calculate_required_matches(
                 'total_matches': 4,
                 'group_stage_matches': 0,
                 'knockout_matches': 4,
-                'total_rounds': 3,
+                'total_rounds': 4,
                 'group_rounds': 0,
-                'knockout_rounds': 3,
-                'min_stage_days': 3
+                'knockout_rounds': 4,
+                'min_stage_days': 4
             }
         else:
             if is_double_leg:
@@ -212,6 +217,11 @@ def calculate_required_matches(
             if is_double_leg:
                 ko_rounds = (ko_rounds - 1) * 2 + 1
 
+            min_ko_days = ko_rounds
+            if teams_count >= 4 and not is_double_leg:
+                # Semi-finals on separate days (+1 day)
+                min_ko_days += 1
+
             return {
                 'total_matches': ko_matches,
                 'group_stage_matches': 0,
@@ -219,7 +229,7 @@ def calculate_required_matches(
                 'total_rounds': ko_rounds,
                 'group_rounds': 0,
                 'knockout_rounds': ko_rounds,
-                'min_stage_days': ko_rounds
+                'min_stage_days': min_ko_days
             }
 
     return {
@@ -407,7 +417,7 @@ def generate_smart_fixtures(competition, config):
         venues = list(dict.fromkeys(team_venues + DEFAULT_VENUES))[:6]
 
     round_robin_type = config.get('round_robin_type', 'single')  # 'single' or 'double'
-    sf_preference = config.get('sf_preference', 'same_day')  # 'same_day' or 'separate_days'
+    sf_preference = 'separate_days'  # Always separate days for semi-finals and final
 
     # Determine groups structure if applicable
     groups_info = {}
@@ -453,7 +463,7 @@ def generate_smart_fixtures(competition, config):
         group_team_counts=group_team_counts
     )
 
-    # Step 2: Calculate scheduling capacity
+    # Step 2: Calculate scheduling capacity and validate feasibility between start_date and end_date
     capacity = calculate_scheduling_capacity(
         start_date=start_date,
         end_date=end_date,
@@ -462,6 +472,28 @@ def generate_smart_fixtures(competition, config):
         total_matches=match_calc['total_matches'],
         min_stage_days=match_calc['min_stage_days']
     )
+
+    if end_date and not capacity['is_feasible']:
+        return {
+            'success': False,
+            'is_feasible': False,
+            'errors': capacity['errors'] or [
+                f"Cannot schedule all fixtures between {start_date.strftime('%d-%m-%Y')} and {end_date.strftime('%d-%m-%Y')}.",
+                f"This tournament wants {capacity['required_match_days']} match day(s), but the selected date range only provides {capacity['available_match_days']} preferred match day(s).",
+                f"Please extend the Fixture End Date to at least {capacity['suggested_end_date']} or increase daily matches to {capacity['min_matches_per_day_needed']}."
+            ],
+            'capacity_details': capacity,
+            'matches': [],
+            'summary': {
+                'total_matches': match_calc['total_matches'],
+                'total_teams': len(teams_qs),
+                'is_feasible': False,
+                'days_wanted': capacity['required_match_days'],
+                'available_match_days': capacity['available_match_days'],
+                'suggested_end_date': capacity['suggested_end_date'],
+                'matches_per_day': matches_per_day
+            }
+        }
 
     # Step 3: Dynamically distribute fixtures with global daily limit and team rest enforcement
     scheduled_matches = []
@@ -624,6 +656,28 @@ def generate_smart_fixtures(competition, config):
         )
         scheduled_matches.extend(knockout_matches)
 
+    # Final validation: strictly ensure all generated matches fall between start_date and end_date
+    if end_date:
+        exceeded = [m for m in scheduled_matches if m['match_date'] > end_date]
+        if exceeded:
+            last_date = max(m['match_date'] for m in scheduled_matches)
+            return {
+                'success': False,
+                'is_feasible': False,
+                'errors': [
+                    f"Selected end date {end_date.strftime('%d-%m-%Y')} cannot fit all {len(scheduled_matches)} matches between start date and end date.",
+                    f"This tournament wants {capacity['required_match_days']} match day(s). The last match was scheduled on {last_date.strftime('%d-%m-%Y')}.",
+                    f"Please extend the Fixture End Date to at least {last_date.strftime('%d-%m-%Y')}."
+                ],
+                'capacity_details': capacity,
+                'matches': [],
+                'summary': {
+                    'days_wanted': capacity['required_match_days'],
+                    'available_match_days': capacity['available_match_days'],
+                    'suggested_end_date': last_date.strftime('%Y-%m-%d')
+                }
+            }
+
     # Summary
     total_matches = len(scheduled_matches)
     total_rounds = len(set(m['round_name'] for m in scheduled_matches))
@@ -652,6 +706,7 @@ def generate_smart_fixtures(competition, config):
         'total_teams': len(teams_qs),
         'start_date': first_date.isoformat() if isinstance(first_date, date) else str(first_date),
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
+        'days_wanted': capacity['required_match_days'],
         'format_name': fmt_label,
         'matches_per_day': matches_per_day,
         'group_count': len(groups_info) if groups_info else 0,

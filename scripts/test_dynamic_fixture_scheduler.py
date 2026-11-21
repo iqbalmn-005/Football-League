@@ -132,8 +132,8 @@ def run_tests():
             CompetitionTeam.objects.create(competition=comp, team=t)
         teams = list(comp.teams.all()[:8])
 
-    # Test 3.1: Tight end date does NOT block generation or clamp matches; it dynamically schedules all matches
-    tight_end = start + timedelta(days=2) # Only 1-2 days
+    # Test 3.1: Date range enforcement: Fixtures generate ONLY between start_date and end_date
+    tight_end = start + timedelta(days=2) # Only 1-2 days (requires 6 days)
     res_tight = generate_smart_fixtures(comp, {
         'tournament_format': TournamentFormat.ROUND_ROBIN,
         'round_robin_type': 'single',
@@ -143,11 +143,11 @@ def run_tests():
         'preferred_days': ['Saturday', 'Sunday'],
         'selected_team_ids': [t.id for t in teams[:4]]  # 4 teams = 6 matches
     })
-    assert res_tight['success'], f"Expected success even on tight date range: {res_tight.get('errors')}"
-    assert len(res_tight['matches']) == 6, f"Expected 6 matches, got {len(res_tight['matches'])}"
-    counts = Counter(m['match_date'] for m in res_tight['matches'])
-    assert max(counts.values()) == 1, f"Expected max 1 match per day, got {max(counts.values())}"
-    print(" [PASS] Tight date range schedules all matches dynamically without infinite loop or clamping")
+    assert not res_tight['success'], "Expected rejection when matches cannot fit between start and end date"
+    assert not res_tight['is_feasible'], "Expected is_feasible to be False"
+    assert res_tight['summary']['days_wanted'] == 6, f"Expected 6 days wanted, got {res_tight['summary']['days_wanted']}"
+    assert len(res_tight['matches']) == 0, "Expected zero matches generated when date range is insufficient"
+    print(f" [PASS] Date range strictly enforced: Rejects insufficient range, reports {res_tight['summary']['days_wanted']} days wanted")
 
     # Test 3.2: Feasible generation strictly enforces global daily matches limit across groups
     gen_end = start + timedelta(days=120)
@@ -161,10 +161,15 @@ def run_tests():
         'daily_kickoff_times': ['15:00', '17:30'],
         'preferred_days': ['Saturday', 'Sunday'],
         'selected_team_ids': [t.id for t in teams[:8]],
-        'sf_preference': 'same_day'
     })
     assert res_group['success'], f"Generation failed: {res_group.get('errors')}"
     matches = res_group['matches']
+
+    # Strictly between start_date and end_date
+    for m in matches:
+        m_d = date.fromisoformat(m['match_date']) if isinstance(m['match_date'], str) else m['match_date']
+        assert m_d >= start and m_d <= gen_end, f"Match {m} scheduled outside start/end date range!"
+    print(f" [PASS] All {len(matches)} generated matches strictly fall between {start} and {gen_end}")
 
     # Verify global daily count
     dates_count = Counter(m['match_date'] for m in matches)
@@ -195,49 +200,28 @@ def run_tests():
     assert min_ko_date >= max_group_date, f"Knockout starts ({min_ko_date}) before group stage ends ({max_group_date})!"
     print(f" [PASS] Stage sequence enforced: Group stage ends {max_group_date}, Knockout starts {min_ko_date}")
 
-    # Test 3.5: Semi-final preferences
-    # Case A: Separate days preference
-    res_sep = generate_smart_fixtures(comp, {
-        'tournament_format': TournamentFormat.GROUP_KNOCKOUT,
-        'num_groups': 2,
-        'qualifiers_per_group': 2,
-        'start_date': start.isoformat(),
-        'end_date': gen_end.isoformat(),
-        'matches_per_day': 2,
-        'daily_kickoff_times': ['15:00', '17:30'],
-        'preferred_days': ['Saturday', 'Sunday'],
-        'selected_team_ids': [t.id for t in teams[:8]],
-        'sf_preference': 'separate_days'
-    })
-    sf_matches_sep = [m for m in res_sep['matches'] if 'Semi-Final' in m['round_name']]
-    assert len(sf_matches_sep) == 2, f"Expected 2 SF matches, got {len(sf_matches_sep)}"
-    assert sf_matches_sep[0]['match_date'] != sf_matches_sep[1]['match_date'], \
-        f"Semi-finals on same date {sf_matches_sep[0]['match_date']} despite 'separate_days' preference!"
-    print(f" [PASS] Semi-Finals separate days preference: SF1 on {sf_matches_sep[0]['match_date']}, SF2 on {sf_matches_sep[1]['match_date']}")
+    # Test 3.5: Semi-Finals and Final are ALWAYS on separated days
+    sf_matches = [m for m in matches if 'Semi-Final' in m['round_name']]
+    final_matches = [m for m in matches if 'Final' in m['round_name'] and 'Semi' not in m['round_name']]
+    assert len(sf_matches) == 2, f"Expected 2 SF matches, got {len(sf_matches)}"
+    assert len(final_matches) >= 1, "Expected Final match"
+    final_match = final_matches[0]
 
-    # Case B: Same day preference (with matches_per_day >= 2)
-    res_same = generate_smart_fixtures(comp, {
-        'tournament_format': TournamentFormat.GROUP_KNOCKOUT,
-        'num_groups': 2,
-        'qualifiers_per_group': 2,
-        'start_date': start.isoformat(),
-        'end_date': gen_end.isoformat(),
-        'matches_per_day': 2,
-        'daily_kickoff_times': ['15:00', '17:30'],
-        'preferred_days': ['Saturday', 'Sunday'],
-        'selected_team_ids': [t.id for t in teams[:8]],
-        'sf_preference': 'same_day'
-    })
-    sf_matches_same = [m for m in res_same['matches'] if 'Semi-Final' in m['round_name']]
-    final_match = [m for m in res_same['matches'] if 'Final' in m['round_name'] and 'Semi' not in m['round_name']][0]
-    assert sf_matches_same[0]['match_date'] == sf_matches_same[1]['match_date'], \
-        f"Semi-finals on separate dates {sf_matches_same[0]['match_date']} vs {sf_matches_same[1]['match_date']} when 'same_day' requested and capacity allows!"
-    assert final_match['match_date'] > sf_matches_same[0]['match_date'], \
-        f"Grand Final date ({final_match['match_date']}) not after semi-finals date ({sf_matches_same[0]['match_date']})!"
-    print(f" [PASS] Semi-Finals same day preference: both SFs on {sf_matches_same[0]['match_date']}, Final on dedicated showcase date {final_match['match_date']}")
+    # SF1 and SF2 must be on separate dates
+    assert sf_matches[0]['match_date'] != sf_matches[1]['match_date'], \
+        f"Semi-finals on same date {sf_matches[0]['match_date']}! Must always be on separated days."
+    # Final must be strictly after all SF dates
+    latest_sf_date = max(sf_matches[0]['match_date'], sf_matches[1]['match_date'])
+    assert final_match['match_date'] > latest_sf_date, \
+        f"Final date {final_match['match_date']} not after latest semi-final date {latest_sf_date}!"
+    print(f" [PASS] Semi-Finals and Final ALWAYS on separated days: SF1 on {sf_matches[0]['match_date']}, SF2 on {sf_matches[1]['match_date']}, Final on {final_match['match_date']}")
 
     # Test 3.6: Stage name present in all formatted match objects
-    stages_present = set(m.get('stage_name') for m in res_same['matches'])
+    stages_present = set(m.get('stage_name') for m in matches)
+    assert 'League Stage' in stages_present or any('Group Stage' in s for s in stages_present), f"Missing group stage name in {stages_present}"
+    assert 'Semi-Finals' in stages_present, f"Missing Semi-Finals in {stages_present}"
+    assert 'Championship Final' in stages_present, f"Missing Championship Final in {stages_present}"
+    print(f" [PASS] Stage names present in formatted preview matches: {stages_present}")
     assert 'League Stage' in stages_present or any('Group Stage' in s for s in stages_present), f"Missing group stage name in {stages_present}"
     assert 'Semi-Finals' in stages_present, f"Missing Semi-Finals in {stages_present}"
     assert 'Championship Final' in stages_present, f"Missing Championship Final in {stages_present}"

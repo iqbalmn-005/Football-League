@@ -917,17 +917,6 @@
                             <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
                     </div>
-
-                    <div class="form-group" id="sfPreferenceContainer">
-                        <label class="form-label" id="sfPreferenceLabel">
-                            Semi-Finals Scheduling Preference <span class="badge-req">*</span>
-                        </label>
-                        <select class="form-control" name="sf_preference" id="sfPreferenceSelect"
-                            onchange="updateSummaryKpis()">
-                            <option value="same_day" selected>Both Semi-Finals on Same Date (if Daily Matches &ge; 2)</option>
-                            <option value="separate_days">Separate Dates for Semi-Finals</option>
-                        </select>
-                    </div>
                 </div>
             </section>
 
@@ -959,6 +948,7 @@
                         </label>
                         <input type="date" class="form-control" name="end_date" id="endDateInput"
                             value="{{ default_end_date }}" required onchange="updateSummaryKpis()">
+                        <small id="endDateHelpText" style="font-size:12px;margin-top:5px;display:block;line-height:1.4;"></small>
                     </div>
 
                     <div class="form-group">
@@ -1031,6 +1021,10 @@
                     <div class="gen-kpi-item">
                         <span class="gen-kpi-label">Calculated Matches</span>
                         <span class="gen-kpi-val" id="summaryEstMatches">-</span>
+                    </div>
+                    <div class="gen-kpi-item">
+                        <span class="gen-kpi-label">Days Wanted</span>
+                        <span class="gen-kpi-val" id="summaryDaysWanted" style="color:var(--green-neon);font-weight:700;">-</span>
                     </div>
                 </div>
 
@@ -1183,12 +1177,7 @@
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const legsContainer = document.getElementById('knockoutLegsContainer');
             const qContainer = document.getElementById('qualifiersContainer');
-            const sfContainer = document.getElementById('sfPreferenceContainer');
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
-
-            if (sfContainer) {
-                sfContainer.style.display = (fmt !== 'ROUND_ROBIN') ? 'block' : 'none';
-            }
 
             if (tType === 'page_mcintyre') {
                 // Page-McIntyre is a fixed 4-fixture double-chance system, so hide elimination legs
@@ -1288,16 +1277,74 @@
                 `<div>${allocText}</div><div style="margin-top:5px;color:var(--dark);font-weight:700;">${tournamentPath}</div>`;
         }
 
+        let currentDaysWanted = 1;
+
+        // PREFERRED WEEKDAYS HELPER
+        function getPreferredWeekdays() {
+            const activeChips = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active'));
+            const dayMap = {
+                'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3,
+                'Friday': 4, 'Saturday': 5, 'Sunday': 6
+            };
+            const res = activeChips.map(c => dayMap[c.getAttribute('data-day')]).filter(v => v !== undefined);
+            return res.length > 0 ? res : [5, 6];
+        }
+
+        // COMPUTE SUGGESTED END DATE COVERING DAYS WANTED
+        function computeSuggestedEndDate(startDateStr, daysWanted, preferredWeekdays) {
+            if (!startDateStr || !daysWanted || daysWanted <= 0) return null;
+            if (!preferredWeekdays || preferredWeekdays.length === 0) preferredWeekdays = [5, 6];
+            let cur = new Date(startDateStr + 'T00:00:00');
+            let matchDaysCount = 0;
+            for (let i = 0; i < 730; i++) {
+                const pyDay = (cur.getDay() + 6) % 7;
+                if (preferredWeekdays.includes(pyDay)) {
+                    matchDaysCount++;
+                    if (matchDaysCount >= daysWanted) {
+                        return cur.toISOString().split('T')[0];
+                    }
+                }
+                cur.setDate(cur.getDate() + 1);
+            }
+            return null;
+        }
+
+        // COUNT AVAILABLE MATCH DAYS BETWEEN TWO DATES
+        function countAvailableMatchDays(startDateStr, endDateStr, preferredWeekdays) {
+            if (!startDateStr || !endDateStr || endDateStr < startDateStr) return 0;
+            if (!preferredWeekdays || preferredWeekdays.length === 0) preferredWeekdays = [5, 6];
+            let cur = new Date(startDateStr + 'T00:00:00');
+            const end = new Date(endDateStr + 'T00:00:00');
+            let count = 0;
+            while (cur <= end) {
+                const pyDay = (cur.getDay() + 6) % 7;
+                if (preferredWeekdays.includes(pyDay)) {
+                    count++;
+                }
+                cur.setDate(cur.getDate() + 1);
+            }
+            return count;
+        }
+
+        function setSuggestedEndDate(dateStr) {
+            if (dateStr) {
+                const endInput = document.getElementById('endDateInput');
+                endInput.value = dateStr;
+                updateSummaryKpis();
+                showToast("Fixture End Date updated to cover all wanted match days!", "success");
+            }
+        }
+
         // START DATE & END DATE VALIDATION / SYNC
         function handleStartDateChange() {
             const startVal = document.getElementById('startDateInput').value;
             const endInput = document.getElementById('endDateInput');
             if (startVal) {
                 endInput.min = startVal;
-                if (endInput.value && endInput.value < startVal) {
-                    const d = new Date(startVal);
-                    d.setDate(d.getDate() + 90);
-                    endInput.value = d.toISOString().split('T')[0];
+                const pref = getPreferredWeekdays();
+                const sug = computeSuggestedEndDate(startVal, currentDaysWanted || 1, pref);
+                if (sug && (!endInput.value || endInput.value < sug)) {
+                    endInput.value = sug;
                 }
             }
             updateSummaryKpis();
@@ -1338,9 +1385,10 @@
             } else {
                 chip.innerText = chip.getAttribute('data-day');
             }
+            updateSummaryKpis();
         }
 
-        // UPDATE KPI ESTIMATES
+        // UPDATE KPI ESTIMATES & DAYS WANTED
         function updateSummaryKpis() {
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
             const isDouble = document.getElementById('roundRobinTypeSelect').value === 'double';
@@ -1351,15 +1399,20 @@
 
             if (totalTeamsCount < 2) {
                 document.getElementById('summaryEstMatches').innerText = "0";
+                document.getElementById('summaryDaysWanted').innerText = "0 Days";
                 return;
             }
 
             let estMatches = 0;
+            let estWeeks = 1;
+            let minStageDays = 1;
+
             if (fmt === 'ROUND_ROBIN') {
                 const rounds = totalTeamsCount % 2 === 0 ? totalTeamsCount - 1 : totalTeamsCount;
                 const matchesPerRound = Math.floor(totalTeamsCount / 2);
-                const estWeeks = isDouble ? rounds * 2 : rounds;
+                estWeeks = isDouble ? rounds * 2 : rounds;
                 estMatches = estWeeks * matchesPerRound;
+                minStageDays = estWeeks;
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
                 const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
@@ -1369,37 +1422,61 @@
                 const groupMatches = gRounds * gMatchesPerRound;
 
                 let tournamentMatches = 0;
+                let koDays = 1;
                 if (tType === 'page_mcintyre') {
                     tournamentMatches = 4;
+                    koDays = 4;
                 } else {
                     const totalQualifiers = numGroups * qPerGroup;
                     if (totalQualifiers <= 2) {
                         tournamentMatches = 1;
+                        koDays = 1;
+                    } else if (totalQualifiers <= 4) {
+                        tournamentMatches = isDoubleLegKo ? 5 : 3;
+                        // Always semi-finals and final on separated days: SF1 (day 1), SF2 (day 2), Final (day 3)
+                        koDays = isDoubleLegKo ? 5 : 3;
                     } else if (isDoubleLegKo) {
                         tournamentMatches = (totalQualifiers - 2) * 2 + 1;
+                        koDays = 6;
                     } else {
                         tournamentMatches = Math.max(1, totalQualifiers - 1);
+                        koDays = 4;
                     }
                 }
                 estMatches = groupMatches + tournamentMatches;
+                minStageDays = gRounds + koDays;
             } else if (fmt === 'KNOCKOUT') {
                 if (tType === 'page_mcintyre') {
                     estMatches = 4;
+                    minStageDays = 4;
                 } else {
                     const totalQualifiers = totalTeamsCount;
                     if (totalQualifiers <= 2) {
                         estMatches = 1;
+                        minStageDays = 1;
+                    } else if (totalQualifiers <= 4) {
+                        estMatches = isDoubleLegKo ? 5 : 3;
+                        minStageDays = isDoubleLegKo ? 5 : 3;
                     } else if (isDoubleLegKo) {
                         estMatches = (totalQualifiers - 2) * 2 + 1;
+                        minStageDays = 6;
                     } else {
                         estMatches = Math.max(1, totalQualifiers - 1);
+                        minStageDays = 4;
                     }
                 }
             } else if (fmt === 'PAGE_MCINTYRE') {
                 estMatches = 4;
+                minStageDays = 4;
             }
 
+            // Days wanted calculation
+            const minDaysVolume = Math.ceil(estMatches / matchesPerDay);
+            const daysWanted = Math.max(minDaysVolume, minStageDays);
+            currentDaysWanted = daysWanted;
+
             document.getElementById('summaryEstMatches').innerText = estMatches;
+            document.getElementById('summaryDaysWanted').innerText = `${daysWanted} Days`;
 
             // Format summary label
             if (fmt === 'KNOCKOUT') {
@@ -1423,6 +1500,23 @@
             } else {
                 document.getElementById('summaryFormat').innerText = isDouble ? "Round Robin (Double Round)" : "Round Robin (Single Round)";
             }
+
+            // Update End Date helper guidance text
+            const startVal = document.getElementById('startDateInput').value;
+            const endVal = document.getElementById('endDateInput').value;
+            const prefWeekdays = getPreferredWeekdays();
+            const availDays = countAvailableMatchDays(startVal, endVal, prefWeekdays);
+            const helpEl = document.getElementById('endDateHelpText');
+            if (helpEl) {
+                if (!endVal || endVal < startVal) {
+                    helpEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">⚠️ Please choose a valid end date on or after the start date.</span>`;
+                } else if (availDays < daysWanted) {
+                    const sug = computeSuggestedEndDate(startVal, daysWanted, prefWeekdays);
+                    helpEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">⚠️ Wants ${daysWanted} match days (only ${availDays} available in this range).</span> <a href="javascript:void(0)" onclick="setSuggestedEndDate('${sug}')" style="color:var(--green-dark);font-weight:700;text-decoration:underline;margin-left:6px;">Auto-Set End Date to ${sug}</a>`;
+                } else {
+                    helpEl.innerHTML = `<span style="color:#10b981;font-weight:600;">✓ Range provides ${availDays} match days (${daysWanted} days wanted).</span>`;
+                }
+            }
         }
 
         // GENERATE FIXTURE PREVIEW AJAX
@@ -1440,19 +1534,25 @@
                 return;
             }
 
-            const btn = document.getElementById('btnGeneratePreview');
-            btn.disabled = true;
-            btn.innerText = "⏳ Generating Conflict-Free Schedule...";
-
             // Preferred days
             const preferredDays = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active'))
                 .map(c => c.getAttribute('data-day'));
             if (preferredDays.length === 0) {
                 showToast("Please select at least 1 preferred match day (e.g. Saturday or Sunday).", "error");
-                btn.disabled = false;
-                btn.innerText = "⚡ Generate Fixtures Preview";
                 return;
             }
+
+            const prefWeekdays = getPreferredWeekdays();
+            const availDays = countAvailableMatchDays(startDate, endDate, prefWeekdays);
+            if (endDate && availDays < currentDaysWanted) {
+                const sug = computeSuggestedEndDate(startDate, currentDaysWanted, prefWeekdays);
+                showToast(`Cannot generate: Tournament wants ${currentDaysWanted} match days, but only ${availDays} are available before ${endDate}. Extend end date to at least ${sug}.`, "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnGeneratePreview');
+            btn.disabled = true;
+            btn.innerText = "⏳ Generating Conflict-Free Schedule...";
 
             // Matches per day & slot times
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
@@ -1464,7 +1564,6 @@
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
-            const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
 
             const payload = {
                 tournament_format: fmt,
@@ -1480,7 +1579,7 @@
                 venues: [],
                 num_groups: numGroups,
                 qualifiers_per_group: qPerGroup,
-                sf_preference: sfPref,
+                sf_preference: 'separate_days'  // Always separate days for semi-finals and final
             };
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {
@@ -1505,7 +1604,7 @@
                     generatedMatches = data.matches;
                     generatedGroups = data.groups;
                     renderPreviewTable(data.matches, data.summary);
-                    showToast(`Generated ${data.matches.length} fixtures with your exact kickoff times!`, "success");
+                    showToast(`Generated ${data.matches.length} fixtures between ${startDate} and ${endDate}!`, "success");
 
                     document.getElementById('previewContainer').scrollIntoView({ behavior: 'smooth' });
                 })
