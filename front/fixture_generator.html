@@ -1032,18 +1032,6 @@
                         <span class="gen-kpi-label">Calculated Matches</span>
                         <span class="gen-kpi-val" id="summaryEstMatches">-</span>
                     </div>
-                    <div class="gen-kpi-item">
-                        <span class="gen-kpi-label">Avail. Match Days</span>
-                        <span class="gen-kpi-val" id="summaryAvailDays">-</span>
-                    </div>
-                    <div class="gen-kpi-item">
-                        <span class="gen-kpi-label">Req. Match Days</span>
-                        <span class="gen-kpi-val" id="summaryReqDays">-</span>
-                    </div>
-                    <div class="gen-kpi-item">
-                        <span class="gen-kpi-label">Feasibility</span>
-                        <span class="gen-kpi-val" id="summaryFeasibility" style="font-size:14px;color:#10b981;font-weight:800;">✓ Feasible</span>
-                    </div>
                 </div>
 
                 <div style="display:flex;gap:10px;">
@@ -1051,19 +1039,6 @@
                         onclick="requestFixturePreview()" style="font-size:14px;padding:12px 24px;">
                         ⚡ Generate Fixtures Preview
                     </button>
-                </div>
-            </div>
-
-            <!-- CAPACITY DEFICIT ALERT BOX -->
-            <div id="capacityAlertBox" style="display:none;background:#fef2f2;border:1.5px solid #ef4444;border-radius:10px;padding:18px 20px;margin-bottom:24px;box-shadow:0 2px 8px rgba(239,68,68,0.1);">
-                <div style="display:flex;align-items:flex-start;gap:12px;">
-                    <span style="font-size:24px;line-height:1;">⚠️</span>
-                    <div style="flex:1;">
-                        <h3 style="font-family:var(--font-heading);font-size:16px;font-weight:900;color:#991b1b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
-                            Tournament Schedule Capacity Deficit
-                        </h3>
-                        <div id="capacityAlertDetails" style="font-size:13px;color:#7f1d1d;line-height:1.5;"></div>
-                    </div>
                 </div>
             </div>
 
@@ -1426,49 +1401,6 @@
 
             document.getElementById('summaryEstMatches').innerText = estMatches;
 
-            // Capacity calculation
-            const startDateVal = document.getElementById('startDateInput').value;
-            const endDateVal = document.getElementById('endDateInput').value;
-            const activeDays = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active'))
-                .map(c => c.getAttribute('data-day'));
-
-            const reqDays = Math.ceil(estMatches / Math.max(1, matchesPerDay));
-            document.getElementById('summaryReqDays').innerText = `${reqDays} d`;
-
-            if (startDateVal && endDateVal && activeDays.length > 0) {
-                const sDate = new Date(startDateVal);
-                const eDate = new Date(endDateVal);
-                const dayMap = { 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 };
-                const activeWeekdays = activeDays.map(d => dayMap[d]);
-
-                let availDays = 0;
-                let cur = new Date(sDate);
-                while (cur <= eDate) {
-                    if (activeWeekdays.includes(cur.getDay())) {
-                        availDays++;
-                    }
-                    cur.setDate(cur.getDate() + 1);
-                }
-
-                document.getElementById('summaryAvailDays').innerText = `${availDays} d`;
-
-                const feasEl = document.getElementById('summaryFeasibility');
-                if (eDate < sDate) {
-                    feasEl.style.color = '#ef4444';
-                    feasEl.innerText = '⚠️ Invalid Dates';
-                } else if (availDays >= reqDays && (availDays * matchesPerDay >= estMatches)) {
-                    feasEl.style.color = '#10b981';
-                    feasEl.innerText = '✓ Feasible';
-                } else {
-                    const deficit = reqDays - availDays;
-                    feasEl.style.color = '#ef4444';
-                    feasEl.innerText = `⚠️ Short by ${deficit}d`;
-                }
-            } else {
-                document.getElementById('summaryAvailDays').innerText = '-';
-                document.getElementById('summaryFeasibility').innerText = '-';
-            }
-
             // Format summary label
             if (fmt === 'KNOCKOUT') {
                 if (tType === 'page_mcintyre') {
@@ -1551,9 +1483,6 @@
                 sf_preference: sfPref,
             };
 
-            const alertBox = document.getElementById('capacityAlertBox');
-            const alertDetails = document.getElementById('capacityAlertDetails');
-
             fetch(`/organizer/${compId}/api/generate-preview/`, {
                 method: 'POST',
                 headers: {
@@ -1568,17 +1497,11 @@
                     btn.innerText = "⚡ Generate Fixtures Preview";
 
                     if (!data.success) {
-                        if (alertBox && alertDetails) {
-                            alertBox.style.display = 'block';
-                            alertDetails.innerHTML = data.errors.map(e => `<div>• ${e}</div>`).join('');
-                            alertBox.scrollIntoView({ behavior: 'smooth' });
-                        }
                         document.getElementById('previewContainer').style.display = 'none';
                         showToast(data.errors[0] || "Failed to generate fixtures.", "error");
                         return;
                     }
 
-                    if (alertBox) alertBox.style.display = 'none';
                     generatedMatches = data.matches;
                     generatedGroups = data.groups;
                     renderPreviewTable(data.matches, data.summary);
