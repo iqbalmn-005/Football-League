@@ -917,6 +917,17 @@
                             <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
                     </div>
+
+                    <div class="form-group" id="sfPreferenceContainer">
+                        <label class="form-label" id="sfPreferenceLabel">
+                            Semi-Finals Scheduling Preference <span class="badge-req">*</span>
+                        </label>
+                        <select class="form-control" name="sf_preference" id="sfPreferenceSelect"
+                            onchange="updateSummaryKpis()">
+                            <option value="same_day" selected>Both Semi-Finals on Same Date (if Daily Matches &ge; 2)</option>
+                            <option value="separate_days">Separate Dates for Semi-Finals</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 
@@ -1018,8 +1029,20 @@
                         <span class="gen-kpi-val" id="summaryDailyMatches">2 Matches / Day</span>
                     </div>
                     <div class="gen-kpi-item">
-                        <span class="gen-kpi-label">Est. Matches</span>
+                        <span class="gen-kpi-label">Calculated Matches</span>
                         <span class="gen-kpi-val" id="summaryEstMatches">-</span>
+                    </div>
+                    <div class="gen-kpi-item">
+                        <span class="gen-kpi-label">Avail. Match Days</span>
+                        <span class="gen-kpi-val" id="summaryAvailDays">-</span>
+                    </div>
+                    <div class="gen-kpi-item">
+                        <span class="gen-kpi-label">Req. Match Days</span>
+                        <span class="gen-kpi-val" id="summaryReqDays">-</span>
+                    </div>
+                    <div class="gen-kpi-item">
+                        <span class="gen-kpi-label">Feasibility</span>
+                        <span class="gen-kpi-val" id="summaryFeasibility" style="font-size:14px;color:#10b981;font-weight:800;">✓ Feasible</span>
                     </div>
                 </div>
 
@@ -1028,6 +1051,19 @@
                         onclick="requestFixturePreview()" style="font-size:14px;padding:12px 24px;">
                         ⚡ Generate Fixtures Preview
                     </button>
+                </div>
+            </div>
+
+            <!-- CAPACITY DEFICIT ALERT BOX -->
+            <div id="capacityAlertBox" style="display:none;background:#fef2f2;border:1.5px solid #ef4444;border-radius:10px;padding:18px 20px;margin-bottom:24px;box-shadow:0 2px 8px rgba(239,68,68,0.1);">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <span style="font-size:24px;line-height:1;">⚠️</span>
+                    <div style="flex:1;">
+                        <h3 style="font-family:var(--font-heading);font-size:16px;font-weight:900;color:#991b1b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+                            Tournament Schedule Capacity Deficit
+                        </h3>
+                        <div id="capacityAlertDetails" style="font-size:13px;color:#7f1d1d;line-height:1.5;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -1172,7 +1208,12 @@
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const legsContainer = document.getElementById('knockoutLegsContainer');
             const qContainer = document.getElementById('qualifiersContainer');
+            const sfContainer = document.getElementById('sfPreferenceContainer');
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
+
+            if (sfContainer) {
+                sfContainer.style.display = (fmt !== 'ROUND_ROBIN') ? 'block' : 'none';
+            }
 
             if (tType === 'page_mcintyre') {
                 // Page-McIntyre is a fixed 4-fixture double-chance system, so hide elimination legs
@@ -1331,6 +1372,7 @@
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const isDoubleLegKo = (koLegs === 'double');
+            const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
 
             if (totalTeamsCount < 2) {
                 document.getElementById('summaryEstMatches').innerText = "0";
@@ -1383,6 +1425,49 @@
             }
 
             document.getElementById('summaryEstMatches').innerText = estMatches;
+
+            // Capacity calculation
+            const startDateVal = document.getElementById('startDateInput').value;
+            const endDateVal = document.getElementById('endDateInput').value;
+            const activeDays = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active'))
+                .map(c => c.getAttribute('data-day'));
+
+            const reqDays = Math.ceil(estMatches / Math.max(1, matchesPerDay));
+            document.getElementById('summaryReqDays').innerText = `${reqDays} d`;
+
+            if (startDateVal && endDateVal && activeDays.length > 0) {
+                const sDate = new Date(startDateVal);
+                const eDate = new Date(endDateVal);
+                const dayMap = { 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 };
+                const activeWeekdays = activeDays.map(d => dayMap[d]);
+
+                let availDays = 0;
+                let cur = new Date(sDate);
+                while (cur <= eDate) {
+                    if (activeWeekdays.includes(cur.getDay())) {
+                        availDays++;
+                    }
+                    cur.setDate(cur.getDate() + 1);
+                }
+
+                document.getElementById('summaryAvailDays').innerText = `${availDays} d`;
+
+                const feasEl = document.getElementById('summaryFeasibility');
+                if (eDate < sDate) {
+                    feasEl.style.color = '#ef4444';
+                    feasEl.innerText = '⚠️ Invalid Dates';
+                } else if (availDays >= reqDays && (availDays * matchesPerDay >= estMatches)) {
+                    feasEl.style.color = '#10b981';
+                    feasEl.innerText = '✓ Feasible';
+                } else {
+                    const deficit = reqDays - availDays;
+                    feasEl.style.color = '#ef4444';
+                    feasEl.innerText = `⚠️ Short by ${deficit}d`;
+                }
+            } else {
+                document.getElementById('summaryAvailDays').innerText = '-';
+                document.getElementById('summaryFeasibility').innerText = '-';
+            }
 
             // Format summary label
             if (fmt === 'KNOCKOUT') {
@@ -1447,6 +1532,7 @@
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
+            const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
 
             const payload = {
                 tournament_format: fmt,
@@ -1462,7 +1548,11 @@
                 venues: [],
                 num_groups: numGroups,
                 qualifiers_per_group: qPerGroup,
+                sf_preference: sfPref,
             };
+
+            const alertBox = document.getElementById('capacityAlertBox');
+            const alertDetails = document.getElementById('capacityAlertDetails');
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {
                 method: 'POST',
@@ -1478,10 +1568,17 @@
                     btn.innerText = "⚡ Generate Fixtures Preview";
 
                     if (!data.success) {
-                        showToast(data.errors.join(' | ') || "Failed to generate fixtures.", "error");
+                        if (alertBox && alertDetails) {
+                            alertBox.style.display = 'block';
+                            alertDetails.innerHTML = data.errors.map(e => `<div>• ${e}</div>`).join('');
+                            alertBox.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        document.getElementById('previewContainer').style.display = 'none';
+                        showToast(data.errors[0] || "Failed to generate fixtures.", "error");
                         return;
                     }
 
+                    if (alertBox) alertBox.style.display = 'none';
                     generatedMatches = data.matches;
                     generatedGroups = data.groups;
                     renderPreviewTable(data.matches, data.summary);
@@ -1554,8 +1651,9 @@
                         </td>
                         <td style="font-weight:700;">
                             ${m.home_team_name}
+                            ${m.stage_name ? `<span style="font-size:10px;background:#15803d;color:#ffffff;padding:2px 7px;border-radius:3px;margin-left:6px;font-weight:700;letter-spacing:0.3px;">${m.stage_name}</span>` : ''}
+                            ${m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:2px 6px;border-radius:3px;margin-left:4px;font-weight:600;">${m.round_name}</span>` : ''}
                             ${m.group_name ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
-                            ${m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600;">${m.round_name}</span>` : ''}
                         </td>
                         <td style="text-align:center;width:40px;">
                             <span class="vs-tag">VS</span>

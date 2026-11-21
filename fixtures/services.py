@@ -5,6 +5,8 @@ by user-specified matches per day and daily slot kickoff times.
 """
 from datetime import timedelta, date, time, datetime
 import json
+import math
+from collections import Counter, defaultdict
 from django.db import transaction
 from matches.models import Match, MatchStatus
 from leagues.models import Competition, TournamentGroup, CompetitionTeam, TournamentFormat, CompetitionStatus
@@ -53,6 +55,271 @@ def parse_time_safe(val, default_time=time(15, 0)):
         return time(int(parts[0]), int(parts[1]))
     except Exception:
         return default_time
+
+
+def calculate_required_matches(
+    teams_count,
+    format_type,
+    num_groups=1,
+    qualifiers_per_group=2,
+    is_double_round=False,
+    knockout_legs='single',
+    knockout_system='single_elimination',
+    group_team_counts=None,
+    has_third_place=False
+):
+    """
+    Pure calculation function: Computes the exact number of required fixtures and rounds
+    based on the tournament format, team counts, group structure, and knockout rules.
+    Does not assign dates or write to database.
+    """
+    if teams_count < 2:
+        return {
+            'total_matches': 0,
+            'group_stage_matches': 0,
+            'knockout_matches': 0,
+            'total_rounds': 0,
+            'group_rounds': 0,
+            'knockout_rounds': 0,
+            'min_stage_days': 0
+        }
+
+    is_double_leg = (knockout_legs == 'double')
+
+    if format_type in [TournamentFormat.ROUND_ROBIN, 'ROUND_ROBIN']:
+        matches = teams_count * (teams_count - 1)
+        if not is_double_round:
+            matches //= 2
+        rounds = (teams_count - 1) if teams_count % 2 == 0 else teams_count
+        if is_double_round:
+            rounds *= 2
+        return {
+            'total_matches': matches,
+            'group_stage_matches': matches,
+            'knockout_matches': 0,
+            'total_rounds': rounds,
+            'group_rounds': rounds,
+            'knockout_rounds': 0,
+            'min_stage_days': rounds
+        }
+
+    elif format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
+        return {
+            'total_matches': 4,
+            'group_stage_matches': 0,
+            'knockout_matches': 4,
+            'total_rounds': 3,
+            'group_rounds': 0,
+            'knockout_rounds': 3,
+            'min_stage_days': 3
+        }
+
+    elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
+        is_league_knockout = (format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT'])
+        actual_num_groups = 1 if is_league_knockout else max(1, int(num_groups or 2))
+
+        # Calculate group stage matches based on group allocations
+        if not group_team_counts:
+            base = teams_count // actual_num_groups
+            rem = teams_count % actual_num_groups
+            group_team_counts = [base + (1 if i < rem else 0) for i in range(actual_num_groups)]
+            group_team_counts = [c for c in group_team_counts if c > 0]
+
+        group_matches = 0
+        max_group_rounds = 0
+        for cnt in group_team_counts:
+            if cnt >= 2:
+                g_m = cnt * (cnt - 1)
+                if not is_double_round:
+                    g_m //= 2
+                group_matches += g_m
+                g_r = (cnt - 1) if cnt % 2 == 0 else cnt
+                if is_double_round:
+                    g_r *= 2
+                if g_r > max_group_rounds:
+                    max_group_rounds = g_r
+
+        # Calculate knockout stage matches based on qualification rules
+        default_q = 4 if is_league_knockout else 2
+        actual_q_per_group = int(qualifiers_per_group or default_q)
+        max_teams_in_group = max(group_team_counts, default=1)
+        actual_q_per_group = min(actual_q_per_group, max_teams_in_group)
+        total_qualifiers = actual_num_groups * actual_q_per_group
+
+        if total_qualifiers <= 1:
+            ko_matches = 0
+            ko_rounds = 0
+        elif total_qualifiers == 2:
+            ko_matches = 1
+            ko_rounds = 1
+        elif knockout_system == 'page_mcintyre':
+            ko_matches = 4
+            ko_rounds = 3
+        else:
+            if is_double_leg:
+                ko_matches = (total_qualifiers - 2) * 2 + 1
+            else:
+                ko_matches = total_qualifiers - 1
+            if has_third_place:
+                ko_matches += 1
+
+            ko_rounds = 0
+            k = 1
+            while k < total_qualifiers:
+                k *= 2
+                ko_rounds += 1
+            if is_double_leg:
+                ko_rounds = (ko_rounds - 1) * 2 + 1
+
+        total_matches = group_matches + ko_matches
+        total_rounds = max_group_rounds + ko_rounds
+        min_stage_days = max_group_rounds + ko_rounds
+
+        return {
+            'total_matches': total_matches,
+            'group_stage_matches': group_matches,
+            'knockout_matches': ko_matches,
+            'total_rounds': total_rounds,
+            'group_rounds': max_group_rounds,
+            'knockout_rounds': ko_rounds,
+            'min_stage_days': min_stage_days
+        }
+
+    elif format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT']:
+        if knockout_system == 'page_mcintyre':
+            return {
+                'total_matches': 4,
+                'group_stage_matches': 0,
+                'knockout_matches': 4,
+                'total_rounds': 3,
+                'group_rounds': 0,
+                'knockout_rounds': 3,
+                'min_stage_days': 3
+            }
+        else:
+            if is_double_leg:
+                ko_matches = (teams_count - 2) * 2 + 1
+            else:
+                ko_matches = teams_count - 1
+            if has_third_place:
+                ko_matches += 1
+
+            ko_rounds = 0
+            k = 1
+            while k < teams_count:
+                k *= 2
+                ko_rounds += 1
+            if is_double_leg:
+                ko_rounds = (ko_rounds - 1) * 2 + 1
+
+            return {
+                'total_matches': ko_matches,
+                'group_stage_matches': 0,
+                'knockout_matches': ko_matches,
+                'total_rounds': ko_rounds,
+                'group_rounds': 0,
+                'knockout_rounds': ko_rounds,
+                'min_stage_days': ko_rounds
+            }
+
+    return {
+        'total_matches': 0,
+        'group_stage_matches': 0,
+        'knockout_matches': 0,
+        'total_rounds': 0,
+        'group_rounds': 0,
+        'knockout_rounds': 0,
+        'min_stage_days': 0
+    }
+
+
+def calculate_scheduling_capacity(
+    start_date,
+    end_date,
+    preferred_weekdays,
+    matches_per_day,
+    total_matches,
+    min_stage_days=1
+):
+    """
+    Computes scheduling capacity between start_date and end_date.
+    Determines available match dates, volume capacity, stage requirements,
+    and returns a comprehensive feasibility report with deficit details.
+    """
+    if not end_date:
+        return {
+            'is_feasible': True,
+            'available_calendar_days': None,
+            'available_match_days': None,
+            'required_match_days': math.ceil(total_matches / max(1, matches_per_day)),
+            'max_capacity': None,
+            'days_short': 0,
+            'min_matches_per_day_needed': matches_per_day,
+            'suggested_end_date': None,
+            'errors': []
+        }
+
+    calendar_days = max(1, (end_date - start_date).days + 1)
+
+    # Collect all available match dates that match preferred weekdays
+    available_dates = []
+    curr = start_date
+    while curr <= end_date:
+        if curr.weekday() in preferred_weekdays:
+            available_dates.append(curr)
+        curr += timedelta(days=1)
+
+    available_match_days = len(available_dates)
+    max_capacity = available_match_days * matches_per_day
+    min_days_volume = math.ceil(total_matches / max(1, matches_per_day))
+    required_match_days = max(min_days_volume, min_stage_days)
+
+    is_feasible = (available_match_days >= required_match_days) and (max_capacity >= total_matches)
+
+    errors = []
+    days_short = 0
+    min_mpd_needed = matches_per_day
+    suggested_end_date = None
+
+    if not is_feasible:
+        days_short = max(0, required_match_days - available_match_days)
+        min_mpd_needed = math.ceil(total_matches / max(1, available_match_days)) if available_match_days > 0 else total_matches
+
+        # Calculate suggested end date providing required_match_days
+        match_days_count = 0
+        sug = start_date
+        while match_days_count < required_match_days:
+            if sug.weekday() in preferred_weekdays:
+                match_days_count += 1
+                if match_days_count == required_match_days:
+                    suggested_end_date = sug
+                    break
+            sug += timedelta(days=1)
+
+        approx_calendar_days = (suggested_end_date - end_date).days if suggested_end_date and suggested_end_date > end_date else days_short * 7
+
+        errors.append(
+            f"The selected date range ({start_date.strftime('%d-%m-%Y')} to {end_date.strftime('%d-%m-%Y')}) provides {available_match_days} available match day(s), which is insufficient for {total_matches} required matches at {matches_per_day} match(es) per day."
+        )
+        errors.append(
+            f"Minimum required match days: {required_match_days} day(s) (short by {days_short} match day(s))."
+        )
+        if suggested_end_date:
+            errors.append(
+                f"Recommendation: Extend Fixture End Date to at least {suggested_end_date.strftime('%d-%m-%Y')} (+{approx_calendar_days} calendar days), or increase daily match limit to at least {min_mpd_needed} matches per day."
+            )
+
+    return {
+        'is_feasible': is_feasible,
+        'available_calendar_days': calendar_days,
+        'available_match_days': available_match_days,
+        'required_match_days': required_match_days,
+        'max_capacity': max_capacity,
+        'days_short': days_short,
+        'min_matches_per_day_needed': min_mpd_needed,
+        'suggested_end_date': suggested_end_date.strftime('%Y-%m-%d') if suggested_end_date else None,
+        'errors': errors
+    }
 
 
 def generate_round_robin_fixtures(competition, start_date=None, double_round=False):
@@ -140,46 +407,14 @@ def generate_smart_fixtures(competition, config):
         venues = list(dict.fromkeys(team_venues + DEFAULT_VENUES))[:6]
 
     round_robin_type = config.get('round_robin_type', 'single')  # 'single' or 'double'
+    sf_preference = config.get('sf_preference', 'same_day')  # 'same_day' or 'separate_days'
 
-    # Build pairings by format
+    # Determine groups structure if applicable
     groups_info = {}
-    scheduled_matches = []
-    booked_slots = set()
+    groups_dict = {}
+    group_team_counts = None
 
-    if format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
-        if len(teams_qs) < 4:
-            return {
-                'success': False,
-                'errors': [f"Page–McIntyre Playoff System requires at least 4 participating teams (found {len(teams_qs)}). Please register 4 teams to generate fixtures."],
-                'matches': [],
-                'summary': {}
-            }
-        knockout_matches = _generate_page_mcintyre_fixtures(
-            teams=teams_qs[:4],
-            start_date=start_date,
-            preferred_weekdays=preferred_weekdays,
-            slot_times=slot_times,
-            venues=venues,
-            end_date=end_date,
-            booked_slots=booked_slots,
-            matches_per_day=matches_per_day
-        )
-        scheduled_matches.extend(knockout_matches)
-
-    elif format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
-        raw_rounds = _build_round_robin_rounds(teams_qs, double_round=(round_robin_type == 'double'))
-        scheduled_matches = _schedule_daily_slots(
-            rounds=raw_rounds,
-            start_date=start_date,
-            preferred_weekdays=preferred_weekdays,
-            matches_per_day=matches_per_day,
-            slot_times=slot_times,
-            venues=venues,
-            end_date=end_date,
-            booked_slots=booked_slots
-        )
-
-    elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
+    if format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
         is_league_knockout = (format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT'])
         num_groups = 1 if is_league_knockout else int(config.get('num_groups', 2) or 2)
         default_q = 4 if is_league_knockout else 2
@@ -201,6 +436,98 @@ def generate_smart_fixtures(competition, config):
             g_name: [{'id': t.id, 'name': t.name, 'short_name': t.short_name, 'logo_url': t.get_logo_url()} for t in t_list]
             for g_name, t_list in groups_dict.items()
         }
+        group_team_counts = [len(tl) for tl in groups_dict.values()]
+    else:
+        num_groups = 1
+        q_per_group = 2
+
+    # Step 1: Automatically calculate required matches based on tournament format & rules
+    match_calc = calculate_required_matches(
+        teams_count=len(teams_qs),
+        format_type=format_type,
+        num_groups=num_groups,
+        qualifiers_per_group=q_per_group,
+        is_double_round=(round_robin_type == 'double'),
+        knockout_legs=knockout_legs,
+        knockout_system=knockout_system,
+        group_team_counts=group_team_counts
+    )
+
+    # Step 2: Calculate scheduling capacity and validate feasibility before assigning dates
+    capacity = calculate_scheduling_capacity(
+        start_date=start_date,
+        end_date=end_date,
+        preferred_weekdays=preferred_weekdays,
+        matches_per_day=matches_per_day,
+        total_matches=match_calc['total_matches'],
+        min_stage_days=match_calc['min_stage_days']
+    )
+
+    if end_date and not capacity['is_feasible']:
+        return {
+            'success': False,
+            'is_feasible': False,
+            'errors': capacity['errors'],
+            'capacity_details': capacity,
+            'matches': [],
+            'summary': {
+                'total_matches': match_calc['total_matches'],
+                'total_teams': len(teams_qs),
+                'is_feasible': False,
+                'available_match_days': capacity['available_match_days'],
+                'required_match_days': capacity['required_match_days'],
+                'days_short': capacity['days_short'],
+                'matches_per_day': matches_per_day
+            }
+        }
+
+    # Step 3: Dynamically distribute fixtures with global daily limit and team rest enforcement
+    scheduled_matches = []
+    booked_slots = set()
+    global_daily_counts = Counter()
+    teams_played_on_date = defaultdict(set)
+
+    if format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
+        if len(teams_qs) < 4:
+            return {
+                'success': False,
+                'is_feasible': False,
+                'errors': [f"Page–McIntyre Playoff System requires at least 4 participating teams (found {len(teams_qs)}). Please register 4 teams to generate fixtures."],
+                'matches': [],
+                'summary': {}
+            }
+        knockout_matches = _generate_page_mcintyre_fixtures(
+            teams=teams_qs[:4],
+            start_date=start_date,
+            preferred_weekdays=preferred_weekdays,
+            slot_times=slot_times,
+            venues=venues,
+            end_date=end_date,
+            booked_slots=booked_slots,
+            matches_per_day=matches_per_day,
+            global_daily_counts=global_daily_counts,
+            teams_played_on_date=teams_played_on_date,
+            sf_preference=sf_preference
+        )
+        scheduled_matches.extend(knockout_matches)
+
+    elif format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
+        raw_rounds = _build_round_robin_rounds(teams_qs, double_round=(round_robin_type == 'double'))
+        scheduled_matches = _schedule_daily_slots(
+            rounds=raw_rounds,
+            start_date=start_date,
+            preferred_weekdays=preferred_weekdays,
+            matches_per_day=matches_per_day,
+            slot_times=slot_times,
+            venues=venues,
+            end_date=end_date,
+            booked_slots=booked_slots,
+            global_daily_counts=global_daily_counts,
+            teams_played_on_date=teams_played_on_date
+        )
+
+    elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
+        is_league_knockout = (format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT'])
 
         # Build group / league stage rounds
         all_group_rounds = []
@@ -214,9 +541,8 @@ def generate_smart_fixtures(competition, config):
         total_qualifiers = num_groups * q_per_group
         use_page_mcintyre = (knockout_system == 'page_mcintyre')
 
-        # Apportion timeline between group stage and knockout stage
         if use_page_mcintyre:
-            ko_rounds_count = 3  # Stage 1: QF & EF, Stage 2: Prelim Final, Stage 3: Grand Final
+            ko_rounds_count = 3
         elif total_qualifiers <= 2:
             ko_rounds_count = 1
         elif total_qualifiers <= 4:
@@ -247,11 +573,13 @@ def generate_smart_fixtures(competition, config):
             slot_times=slot_times,
             venues=venues,
             end_date=group_end_target,
-            booked_slots=booked_slots
+            booked_slots=booked_slots,
+            global_daily_counts=global_daily_counts,
+            teams_played_on_date=teams_played_on_date
         )
         scheduled_matches.extend(group_matches)
 
-        # Knockout Stage following the group stage
+        # Knockout Stage strictly follows the group stage
         last_group_date = max([m['match_date'] for m in group_matches], default=start_date)
         if end_date:
             days_left = max(1, (end_date - last_group_date).days)
@@ -273,7 +601,10 @@ def generate_smart_fixtures(competition, config):
                 venues=venues,
                 end_date=end_date,
                 booked_slots=booked_slots,
-                matches_per_day=matches_per_day
+                matches_per_day=matches_per_day,
+                global_daily_counts=global_daily_counts,
+                teams_played_on_date=teams_played_on_date,
+                sf_preference=sf_preference
             )
             scheduled_matches.extend(knockout_matches)
         else:
@@ -287,7 +618,10 @@ def generate_smart_fixtures(competition, config):
                 two_legged=two_legged_ko,
                 end_date=end_date,
                 booked_slots=booked_slots,
-                matches_per_day=matches_per_day
+                matches_per_day=matches_per_day,
+                global_daily_counts=global_daily_counts,
+                teams_played_on_date=teams_played_on_date,
+                sf_preference=sf_preference
             )
             scheduled_matches.extend(knockout_matches)
 
@@ -301,15 +635,28 @@ def generate_smart_fixtures(competition, config):
             two_legged=two_legged_ko,
             end_date=end_date,
             booked_slots=booked_slots,
-            matches_per_day=matches_per_day
+            matches_per_day=matches_per_day,
+            global_daily_counts=global_daily_counts,
+            teams_played_on_date=teams_played_on_date,
+            sf_preference=sf_preference
         )
         scheduled_matches.extend(knockout_matches)
 
-    # FINAL SAFETY GUARANTEE: Under no circumstances do fixtures exceed end_date
+    # Final validation: verify that no scheduled matches exceed end_date
     if end_date:
-        for m in scheduled_matches:
-            if m['match_date'] > end_date:
-                m['match_date'] = end_date
+        exceeded = [m for m in scheduled_matches if m['match_date'] > end_date]
+        if exceeded:
+            return {
+                'success': False,
+                'is_feasible': False,
+                'errors': [
+                    f"Selected end date {end_date.strftime('%d-%m-%Y')} is too tight to schedule all {len(scheduled_matches)} matches without violating daily limits or rest requirements.",
+                    f"Last match scheduled on {max(m['match_date'] for m in scheduled_matches).strftime('%d-%m-%Y')}."
+                ],
+                'capacity_details': capacity,
+                'matches': [],
+                'summary': {}
+            }
 
     # Summary
     total_matches = len(scheduled_matches)
@@ -344,6 +691,12 @@ def generate_smart_fixtures(competition, config):
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
         'byes_by_round': {m['round_name']: m['round_byes'] for m in scheduled_matches if m.get('round_byes')},
+        'available_match_days': capacity['available_match_days'],
+        'required_match_days': capacity['required_match_days'],
+        'is_feasible': True,
+        'group_stage_matches': match_calc['group_stage_matches'],
+        'knockout_matches': match_calc['knockout_matches'],
+        'capacity_details': capacity,
     }
 
     formatted_matches = []
@@ -360,6 +713,7 @@ def generate_smart_fixtures(competition, config):
 
         formatted_matches.append({
             'temp_id': f"match_{idx}",
+            'stage_name': m.get('stage_name', 'League Stage'),
             'round_name': m['round_name'],
             'round_number': m.get('round_number', 1),
             'group_name': m.get('group_name', ''),
@@ -380,9 +734,11 @@ def generate_smart_fixtures(competition, config):
 
     return {
         'success': True,
+        'is_feasible': True,
         'summary': summary,
         'groups': groups_info,
         'matches': formatted_matches,
+        'capacity_details': capacity,
         'errors': []
     }
 
@@ -629,18 +985,32 @@ def _calc_next_stage_date(current_stage_date, stages_remaining, end_date, prefer
     return min(nxt, end_date)
 
 
-def _schedule_daily_slots(rounds, start_date, preferred_weekdays, matches_per_day, slot_times, venues, end_date=None, booked_slots=None):
+def _schedule_daily_slots(
+    rounds,
+    start_date,
+    preferred_weekdays,
+    matches_per_day,
+    slot_times,
+    venues,
+    end_date=None,
+    booked_slots=None,
+    global_daily_counts=None,
+    teams_played_on_date=None
+):
     """
     Schedules matches into daily capacity slots using user-defined kickoff times.
     Guarantees no team plays multiple matches on the same date and no match date exceeds end_date.
+    Adheres strictly to matches_per_day across all concurrent groups and rounds.
     """
     if booked_slots is None:
         booked_slots = set()
+    if global_daily_counts is None:
+        global_daily_counts = Counter()
+    if teams_played_on_date is None:
+        teams_played_on_date = defaultdict(set)
 
     scheduled = []
     current_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
-    daily_slot_index = 0
-    teams_played_on_date = set()
     num_rounds = len(rounds)
 
     for r_idx, r in enumerate(rounds):
@@ -652,19 +1022,19 @@ def _schedule_daily_slots(rounds, start_date, preferred_weekdays, matches_per_da
 
         for p_idx, (home, away) in enumerate(pairs):
             g_tag = groups_tag[p_idx] if p_idx < len(groups_tag) else ''
+            h_id = getattr(home, 'id', None) if not isinstance(home, dict) else home.get('id')
+            a_id = getattr(away, 'id', None) if not isinstance(away, dict) else away.get('id')
 
-            # If either team already played today or daily slots full, advance to next matchday
-            if (home.id in teams_played_on_date) or (away.id in teams_played_on_date) or (daily_slot_index >= matches_per_day):
-                advance_cand = current_date + timedelta(days=1)
-                if end_date and advance_cand > end_date:
-                    advance_cand = end_date
-                current_date = _find_next_preferred_date(advance_cand, preferred_weekdays, max_date=end_date)
-                daily_slot_index = 0
-                teams_played_on_date = set()
+            # Advance date if daily matches limit reached OR either team already plays on current_date
+            while (global_daily_counts[current_date] >= matches_per_day) or \
+                  (h_id and h_id in teams_played_on_date[current_date]) or \
+                  (a_id and a_id in teams_played_on_date[current_date]):
+                cand = current_date + timedelta(days=1)
+                current_date = _find_next_preferred_date(cand, preferred_weekdays, max_date=end_date)
 
-            # Assign time according to current slot index
-            desired_time = slot_times[daily_slot_index % len(slot_times)]
-            desired_venue = getattr(home, 'home_venue', '') or venues[daily_slot_index % len(venues)]
+            slot_idx = global_daily_counts[current_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = getattr(home, 'home_venue', '') or venues[slot_idx % len(venues)]
             match_d = min(current_date, end_date) if end_date else current_date
 
             final_d, final_t, final_v = _allocate_conflict_free_slot(
@@ -672,10 +1042,13 @@ def _schedule_daily_slots(rounds, start_date, preferred_weekdays, matches_per_da
                 preferred_weekdays=preferred_weekdays, end_date=end_date
             )
 
+            stage_name = f"Group Stage ({g_tag})" if g_tag else "League Stage"
+
             scheduled.append({
                 'round_name': round_name,
                 'round_number': round_num,
                 'group_name': g_tag,
+                'stage_name': stage_name,
                 'home_team': home,
                 'away_team': away,
                 'match_date': final_d,
@@ -684,9 +1057,11 @@ def _schedule_daily_slots(rounds, start_date, preferred_weekdays, matches_per_da
                 'is_knockout': False
             })
 
-            teams_played_on_date.add(home.id)
-            teams_played_on_date.add(away.id)
-            daily_slot_index += 1
+            global_daily_counts[final_d] += 1
+            if h_id:
+                teams_played_on_date[final_d].add(h_id)
+            if a_id:
+                teams_played_on_date[final_d].add(a_id)
 
         # Advance current_date for the next matchweek
         if r_idx < num_rounds - 1:
@@ -699,14 +1074,9 @@ def _schedule_daily_slots(rounds, start_date, preferred_weekdays, matches_per_da
                     step_days = max(1, days_remaining // (rounds_remaining + 1))
                 next_target = min(current_date + timedelta(days=step_days), end_date)
                 current_date = _find_next_preferred_date(next_target, preferred_weekdays, max_date=end_date)
-                if current_date > end_date:
-                    current_date = end_date
             else:
                 next_week_target = current_date + timedelta(days=7)
                 current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
-
-            daily_slot_index = 0
-            teams_played_on_date = set()
 
     return scheduled
 
@@ -723,7 +1093,21 @@ def _extract_team_val(team_obj, key, default=''):
     return default
 
 
-def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekdays, slot_times, venues, qualifiers_per_group=2, two_legged=False, end_date=None, booked_slots=None, matches_per_day=1):
+def _generate_knockout_stage_for_groups(
+    groups_dict,
+    start_date,
+    preferred_weekdays,
+    slot_times,
+    venues,
+    qualifiers_per_group=2,
+    two_legged=False,
+    end_date=None,
+    booked_slots=None,
+    matches_per_day=1,
+    global_daily_counts=None,
+    teams_played_on_date=None,
+    sf_preference='same_day'
+):
     """
     Generates single-elimination knockout fixtures tailored strictly to Teams Qualifying Per Group
     and the Number of Groups.
@@ -738,6 +1122,10 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     """
     if booked_slots is None:
         booked_slots = set()
+    if global_daily_counts is None:
+        global_daily_counts = Counter()
+    if teams_played_on_date is None:
+        teams_played_on_date = defaultdict(set)
 
     knockout_matches = []
     group_names = sorted(list(groups_dict.keys()))
@@ -778,14 +1166,20 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             home = seeds[group_names[0]][0]
             away = seeds[group_names[0]][1] if len(seeds[group_names[0]]) > 1 else seeds[group_names[0]][0]
 
+        while global_daily_counts[cur_date] >= matches_per_day:
+            cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+        slot_idx = global_daily_counts[cur_date]
         f_date, f_time, f_ven = _allocate_conflict_free_slot(
-            cur_date, slot_times[0], home.get('home_venue') or venues[0], venues, slot_times, booked_slots,
+            cur_date, slot_times[slot_idx % len(slot_times)], home.get('home_venue') or venues[slot_idx % len(venues)], venues, slot_times, booked_slots,
             preferred_weekdays=preferred_weekdays, end_date=end_date
         )
+        global_daily_counts[f_date] += 1
         knockout_matches.append({
             'round_name': "Grand Championship Final",
             'round_number': 100,
             'group_name': "Knockout",
+            'stage_name': "Championship Final",
             'home_team': home,
             'away_team': away,
             'placeholder_home': home.get('name', ''),
@@ -800,7 +1194,6 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     # CASE B: 4 TOTAL QUALIFIERS -> Semi-Finals (2 matches) -> Grand Championship Final (1 match)
     if total_q == 4:
         if num_groups == 2:
-            # Classic 1A vs 2B and 1B vs 2A cross-pairing
             gA, gB = group_names[0], group_names[1]
             sf1 = (seeds[gA][0], seeds[gB][1])
             sf2 = (seeds[gB][0], seeds[gA][1])
@@ -809,39 +1202,37 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             sf1 = (seeds[gA][0], seeds[gB][0])
             sf2 = (seeds[gC][0], seeds[gD][0])
         else:
-            # 1 Group with top 4 qualifiers: 1st vs 4th, 2nd vs 3rd
             g0 = group_names[0]
             sf1 = (seeds[g0][0], seeds[g0][3])
             sf2 = (seeds[g0][1], seeds[g0][2])
 
         sf_pairs = [sf1, sf2]
         sf_times = []
-        daily_match_count = 0
-        for idx, (h, a) in enumerate(sf_pairs):
-            if daily_match_count >= matches_per_day:
-                next_cand = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
-                if next_cand > cur_date:
-                    days_avail = _count_preferred_days(next_cand, end_date, preferred_weekdays)
-                    rem_sf = len(sf_pairs) - idx
-                    days_needed_sf = (rem_sf + matches_per_day - 1) // matches_per_day
-                    subsequent_days = 1 * (2 if two_legged else 1)
-                    if days_avail >= (days_needed_sf + subsequent_days):
-                        cur_date = next_cand
-                        daily_match_count = 0
-                        sf_times = []
+        sf_dates = []
 
-            desired_time = slot_times[daily_match_count % len(slot_times)]
-            desired_venue = h.get('home_venue') or venues[daily_match_count % len(venues)]
+        for idx, (h, a) in enumerate(sf_pairs):
+            if idx > 0 and sf_preference == 'separate_days':
+                cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            else:
+                while global_daily_counts[cur_date] >= matches_per_day:
+                    cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+            slot_idx = global_daily_counts[cur_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = h.get('home_venue') or venues[slot_idx % len(venues)]
             m_date, k_time, v_name = _allocate_conflict_free_slot(
                 cur_date, desired_time, desired_venue, venues, slot_times, booked_slots,
                 preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             sf_times.append(k_time)
-            daily_match_count += 1
+            sf_dates.append(m_date)
+            global_daily_counts[m_date] += 1
+
             knockout_matches.append({
                 'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
+                'stage_name': "Semi-Finals",
                 'home_team': h,
                 'away_team': a,
                 'placeholder_home': h.get('name', ''),
@@ -853,20 +1244,32 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             })
 
         if two_legged:
-            leg2_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
+            latest_sf_date = max(sf_dates) if sf_dates else cur_date
+            leg2_date = _calc_next_stage_date(latest_sf_date, 2, end_date, preferred_weekdays)
             leg2_times = []
+            leg2_dates = []
             for idx, (h, a) in enumerate(sf_pairs):
-                desired_time = slot_times[idx % len(slot_times)]
-                desired_venue = a.get('home_venue') or venues[(idx + 1) % len(venues)]
+                if idx > 0 and sf_preference == 'separate_days':
+                    leg2_date = _find_next_preferred_date(leg2_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+                else:
+                    while global_daily_counts[leg2_date] >= matches_per_day:
+                        leg2_date = _find_next_preferred_date(leg2_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+                slot_idx = global_daily_counts[leg2_date]
+                desired_time = slot_times[slot_idx % len(slot_times)]
+                desired_venue = a.get('home_venue') or venues[(slot_idx + 1) % len(venues)]
                 l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
                     leg2_date, desired_time, desired_venue, venues, slot_times, booked_slots,
                     preferred_weekdays=preferred_weekdays, end_date=end_date
                 )
                 leg2_times.append(l2_time)
+                leg2_dates.append(l2_date)
+                global_daily_counts[l2_date] += 1
                 knockout_matches.append({
                     'round_name': "Semi-Finals (Leg 2)",
                     'round_number': 100,
                     'group_name': "Knockout",
+                    'stage_name': "Semi-Finals",
                     'home_team': a,
                     'away_team': h,
                     'placeholder_home': a.get('name', ''),
@@ -876,11 +1279,20 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                     'venue': l2_ven,
                     'is_knockout': True
                 })
-            final_date = _calc_next_stage_date(leg2_date, 1, end_date, preferred_weekdays)
-            min_time = _add_time(max(leg2_times), 150) if final_date <= leg2_date else None
+            last_ko_date = max(leg2_dates) if leg2_dates else leg2_date
+            final_date = _calc_next_stage_date(last_ko_date, 1, end_date, preferred_weekdays)
+            if final_date <= last_ko_date and (not end_date or last_ko_date < end_date):
+                final_date = _find_next_preferred_date(last_ko_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            min_time = _add_time(max(leg2_times), 150) if final_date <= last_ko_date else None
         else:
-            final_date = _calc_next_stage_date(cur_date, 1, end_date, preferred_weekdays)
-            min_time = _add_time(max(sf_times), 150) if final_date <= cur_date else None
+            latest_sf_date = max(sf_dates) if sf_dates else cur_date
+            final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
+            if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
+                final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            min_time = _add_time(max(sf_times), 150) if final_date <= latest_sf_date else None
+
+        while global_daily_counts[final_date] >= matches_per_day:
+            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
         final_home = {
             'id': None,
@@ -900,14 +1312,17 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             'is_placeholder': True,
             'get_logo_url': lambda: ""
         }
+        f_slot = global_daily_counts[final_date]
         f_date, f_time, f_ven = _allocate_conflict_free_slot(
-            final_date, slot_times[0], venues[0], venues, slot_times, booked_slots,
+            final_date, slot_times[f_slot % len(slot_times)], venues[f_slot % len(venues)], venues, slot_times, booked_slots,
             min_time=min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
         )
+        global_daily_counts[f_date] += 1
         knockout_matches.append({
             'round_name': "Grand Championship Final",
-            'round_number': 101,
+            'round_number': 101 if not two_legged else 102,
             'group_name': "Knockout",
+            'stage_name': "Championship Final",
             'home_team': final_home,
             'away_team': final_away,
             'match_date': f_date,
@@ -921,12 +1336,11 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
     if total_q == 6:
         if num_groups == 2:
             gA, gB = group_names[0], group_names[1]
-            qf1 = (seeds[gA][1], seeds[gB][2])  # 2A vs 3B
-            qf2 = (seeds[gB][1], seeds[gA][2])  # 2B vs 3A
+            qf1 = (seeds[gA][1], seeds[gB][2])
+            qf2 = (seeds[gB][1], seeds[gA][2])
             bye1 = seeds[gA][0]
             bye2 = seeds[gB][0]
         else:
-            # 1 Group: 1st & 2nd bye to SF; 3rd vs 6th & 4th vs 5th in QF
             g0 = group_names[0]
             qf1 = (seeds[g0][2], seeds[g0][5])
             qf2 = (seeds[g0][3], seeds[g0][4])
@@ -935,18 +1349,26 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
 
         qf_pairs = [qf1, qf2]
         qf_times = []
+        qf_dates = []
         for idx, (h, a) in enumerate(qf_pairs):
-            desired_time = slot_times[idx % len(slot_times)]
-            desired_venue = h.get('home_venue') or venues[idx % len(venues)]
+            while global_daily_counts[cur_date] >= matches_per_day:
+                cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+            slot_idx = global_daily_counts[cur_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = h.get('home_venue') or venues[slot_idx % len(venues)]
             m_date, k_time, v_name = _allocate_conflict_free_slot(
                 cur_date, desired_time, desired_venue, venues, slot_times, booked_slots,
                 preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             qf_times.append(k_time)
+            qf_dates.append(m_date)
+            global_daily_counts[m_date] += 1
             knockout_matches.append({
                 'round_name': "Play-In / Quarter-Finals" if not two_legged else "Play-In / Quarter-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
+                'stage_name': "Quarter-Finals",
                 'home_team': h,
                 'away_team': a,
                 'placeholder_home': h.get('name', ''),
@@ -957,69 +1379,47 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        if two_legged:
-            qf_leg2_date = _calc_next_stage_date(cur_date, 4, end_date, preferred_weekdays)
-            qf_l2_times = []
-            for idx, (h, a) in enumerate(qf_pairs):
-                desired_time = slot_times[idx % len(slot_times)]
-                desired_venue = a.get('home_venue') or venues[(idx + 1) % len(venues)]
-                l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
-                    qf_leg2_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                    preferred_weekdays=preferred_weekdays, end_date=end_date
-                )
-                qf_l2_times.append(l2_time)
-                knockout_matches.append({
-                    'round_name': "Play-In / Quarter-Finals (Leg 2)",
-                    'round_number': 100,
-                    'group_name': "Knockout",
-                    'home_team': a,
-                    'away_team': h,
-                    'placeholder_home': a.get('name', ''),
-                    'placeholder_away': h.get('name', ''),
-                    'match_date': l2_date,
-                    'kickoff_time': l2_time,
-                    'venue': l2_ven,
-                    'is_knockout': True
-                })
-            sf_date = _calc_next_stage_date(qf_leg2_date, 3, end_date, preferred_weekdays)
-            sf_min_time = _add_time(max(qf_l2_times), 150) if sf_date <= qf_leg2_date else None
-        else:
-            sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
-            sf_min_time = _add_time(max(qf_times), 150) if sf_date <= cur_date else None
+        latest_qf_date = max(qf_dates) if qf_dates else cur_date
+        sf_date = _calc_next_stage_date(latest_qf_date, 2, end_date, preferred_weekdays)
+        if sf_date <= latest_qf_date and (not end_date or latest_qf_date < end_date):
+            sf_date = _find_next_preferred_date(latest_qf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        sf_min_time = _add_time(max(qf_times), 150) if sf_date <= latest_qf_date else None
 
         sf1_away = {
-            'id': None,
-            'name': "Winner of Play-In 1",
-            'team_name': "Winner of Play-In 1",
-            'short_name': "W-PI1",
-            'seed_label': "Winner of Play-In 1",
-            'is_placeholder': True,
-            'get_logo_url': lambda: ""
+            'id': None, 'name': "Winner of Play-In 1", 'team_name': "Winner of Play-In 1",
+            'short_name': "W-PI1", 'seed_label': "Winner of Play-In 1", 'is_placeholder': True, 'get_logo_url': lambda: ""
         }
         sf2_away = {
-            'id': None,
-            'name': "Winner of Play-In 2",
-            'team_name': "Winner of Play-In 2",
-            'short_name': "W-PI2",
-            'seed_label': "Winner of Play-In 2",
-            'is_placeholder': True,
-            'get_logo_url': lambda: ""
+            'id': None, 'name': "Winner of Play-In 2", 'team_name': "Winner of Play-In 2",
+            'short_name': "W-PI2", 'seed_label': "Winner of Play-In 2", 'is_placeholder': True, 'get_logo_url': lambda: ""
         }
         sf_ties = [(bye1, sf1_away), (bye2, sf2_away)]
         sf_times = []
+        sf_dates = []
 
+        cur_sf_date = sf_date
         for idx, (h, a) in enumerate(sf_ties):
-            desired_time = slot_times[idx % len(slot_times)]
-            desired_venue = (h.get('home_venue') if isinstance(h, dict) else getattr(h, 'home_venue', '')) or venues[idx % len(venues)]
+            if idx > 0 and sf_preference == 'separate_days':
+                cur_sf_date = _find_next_preferred_date(cur_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            else:
+                while global_daily_counts[cur_sf_date] >= matches_per_day:
+                    cur_sf_date = _find_next_preferred_date(cur_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+            slot_idx = global_daily_counts[cur_sf_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = (h.get('home_venue') if isinstance(h, dict) else getattr(h, 'home_venue', '')) or venues[slot_idx % len(venues)]
             m_date, k_time, v_name = _allocate_conflict_free_slot(
-                sf_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                min_time=sf_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
+                cur_sf_date, desired_time, desired_venue, venues, slot_times, booked_slots,
+                min_time=sf_min_time if cur_sf_date <= latest_qf_date else None, preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             sf_times.append(k_time)
+            sf_dates.append(m_date)
+            global_daily_counts[m_date] += 1
             knockout_matches.append({
                 'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
                 'round_number': 101,
                 'group_name': "Knockout",
+                'stage_name': "Semi-Finals",
                 'home_team': h,
                 'away_team': a,
                 'placeholder_home': h.get('name', ''),
@@ -1030,62 +1430,26 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        if two_legged:
-            sf_leg2_date = _calc_next_stage_date(sf_date, 2, end_date, preferred_weekdays)
-            sf_l2_times = []
-            for idx, (h, a) in enumerate(sf_ties):
-                desired_time = slot_times[idx % len(slot_times)]
-                desired_venue = venues[(idx + 1) % len(venues)]
-                l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
-                    sf_leg2_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                    preferred_weekdays=preferred_weekdays, end_date=end_date
-                )
-                sf_l2_times.append(l2_time)
-                knockout_matches.append({
-                    'round_name': "Semi-Finals (Leg 2)",
-                    'round_number': 101,
-                    'group_name': "Knockout",
-                    'home_team': a,
-                    'away_team': h,
-                    'placeholder_home': a.get('name', ''),
-                    'placeholder_away': h.get('name', ''),
-                    'match_date': l2_date,
-                    'kickoff_time': l2_time,
-                    'venue': l2_ven,
-                    'is_knockout': True
-                })
-            final_date = _calc_next_stage_date(sf_leg2_date, 1, end_date, preferred_weekdays)
-            final_min_time = _add_time(max(sf_l2_times), 150) if final_date <= sf_leg2_date else None
-        else:
-            final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
-            final_min_time = _add_time(max(sf_times), 150) if final_date <= sf_date else None
+        latest_sf_date = max(sf_dates) if sf_dates else cur_sf_date
+        final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
+        if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
+            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        while global_daily_counts[final_date] >= matches_per_day:
+            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
-        final_home = {
-            'id': None,
-            'name': "Winner of Semi-Final 1",
-            'team_name': "Winner of Semi-Final 1",
-            'short_name': "W-SF1",
-            'seed_label': "Winner of Semi-Final 1",
-            'is_placeholder': True,
-            'get_logo_url': lambda: ""
-        }
-        final_away = {
-            'id': None,
-            'name': "Winner of Semi-Final 2",
-            'team_name': "Winner of Semi-Final 2",
-            'short_name': "W-SF2",
-            'seed_label': "Winner of Semi-Final 2",
-            'is_placeholder': True,
-            'get_logo_url': lambda: ""
-        }
+        final_home = {'id': None, 'name': "Winner of Semi-Final 1", 'team_name': "Winner of Semi-Final 1", 'short_name': "W-SF1", 'seed_label': "Winner SF 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
+        final_away = {'id': None, 'name': "Winner of Semi-Final 2", 'team_name': "Winner of Semi-Final 2", 'short_name': "W-SF2", 'seed_label': "Winner SF 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}
+        f_slot = global_daily_counts[final_date]
         f_date, f_time, f_ven = _allocate_conflict_free_slot(
-            final_date, slot_times[0], venues[0], venues, slot_times, booked_slots,
-            min_time=final_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
+            final_date, slot_times[f_slot % len(slot_times)], venues[f_slot % len(venues)], venues, slot_times, booked_slots,
+            preferred_weekdays=preferred_weekdays, end_date=end_date
         )
+        global_daily_counts[f_date] += 1
         knockout_matches.append({
             'round_name': "Grand Championship Final",
             'round_number': 102,
             'group_name': "Knockout",
+            'stage_name': "Championship Final",
             'home_team': final_home,
             'away_team': final_away,
             'match_date': f_date,
@@ -1100,18 +1464,18 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         if num_groups == 4:
             gA, gB, gC, gD = group_names[0], group_names[1], group_names[2], group_names[3]
             qfs = [
-                (seeds[gA][0], seeds[gB][1]),  # 1A vs 2B
-                (seeds[gC][0], seeds[gD][1]),  # 1C vs 2D
-                (seeds[gB][0], seeds[gA][1]),  # 1B vs 2A
-                (seeds[gD][0], seeds[gC][1]),  # 1D vs 2C
+                (seeds[gA][0], seeds[gB][1]),
+                (seeds[gC][0], seeds[gD][1]),
+                (seeds[gB][0], seeds[gA][1]),
+                (seeds[gD][0], seeds[gC][1]),
             ]
         elif num_groups == 2:
             gA, gB = group_names[0], group_names[1]
             qfs = [
-                (seeds[gA][0], seeds[gB][3]),  # 1A vs 4B
-                (seeds[gA][1], seeds[gB][2]),  # 2A vs 3B
-                (seeds[gB][0], seeds[gA][3]),  # 1B vs 4A
-                (seeds[gB][1], seeds[gA][2]),  # 2B vs 3A
+                (seeds[gA][0], seeds[gB][3]),
+                (seeds[gA][1], seeds[gB][2]),
+                (seeds[gB][0], seeds[gA][3]),
+                (seeds[gB][1], seeds[gA][2]),
             ]
         else:
             g0 = group_names[0]
@@ -1123,32 +1487,26 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             ]
 
         qf_times = []
-        daily_match_count = 0
+        qf_dates = []
         for idx, (h, a) in enumerate(qfs):
-            if daily_match_count >= matches_per_day:
-                next_cand = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
-                if next_cand > cur_date:
-                    days_avail = _count_preferred_days(next_cand, end_date, preferred_weekdays)
-                    rem_qf = len(qfs) - idx
-                    days_needed_qf = (rem_qf + matches_per_day - 1) // matches_per_day
-                    subsequent_days = 2 * (2 if two_legged else 1)
-                    if days_avail >= (days_needed_qf + subsequent_days):
-                        cur_date = next_cand
-                        daily_match_count = 0
-                        qf_times = []
+            while global_daily_counts[cur_date] >= matches_per_day:
+                cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
-            desired_time = slot_times[daily_match_count % len(slot_times)]
-            desired_venue = h.get('home_venue') or venues[daily_match_count % len(venues)]
+            slot_idx = global_daily_counts[cur_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = h.get('home_venue') or venues[slot_idx % len(venues)]
             m_date, k_time, v_name = _allocate_conflict_free_slot(
                 cur_date, desired_time, desired_venue, venues, slot_times, booked_slots,
                 preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             qf_times.append(k_time)
-            daily_match_count += 1
+            qf_dates.append(m_date)
+            global_daily_counts[m_date] += 1
             knockout_matches.append({
                 'round_name': "Quarter-Finals" if not two_legged else "Quarter-Finals (Leg 1)",
                 'round_number': 100,
                 'group_name': "Knockout",
+                'stage_name': "Quarter-Finals",
                 'home_team': h,
                 'away_team': a,
                 'placeholder_home': h.get('name', ''),
@@ -1159,35 +1517,10 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        if two_legged:
-            qf_leg2_date = _calc_next_stage_date(cur_date, 4, end_date, preferred_weekdays)
-            qf_l2_times = []
-            for idx, (h, a) in enumerate(qfs):
-                desired_time = slot_times[idx % len(slot_times)]
-                desired_venue = a.get('home_venue') or venues[(idx + 1) % len(venues)]
-                l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
-                    qf_leg2_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                    preferred_weekdays=preferred_weekdays, end_date=end_date
-                )
-                qf_l2_times.append(l2_time)
-                knockout_matches.append({
-                    'round_name': "Quarter-Finals (Leg 2)",
-                    'round_number': 100,
-                    'group_name': "Knockout",
-                    'home_team': a,
-                    'away_team': h,
-                    'placeholder_home': a.get('name', ''),
-                    'placeholder_away': h.get('name', ''),
-                    'match_date': l2_date,
-                    'kickoff_time': l2_time,
-                    'venue': l2_ven,
-                    'is_knockout': True
-                })
-            sf_date = _calc_next_stage_date(qf_leg2_date, 3, end_date, preferred_weekdays)
-            sf_min_time = _add_time(max(qf_l2_times), 150) if sf_date <= qf_leg2_date else None
-        else:
-            sf_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
-            sf_min_time = _add_time(max(qf_times), 150) if sf_date <= cur_date else None
+        latest_qf_date = max(qf_dates) if qf_dates else cur_date
+        sf_date = _calc_next_stage_date(latest_qf_date, 2, end_date, preferred_weekdays)
+        if sf_date <= latest_qf_date and (not end_date or latest_qf_date < end_date):
+            sf_date = _find_next_preferred_date(latest_qf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
         sf1_home = {'id': None, 'name': "Winner of Quarter-Final 1", 'team_name': "Winner of Quarter-Final 1", 'short_name': "W-QF1", 'seed_label': "Winner of QF 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
         sf1_away = {'id': None, 'name': "Winner of Quarter-Final 2", 'team_name': "Winner of Quarter-Final 2", 'short_name': "W-QF2", 'seed_label': "Winner of QF 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}
@@ -1195,19 +1528,31 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         sf2_away = {'id': None, 'name': "Winner of Quarter-Final 4", 'team_name': "Winner of Quarter-Final 4", 'short_name': "W-QF4", 'seed_label': "Winner of QF 4", 'is_placeholder': True, 'get_logo_url': lambda: ""}
         sf_ties = [(sf1_home, sf1_away), (sf2_home, sf2_away)]
         sf_times = []
+        sf_dates = []
 
+        cur_sf_date = sf_date
         for idx, (h, a) in enumerate(sf_ties):
-            desired_time = slot_times[idx % len(slot_times)]
-            desired_venue = venues[idx % len(venues)]
+            if idx > 0 and sf_preference == 'separate_days':
+                cur_sf_date = _find_next_preferred_date(cur_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            else:
+                while global_daily_counts[cur_sf_date] >= matches_per_day:
+                    cur_sf_date = _find_next_preferred_date(cur_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+            slot_idx = global_daily_counts[cur_sf_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            desired_venue = venues[slot_idx % len(venues)]
             m_date, k_time, v_name = _allocate_conflict_free_slot(
-                sf_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                min_time=sf_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
+                cur_sf_date, desired_time, desired_venue, venues, slot_times, booked_slots,
+                preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             sf_times.append(k_time)
+            sf_dates.append(m_date)
+            global_daily_counts[m_date] += 1
             knockout_matches.append({
                 'round_name': "Semi-Finals" if not two_legged else "Semi-Finals (Leg 1)",
                 'round_number': 101,
                 'group_name': "Knockout",
+                'stage_name': "Semi-Finals",
                 'home_team': h,
                 'away_team': a,
                 'placeholder_home': h.get('name', ''),
@@ -1218,46 +1563,26 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'is_knockout': True
             })
 
-        if two_legged:
-            sf_leg2_date = _calc_next_stage_date(sf_date, 2, end_date, preferred_weekdays)
-            sf_l2_times = []
-            for idx, (h, a) in enumerate(sf_ties):
-                desired_time = slot_times[idx % len(slot_times)]
-                desired_venue = venues[(idx + 1) % len(venues)]
-                l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
-                    sf_leg2_date, desired_time, desired_venue, venues, slot_times, booked_slots,
-                    preferred_weekdays=preferred_weekdays, end_date=end_date
-                )
-                sf_l2_times.append(l2_time)
-                knockout_matches.append({
-                    'round_name': "Semi-Finals (Leg 2)",
-                    'round_number': 101,
-                    'group_name': "Knockout",
-                    'home_team': a,
-                    'away_team': h,
-                    'placeholder_home': a.get('name', ''),
-                    'placeholder_away': h.get('name', ''),
-                    'match_date': l2_date,
-                    'kickoff_time': l2_time,
-                    'venue': l2_ven,
-                    'is_knockout': True
-                })
-            final_date = _calc_next_stage_date(sf_leg2_date, 1, end_date, preferred_weekdays)
-            final_min_time = _add_time(max(sf_l2_times), 150) if final_date <= sf_leg2_date else None
-        else:
-            final_date = _calc_next_stage_date(sf_date, 1, end_date, preferred_weekdays)
-            final_min_time = _add_time(max(sf_times), 150) if final_date <= sf_date else None
+        latest_sf_date = max(sf_dates) if sf_dates else cur_sf_date
+        final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
+        if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
+            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        while global_daily_counts[final_date] >= matches_per_day:
+            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
-        final_home = {'id': None, 'name': "Winner of Semi-Final 1", 'team_name': "Winner of Semi-Final 1", 'short_name': "W-SF1", 'seed_label': "Winner of Semi-Final 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
-        final_away = {'id': None, 'name': "Winner of Semi-Final 2", 'team_name': "Winner of Semi-Final 2", 'short_name': "W-SF2", 'seed_label': "Winner of Semi-Final 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}
+        final_home = {'id': None, 'name': "Winner of Semi-Final 1", 'team_name': "Winner of Semi-Final 1", 'short_name': "W-SF1", 'seed_label': "Winner SF 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
+        final_away = {'id': None, 'name': "Winner of Semi-Final 2", 'team_name': "Winner of Semi-Final 2", 'short_name': "W-SF2", 'seed_label': "Winner SF 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}
+        f_slot = global_daily_counts[final_date]
         f_date, f_time, f_ven = _allocate_conflict_free_slot(
-            final_date, slot_times[0], venues[0], venues, slot_times, booked_slots,
-            min_time=final_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
+            final_date, slot_times[f_slot % len(slot_times)], venues[f_slot % len(venues)], venues, slot_times, booked_slots,
+            preferred_weekdays=preferred_weekdays, end_date=end_date
         )
+        global_daily_counts[f_date] += 1
         knockout_matches.append({
             'round_name': "Grand Championship Final",
             'round_number': 102,
             'group_name': "Knockout",
+            'stage_name': "Championship Final",
             'home_team': final_home,
             'away_team': final_away,
             'match_date': f_date,
@@ -1291,6 +1616,7 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         next_teams = []
         is_final = (stage_name == "Grand Championship Final")
         stage_two_legged = (two_legged and not is_final)
+        stage_badge = "Championship Final" if is_final else stage_name
 
         min_time = None
         if prev_stage_date and cur_date <= prev_stage_date and prev_stage_latest_time:
@@ -1301,19 +1627,28 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
             t1 = cur_teams[i]
             t2 = cur_teams[n - 1 - i]
 
-            desired_time = slot_times[i % len(slot_times)]
-            t1_venue = (t1.get('home_venue') if isinstance(t1, dict) else getattr(t1, 'home_venue', '')) or venues[i % len(venues)]
+            if stage_name == "Semi-Finals" and i > 0 and sf_preference == 'separate_days':
+                cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            else:
+                while global_daily_counts[cur_date] >= matches_per_day:
+                    cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+            slot_idx = global_daily_counts[cur_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            t1_venue = (t1.get('home_venue') if isinstance(t1, dict) else getattr(t1, 'home_venue', '')) or venues[slot_idx % len(venues)]
 
             m_date, k_time, v_name = _allocate_conflict_free_slot(
                 cur_date, desired_time, t1_venue, venues, slot_times, booked_slots,
                 min_time=min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             cur_stage_times.append(k_time)
+            global_daily_counts[m_date] += 1
 
             knockout_matches.append({
                 'round_name': stage_name if not stage_two_legged else f"{stage_name} (Leg 1)",
                 'round_number': stage_idx,
                 'group_name': "Knockout",
+                'stage_name': stage_badge,
                 'home_team': t1,
                 'away_team': t2,
                 'match_date': m_date,
@@ -1321,25 +1656,6 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
                 'venue': v_name,
                 'is_knockout': True
             })
-
-            if stage_two_legged:
-                leg2_date = _calc_next_stage_date(cur_date, max(1, half * 2), end_date, preferred_weekdays)
-                t2_venue = (t2.get('home_venue') if isinstance(t2, dict) else getattr(t2, 'home_venue', '')) or venues[(i + 1) % len(venues)]
-                l2_date, l2_time, l2_ven = _allocate_conflict_free_slot(
-                    leg2_date, desired_time, t2_venue, venues, slot_times, booked_slots,
-                    preferred_weekdays=preferred_weekdays, end_date=end_date
-                )
-                knockout_matches.append({
-                    'round_name': f"{stage_name} (Leg 2)",
-                    'round_number': stage_idx,
-                    'group_name': "Knockout",
-                    'home_team': t2,
-                    'away_team': t1,
-                    'match_date': l2_date,
-                    'kickoff_time': l2_time,
-                    'venue': l2_ven,
-                    'is_knockout': True
-                })
 
             match_no = i + 1
             if stage_name == "Semi-Finals":
@@ -1368,6 +1684,8 @@ def _generate_knockout_stage_for_groups(groups_dict, start_date, preferred_weekd
         prev_stage_latest_time = max(cur_stage_times) if cur_stage_times else time(15, 0)
         stage_idx += 1
         cur_date = _calc_next_stage_date(cur_date, max(1, half), end_date, preferred_weekdays)
+        if cur_date <= prev_stage_date and (not end_date or prev_stage_date < end_date):
+            cur_date = _find_next_preferred_date(prev_stage_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
     return knockout_matches
 
@@ -1477,17 +1795,34 @@ def get_knockout_stage_names(n, plan):
         return names
 
 
-def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, slot_times, venues, two_legged=False, end_date=None, booked_slots=None, matches_per_day=1):
+def _generate_single_elimination_bracket(
+    teams,
+    start_date,
+    preferred_weekdays,
+    slot_times,
+    venues,
+    two_legged=False,
+    end_date=None,
+    booked_slots=None,
+    matches_per_day=1,
+    global_daily_counts=None,
+    teams_played_on_date=None,
+    sf_preference='same_day'
+):
     """
     Generates single elimination knockout bracket for pure knockout tournaments,
     guaranteed to conclude on or before end_date.
     Implements a distributed BYE system (max 3 BYEs per round, starting from Round 1,
     0 BYEs in SF/Final) when team count is not a power of 2.
     Ensures subsequent rounds use placeholder seeds, conflict-free venues,
-    and sequential timing adhering to matches_per_day capacity.
+    and sequential timing adhering to matches_per_day capacity and team rest rules.
     """
     if booked_slots is None:
         booked_slots = set()
+    if global_daily_counts is None:
+        global_daily_counts = Counter()
+    if teams_played_on_date is None:
+        teams_played_on_date = defaultdict(set)
 
     matches = []
     n = len(teams)
@@ -1510,7 +1845,9 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
         b_count = step['byes']
         m_count = step['matches']
         is_final = (stage_name == "Final" or stage_idx == len(plan) - 1)
+        is_sf = (stage_name == "Semi-Finals")
         stage_two_legged = (two_legged and not is_final)
+        stage_badge = "Championship Final" if is_final else stage_name
 
         # Distribute BYE teams and playing teams
         bye_teams = cur_teams[:b_count]
@@ -1529,41 +1866,46 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
             min_time = _add_time(prev_stage_latest_time, 150)
 
         current_stage_times = []
-        daily_match_count = 0
+        current_stage_dates = []
 
         for i in range(m_count):
             t1 = playing_teams[i]
             t2 = playing_teams[len(playing_teams) - 1 - i]
+            t1_id = getattr(t1, 'id', None) if not isinstance(t1, dict) else t1.get('id')
+            t2_id = getattr(t2, 'id', None) if not isinstance(t2, dict) else t2.get('id')
 
-            # If daily match capacity reached, advance to next matchday if calendar permits
-            if daily_match_count >= matches_per_day:
-                next_cand = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
-                if next_cand > cur_date:
-                    days_avail = _count_preferred_days(next_cand, end_date, preferred_weekdays)
-                    rem_matches_this_stage = m_count - i
-                    days_needed_this_stage = (rem_matches_this_stage + matches_per_day - 1) // matches_per_day
-                    subsequent_stages_count = len(stage_names) - stage_idx - 1
-                    days_needed_subsequent = subsequent_stages_count * (2 if stage_two_legged else 1)
-                    if days_avail >= (days_needed_this_stage + days_needed_subsequent):
-                        cur_date = next_cand
-                        daily_match_count = 0
-                        min_time = None
-                        current_stage_times = []
+            # Respect semi-final preference for separate days
+            if is_sf and i > 0 and sf_preference == 'separate_days':
+                cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            else:
+                while (global_daily_counts[cur_date] >= matches_per_day) or \
+                      (t1_id and t1_id in teams_played_on_date[cur_date]) or \
+                      (t2_id and t2_id in teams_played_on_date[cur_date]):
+                    cand = cur_date + timedelta(days=1)
+                    cur_date = _find_next_preferred_date(cand, preferred_weekdays, max_date=end_date)
 
-            desired_time = slot_times[daily_match_count % len(slot_times)]
-            t1_venue = (t1.get('home_venue') if isinstance(t1, dict) else getattr(t1, 'home_venue', '')) or venues[daily_match_count % len(venues)]
+            slot_idx = global_daily_counts[cur_date]
+            desired_time = slot_times[slot_idx % len(slot_times)]
+            t1_venue = (t1.get('home_venue') if isinstance(t1, dict) else getattr(t1, 'home_venue', '')) or venues[slot_idx % len(venues)]
 
             m_date, k_time, v_name = _allocate_conflict_free_slot(
                 cur_date, desired_time, t1_venue, venues, slot_times, booked_slots,
-                min_time=min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
+                min_time=min_time if cur_date <= (prev_stage_date or cur_date) else None,
+                preferred_weekdays=preferred_weekdays, end_date=end_date
             )
             current_stage_times.append(k_time)
-            daily_match_count += 1
+            current_stage_dates.append(m_date)
+            global_daily_counts[m_date] += 1
+            if t1_id:
+                teams_played_on_date[m_date].add(t1_id)
+            if t2_id:
+                teams_played_on_date[m_date].add(t2_id)
 
             matches.append({
                 'round_name': stage_name if not stage_two_legged else f"{stage_name} (Leg 1)",
                 'round_number': stage_idx + 1,
                 'group_name': "Knockout",
+                'stage_name': stage_badge,
                 'home_team': t1,
                 'away_team': t2,
                 'match_date': m_date,
@@ -1580,10 +1922,12 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
                     leg2_target, desired_time, t2_venue, venues, slot_times, booked_slots,
                     preferred_weekdays=preferred_weekdays, end_date=end_date
                 )
+                global_daily_counts[l2_date] += 1
                 matches.append({
                     'round_name': f"{stage_name} (Leg 2)",
                     'round_number': stage_idx + 1,
                     'group_name': "Knockout",
+                    'stage_name': stage_badge,
                     'home_team': t2,
                     'away_team': t1,
                     'match_date': l2_date,
@@ -1622,9 +1966,12 @@ def _generate_single_elimination_bracket(teams, start_date, preferred_weekdays, 
             })
 
         cur_teams = next_teams
-        prev_stage_date = cur_date
+        last_match_date = max(current_stage_dates) if current_stage_dates else cur_date
+        prev_stage_date = last_match_date
         prev_stage_latest_time = max(current_stage_times) if current_stage_times else time(15, 0)
-        cur_date = _calc_next_stage_date(cur_date, max(1, len(stage_names) - stage_idx), end_date, preferred_weekdays)
+        cur_date = _calc_next_stage_date(last_match_date, max(1, len(stage_names) - stage_idx), end_date, preferred_weekdays)
+        if cur_date <= last_match_date and (not end_date or last_match_date < end_date):
+            cur_date = _find_next_preferred_date(last_match_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
 
     return matches
 
@@ -1665,7 +2012,20 @@ def _normalize_team_seed(t, default_label, default_short):
     }
 
 
-def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot_times, venues, end_date=None, prefix="", booked_slots=None, matches_per_day=1):
+def _generate_page_mcintyre_fixtures(
+    teams,
+    start_date,
+    preferred_weekdays,
+    slot_times,
+    venues,
+    end_date=None,
+    prefix="",
+    booked_slots=None,
+    matches_per_day=1,
+    global_daily_counts=None,
+    teams_played_on_date=None,
+    sf_preference='same_day'
+):
     """
     Generates the authentic Page–McIntyre Playoff System (Final Four) fixtures:
     Requires 4 teams (Seed 1 to 4).
@@ -1679,6 +2039,10 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
 
     if booked_slots is None:
         booked_slots = set()
+    if global_daily_counts is None:
+        global_daily_counts = Counter()
+    if teams_played_on_date is None:
+        teams_played_on_date = defaultdict(set)
 
     cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
     if end_date and cur_date > end_date:
@@ -1691,19 +2055,27 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
 
     matches = []
     stage1_times = []
+    stage1_dates = []
 
-    # STAGE 1 (Matchday 1):
+    # STAGE 1 (Semi-Finals round):
     # Match 1: Qualifying Final (1st vs 2nd)
-    qf_venue = seed1.get('home_venue') or venues[0]
+    while global_daily_counts[cur_date] >= matches_per_day:
+        cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+    slot_idx = global_daily_counts[cur_date]
+    qf_venue = seed1.get('home_venue') or venues[slot_idx % len(venues)]
     qf_date, qf_time, qf_ven = _allocate_conflict_free_slot(
-        cur_date, slot_times[0], qf_venue, venues, slot_times, booked_slots,
+        cur_date, slot_times[slot_idx % len(slot_times)], qf_venue, venues, slot_times, booked_slots,
         preferred_weekdays=preferred_weekdays, end_date=end_date
     )
     stage1_times.append(qf_time)
+    stage1_dates.append(qf_date)
+    global_daily_counts[qf_date] += 1
     matches.append({
         'round_name': f"{prefix}Qualifying Final (1st vs 2nd)".strip(),
         'round_number': 100,
         'group_name': "Knockout",
+        'stage_name': "Qualifying Final",
         'home_team': seed1,
         'away_team': seed2,
         'match_date': qf_date,
@@ -1713,17 +2085,27 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
     })
 
     # Match 2: Elimination Final (3rd vs 4th)
-    ef_venue = seed3.get('home_venue') or venues[1 % len(venues)]
-    ef_time_des = slot_times[1 % len(slot_times)] if len(slot_times) > 1 else slot_times[0]
+    if sf_preference == 'separate_days':
+        cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+    else:
+        while global_daily_counts[cur_date] >= matches_per_day:
+            cur_date = _find_next_preferred_date(cur_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+    ef_slot = global_daily_counts[cur_date]
+    ef_venue = seed3.get('home_venue') or venues[ef_slot % len(venues)]
+    ef_time_des = slot_times[ef_slot % len(slot_times)]
     ef_date, ef_time, ef_ven = _allocate_conflict_free_slot(
         cur_date, ef_time_des, ef_venue, venues, slot_times, booked_slots,
         preferred_weekdays=preferred_weekdays, end_date=end_date
     )
     stage1_times.append(ef_time)
+    stage1_dates.append(ef_date)
+    global_daily_counts[ef_date] += 1
     matches.append({
         'round_name': f"{prefix}Elimination Final (3rd vs 4th)".strip(),
         'round_number': 100,
         'group_name': "Knockout",
+        'stage_name': "Elimination Final",
         'home_team': seed3,
         'away_team': seed4,
         'match_date': ef_date,
@@ -1732,10 +2114,16 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
         'is_knockout': True
     })
 
-    # STAGE 2 (Matchday 2):
+    # STAGE 2:
     # Match 3: Preliminary Final (Loser QF vs Winner EF)
-    prelim_date = _calc_next_stage_date(cur_date, 2, end_date, preferred_weekdays)
-    prelim_min_time = _add_time(max(stage1_times), 150) if prelim_date <= cur_date else None
+    last_stage1_date = max(stage1_dates) if stage1_dates else cur_date
+    prelim_date = _calc_next_stage_date(last_stage1_date, 2, end_date, preferred_weekdays)
+    if prelim_date <= last_stage1_date and (not end_date or last_stage1_date < end_date):
+        prelim_date = _find_next_preferred_date(last_stage1_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+    while global_daily_counts[prelim_date] >= matches_per_day:
+        prelim_date = _find_next_preferred_date(prelim_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+    prelim_min_time = _add_time(max(stage1_times), 150) if prelim_date <= last_stage1_date else None
     prelim_home = {
         'id': None,
         'name': "Loser of Qualifying Final",
@@ -1754,14 +2142,17 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
         'is_placeholder': True,
         'get_logo_url': lambda: ""
     }
+    pf_slot = global_daily_counts[prelim_date]
     pf_date, pf_time, pf_ven = _allocate_conflict_free_slot(
-        prelim_date, slot_times[0], venues[0], venues, slot_times, booked_slots,
+        prelim_date, slot_times[pf_slot % len(slot_times)], venues[pf_slot % len(venues)], venues, slot_times, booked_slots,
         min_time=prelim_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
     )
+    global_daily_counts[pf_date] += 1
     matches.append({
         'round_name': f"{prefix}Preliminary Final".strip(),
         'round_number': 101,
         'group_name': "Knockout",
+        'stage_name': "Preliminary Final",
         'home_team': prelim_home,
         'away_team': prelim_away,
         'match_date': pf_date,
@@ -1770,10 +2161,15 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
         'is_knockout': True
     })
 
-    # STAGE 3 (Matchday 3):
+    # STAGE 3:
     # Match 4: Grand Final (Winner QF vs Winner PF)
-    final_date = _calc_next_stage_date(prelim_date, 1, end_date, preferred_weekdays)
-    final_min_time = _add_time(pf_time, 150) if final_date <= prelim_date else None
+    final_date = _calc_next_stage_date(pf_date, 1, end_date, preferred_weekdays)
+    if final_date <= pf_date and (not end_date or pf_date < end_date):
+        final_date = _find_next_preferred_date(pf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+    while global_daily_counts[final_date] >= matches_per_day:
+        final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+
+    final_min_time = _add_time(pf_time, 150) if final_date <= pf_date else None
     final_home = {
         'id': None,
         'name': "Winner of Qualifying Final",
@@ -1792,14 +2188,17 @@ def _generate_page_mcintyre_fixtures(teams, start_date, preferred_weekdays, slot
         'is_placeholder': True,
         'get_logo_url': lambda: ""
     }
+    gf_slot = global_daily_counts[final_date]
     gf_date, gf_time, gf_ven = _allocate_conflict_free_slot(
-        final_date, slot_times[0], venues[0], venues, slot_times, booked_slots,
+        final_date, slot_times[gf_slot % len(slot_times)], venues[gf_slot % len(venues)], venues, slot_times, booked_slots,
         min_time=final_min_time, preferred_weekdays=preferred_weekdays, end_date=end_date
     )
+    global_daily_counts[gf_date] += 1
     matches.append({
         'round_name': f"{prefix}Grand Final".strip(),
         'round_number': 102,
         'group_name': "Knockout",
+        'stage_name': "Championship Final",
         'home_team': final_home,
         'away_team': final_away,
         'match_date': gf_date,
