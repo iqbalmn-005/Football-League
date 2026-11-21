@@ -132,7 +132,7 @@ def run_tests():
             CompetitionTeam.objects.create(competition=comp, team=t)
         teams = list(comp.teams.all()[:8])
 
-    # Test 3.1: Infeasible end date rejection without date clamping
+    # Test 3.1: Tight end date does NOT block generation or clamp matches; it dynamically schedules all matches
     tight_end = start + timedelta(days=2) # Only 1-2 days
     res_tight = generate_smart_fixtures(comp, {
         'tournament_format': TournamentFormat.ROUND_ROBIN,
@@ -143,11 +143,11 @@ def run_tests():
         'preferred_days': ['Saturday', 'Sunday'],
         'selected_team_ids': [t.id for t in teams[:4]]  # 4 teams = 6 matches
     })
-    assert not res_tight['is_feasible'], "Expected is_feasible to be False on tight dates"
-    assert not res_tight['success'], "Expected success to be False"
-    assert len(res_tight['errors']) > 0, "Expected clear capacity error messages"
-    assert len(res_tight['matches']) == 0, "Expected NO clamped matches generated on error"
-    print(" [PASS] Infeasible date range rejected cleanly upfront with zero clamped matches")
+    assert res_tight['success'], f"Expected success even on tight date range: {res_tight.get('errors')}"
+    assert len(res_tight['matches']) == 6, f"Expected 6 matches, got {len(res_tight['matches'])}"
+    counts = Counter(m['match_date'] for m in res_tight['matches'])
+    assert max(counts.values()) == 1, f"Expected max 1 match per day, got {max(counts.values())}"
+    print(" [PASS] Tight date range schedules all matches dynamically without infinite loop or clamping")
 
     # Test 3.2: Feasible generation strictly enforces global daily matches limit across groups
     gen_end = start + timedelta(days=120)

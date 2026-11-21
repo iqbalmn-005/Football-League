@@ -453,7 +453,7 @@ def generate_smart_fixtures(competition, config):
         group_team_counts=group_team_counts
     )
 
-    # Step 2: Calculate scheduling capacity and validate feasibility before assigning dates
+    # Step 2: Calculate scheduling capacity
     capacity = calculate_scheduling_capacity(
         start_date=start_date,
         end_date=end_date,
@@ -462,24 +462,6 @@ def generate_smart_fixtures(competition, config):
         total_matches=match_calc['total_matches'],
         min_stage_days=match_calc['min_stage_days']
     )
-
-    if end_date and not capacity['is_feasible']:
-        return {
-            'success': False,
-            'is_feasible': False,
-            'errors': capacity['errors'],
-            'capacity_details': capacity,
-            'matches': [],
-            'summary': {
-                'total_matches': match_calc['total_matches'],
-                'total_teams': len(teams_qs),
-                'is_feasible': False,
-                'available_match_days': capacity['available_match_days'],
-                'required_match_days': capacity['required_match_days'],
-                'days_short': capacity['days_short'],
-                'matches_per_day': matches_per_day
-            }
-        }
 
     # Step 3: Dynamically distribute fixtures with global daily limit and team rest enforcement
     scheduled_matches = []
@@ -581,15 +563,15 @@ def generate_smart_fixtures(competition, config):
 
         # Knockout Stage strictly follows the group stage
         last_group_date = max([m['match_date'] for m in group_matches], default=start_date)
-        if end_date:
-            days_left = max(1, (end_date - last_group_date).days)
+        if end_date and end_date > last_group_date:
+            days_left = (end_date - last_group_date).days
             ko_step = 7 if ko_rounds_count * 7 <= days_left else max(1, days_left // max(1, ko_rounds_count + 1))
-            ko_start_target = min(last_group_date + timedelta(days=ko_step), end_date)
-            knockout_start_date = _find_next_preferred_date(ko_start_target, preferred_weekdays, max_date=end_date)
-            if knockout_start_date <= last_group_date and end_date > last_group_date:
-                knockout_start_date = last_group_date + timedelta(days=1)
+            ko_start_target = last_group_date + timedelta(days=ko_step)
+            knockout_start_date = _find_next_preferred_date(ko_start_target, preferred_weekdays)
+            if knockout_start_date <= last_group_date:
+                knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
         else:
-            knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=7), preferred_weekdays)
+            knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
 
         if use_page_mcintyre:
             q_teams = [None, None, None, None]
@@ -641,22 +623,6 @@ def generate_smart_fixtures(competition, config):
             sf_preference=sf_preference
         )
         scheduled_matches.extend(knockout_matches)
-
-    # Final validation: verify that no scheduled matches exceed end_date
-    if end_date:
-        exceeded = [m for m in scheduled_matches if m['match_date'] > end_date]
-        if exceeded:
-            return {
-                'success': False,
-                'is_feasible': False,
-                'errors': [
-                    f"Selected end date {end_date.strftime('%d-%m-%Y')} is too tight to schedule all {len(scheduled_matches)} matches without violating daily limits or rest requirements.",
-                    f"Last match scheduled on {max(m['match_date'] for m in scheduled_matches).strftime('%d-%m-%Y')}."
-                ],
-                'capacity_details': capacity,
-                'matches': [],
-                'summary': {}
-            }
 
     # Summary
     total_matches = len(scheduled_matches)
@@ -852,17 +818,15 @@ def _merge_concurrent_group_rounds(all_group_rounds):
 
 def _find_next_preferred_date(start_from, preferred_weekdays, max_date=None):
     """
-    Finds earliest date on or after start_from that matches preferred weekdays,
-    strictly capped by max_date if specified.
+    Finds earliest date on or after start_from that matches preferred weekdays.
+    Never clamps backwards to avoid infinite loops when days are filled to capacity.
     """
     cur = start_from
-    for _ in range(365):
-        if max_date and cur > max_date:
-            return max_date
+    for _ in range(730):
         if cur.weekday() in preferred_weekdays:
             return cur
         cur += timedelta(days=1)
-    return min(start_from, max_date) if max_date else start_from
+    return start_from
 
 
 def _count_preferred_days(from_date, to_date, preferred_weekdays):
@@ -939,17 +903,10 @@ def _allocate_conflict_free_slot(
             available_slot_times.append(extra_t)
             continue
 
-        # If day is full, advance to next day
+        # If day is full, advance to next day matching preferred weekdays
         cand_date = cur_date + timedelta(days=1)
-        if end_date and cand_date > end_date:
-            cur_date = end_date
-            extra_t = _add_time(last_t, 150)
-            slot_key = (cur_date, extra_t, all_venues[0])
-            booked_slots.add(slot_key)
-            return cur_date, extra_t, all_venues[0]
-
         if preferred_weekdays:
-            cur_date = _find_next_preferred_date(cand_date, preferred_weekdays, max_date=end_date)
+            cur_date = _find_next_preferred_date(cand_date, preferred_weekdays)
         else:
             cur_date = cand_date
         min_time = None
@@ -961,28 +918,24 @@ def _allocate_conflict_free_slot(
 
 def _calc_next_stage_date(current_stage_date, stages_remaining, end_date, preferred_weekdays):
     """
-    Calculates the next stage target date so all remaining stages fit before end_date.
-    Guarantees next stage is on a subsequent date (> current_stage_date) whenever end_date allows.
+    Calculates the next stage target date so all remaining stages fit before end_date if possible,
+    or smoothly advances to the next preferred weekday.
+    Guarantees next stage is on a subsequent date (> current_stage_date).
     """
-    if not end_date:
+    if not end_date or end_date <= current_stage_date:
         return _find_next_preferred_date(current_stage_date + timedelta(days=7), preferred_weekdays)
-    
-    if end_date <= current_stage_date:
-        return current_stage_date
 
-    earliest_next = current_stage_date + timedelta(days=1)
     days_left = (end_date - current_stage_date).days
-
     if stages_remaining * 7 <= days_left:
         step = 7
     else:
         step = max(1, days_left // max(1, stages_remaining))
 
-    target = min(current_stage_date + timedelta(days=step), end_date)
-    nxt = _find_next_preferred_date(target, preferred_weekdays, max_date=end_date)
+    target = current_stage_date + timedelta(days=step)
+    nxt = _find_next_preferred_date(target, preferred_weekdays)
     if nxt <= current_stage_date:
-        nxt = earliest_next
-    return min(nxt, end_date)
+        nxt = _find_next_preferred_date(current_stage_date + timedelta(days=1), preferred_weekdays)
+    return nxt
 
 
 def _schedule_daily_slots(
@@ -1030,12 +983,12 @@ def _schedule_daily_slots(
                   (h_id and h_id in teams_played_on_date[current_date]) or \
                   (a_id and a_id in teams_played_on_date[current_date]):
                 cand = current_date + timedelta(days=1)
-                current_date = _find_next_preferred_date(cand, preferred_weekdays, max_date=end_date)
+                current_date = _find_next_preferred_date(cand, preferred_weekdays)
 
             slot_idx = global_daily_counts[current_date]
             desired_time = slot_times[slot_idx % len(slot_times)]
             desired_venue = getattr(home, 'home_venue', '') or venues[slot_idx % len(venues)]
-            match_d = min(current_date, end_date) if end_date else current_date
+            match_d = current_date
 
             final_d, final_t, final_v = _allocate_conflict_free_slot(
                 match_d, desired_time, desired_venue, venues, slot_times, booked_slots,
@@ -1065,17 +1018,20 @@ def _schedule_daily_slots(
 
         # Advance current_date for the next matchweek
         if r_idx < num_rounds - 1:
-            if end_date:
+            if end_date and end_date > current_date:
                 rounds_remaining = num_rounds - r_idx - 1
-                days_remaining = max(1, (end_date - current_date).days)
+                days_remaining = (end_date - current_date).days
                 if rounds_remaining * 7 <= days_remaining:
                     step_days = 7
                 else:
                     step_days = max(1, days_remaining // (rounds_remaining + 1))
-                next_target = min(current_date + timedelta(days=step_days), end_date)
-                current_date = _find_next_preferred_date(next_target, preferred_weekdays, max_date=end_date)
-            else:
+                next_target = current_date + timedelta(days=step_days)
+                current_date = _find_next_preferred_date(next_target, preferred_weekdays)
+            elif not end_date:
                 next_week_target = current_date + timedelta(days=7)
+                current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
+            else:
+                next_week_target = current_date + timedelta(days=1)
                 current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
 
     return scheduled
@@ -1130,9 +1086,7 @@ def _generate_knockout_stage_for_groups(
     knockout_matches = []
     group_names = sorted(list(groups_dict.keys()))
     num_groups = len(group_names)
-    cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
-    if end_date and cur_date > end_date:
-        cur_date = end_date
+    cur_date = _find_next_preferred_date(start_date, preferred_weekdays)
 
     max_teams = max((len(t) for t in groups_dict.values()), default=1)
     q_per_group = max(1, min(int(qualifiers_per_group or 2), max_teams))
@@ -1830,9 +1784,7 @@ def _generate_single_elimination_bracket(
         return []
 
     cur_teams = list(teams)
-    cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
-    if end_date and cur_date > end_date:
-        cur_date = end_date
+    cur_date = _find_next_preferred_date(start_date, preferred_weekdays)
 
     plan = plan_knockout_byes(n)
     stage_names = get_knockout_stage_names(n, plan)
@@ -2044,9 +1996,7 @@ def _generate_page_mcintyre_fixtures(
     if teams_played_on_date is None:
         teams_played_on_date = defaultdict(set)
 
-    cur_date = _find_next_preferred_date(start_date, preferred_weekdays, max_date=end_date)
-    if end_date and cur_date > end_date:
-        cur_date = end_date
+    cur_date = _find_next_preferred_date(start_date, preferred_weekdays)
 
     seed1 = _normalize_team_seed(teams[0], "1st Place", "1st")
     seed2 = _normalize_team_seed(teams[1], "2nd Place", "2nd")
