@@ -147,11 +147,13 @@ def generate_fixtures_view(request, comp_id):
         return redirect('organizer_competition_dashboard', comp_id=comp.id)
 
     double_round = request.POST.get('double_round') == 'on' or request.POST.get('double_round') == 'true'
+    matches_per_day = int(request.POST.get('matches_per_day', 1) or 1)
 
     created_matches = generate_round_robin_fixtures(
         competition=comp,
         start_date=comp.start_date or date.today(),
-        double_round=double_round
+        double_round=double_round,
+        matches_per_day=matches_per_day
     )
 
     messages.success(request, f"✓ Successfully generated {len(created_matches)} match fixtures for {comp.name}!")

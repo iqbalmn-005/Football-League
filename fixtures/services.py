@@ -375,7 +375,7 @@ def calculate_scheduling_capacity(
     }
 
 
-def generate_round_robin_fixtures(competition, start_date=None, double_round=False):
+def generate_round_robin_fixtures(competition, start_date=None, double_round=False, matches_per_day=1):
     """
     Standard round-robin generator wrapper.
     """
@@ -383,7 +383,7 @@ def generate_round_robin_fixtures(competition, start_date=None, double_round=Fal
         'tournament_format': TournamentFormat.ROUND_ROBIN,
         'start_date': start_date or competition.start_date or date.today(),
         'round_robin_type': 'double' if double_round else 'single',
-        'matches_per_day': 1,
+        'matches_per_day': matches_per_day,
         'daily_kickoff_times': ["15:00"],
         'preferred_days': ['Saturday', 'Sunday'],
     }
@@ -1003,14 +1003,7 @@ def _allocate_conflict_free_slot(
                     booked_slots.add(slot_key)
                     return cur_date, st, ven
 
-        # If all existing slots are booked on cur_date, try generating another evening slot
-        last_t = valid_times[-1] if valid_times else time(15, 0)
-        extra_t = _add_time(last_t, 150)
-        if extra_t <= time(21, 30):
-            available_slot_times.append(extra_t)
-            continue
-
-        # If day is full, advance to next day matching preferred weekdays
+        # If day is full according to daily slot times, advance to next day matching preferred weekdays
         cand_date = cur_date + timedelta(days=1)
         if preferred_weekdays:
             cur_date = _find_next_preferred_date(cand_date, preferred_weekdays)
@@ -1101,6 +1094,7 @@ def _schedule_daily_slots(
                 match_d, desired_time, desired_venue, venues, slot_times, booked_slots,
                 preferred_weekdays=preferred_weekdays, end_date=end_date
             )
+            current_date = final_d
 
             stage_name = f"Group Stage ({g_tag})" if g_tag else "League Stage"
 
