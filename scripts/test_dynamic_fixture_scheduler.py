@@ -125,7 +125,7 @@ def run_tests():
         return
 
     teams = list(comp.teams.all()[:8])
-    if len(teams) < 4:
+    if len(teams) < 8:
         # Create dummy teams
         for i in range(len(teams), 8):
             t = Team.objects.create(name=f"Sched Team {i+1}", short_name=f"ST{i+1}")
@@ -222,10 +222,71 @@ def run_tests():
     assert 'Semi-Finals' in stages_present, f"Missing Semi-Finals in {stages_present}"
     assert 'Championship Final' in stages_present, f"Missing Championship Final in {stages_present}"
     print(f" [PASS] Stage names present in formatted preview matches: {stages_present}")
-    assert 'League Stage' in stages_present or any('Group Stage' in s for s in stages_present), f"Missing group stage name in {stages_present}"
-    assert 'Semi-Finals' in stages_present, f"Missing Semi-Finals in {stages_present}"
-    assert 'Championship Final' in stages_present, f"Missing Championship Final in {stages_present}"
-    print(f" [PASS] Stage names present in formatted preview matches: {stages_present}")
+
+    # Test 3.7: Odd team count in Round Robin (5 teams -> 5 * 4 / 2 = 10 matches)
+    res_odd = generate_smart_fixtures(comp, {
+        'tournament_format': TournamentFormat.ROUND_ROBIN,
+        'round_robin_type': 'single',
+        'start_date': start.isoformat(),
+        'end_date': gen_end.isoformat(),
+        'matches_per_day': 2,
+        'preferred_days': ['Saturday', 'Sunday'],
+        'selected_team_ids': [t.id for t in teams[:5]]  # 5 teams
+    })
+    assert res_odd['success'], f"Failed on odd team count: {res_odd.get('errors')}"
+    assert len(res_odd['matches']) == 10, f"Expected 10 matches for 5 teams single RR, got {len(res_odd['matches'])}"
+    # Every pair plays exactly once
+    pair_counts = Counter()
+    for m in res_odd['matches']:
+        h, a = m['home_team_id'], m['away_team_id']
+        pair_counts[tuple(sorted([h, a]))] += 1
+    assert all(c == 1 for c in pair_counts.values()) and len(pair_counts) == 10, "Not all pairs played exactly once!"
+    print(" [PASS] Odd team count (5 teams) Single RR: 10 matches, all pairs play exactly once")
+
+    # Test 3.8: Double Round Robin home/away balance (4 teams -> 4 * 3 = 12 matches)
+    res_drr = generate_smart_fixtures(comp, {
+        'tournament_format': TournamentFormat.ROUND_ROBIN,
+        'round_robin_type': 'double',
+        'start_date': start.isoformat(),
+        'end_date': gen_end.isoformat(),
+        'matches_per_day': 2,
+        'preferred_days': ['Saturday', 'Sunday'],
+        'selected_team_ids': [t.id for t in teams[:4]]  # 4 teams
+    })
+    assert res_drr['success'], f"Failed on double RR: {res_drr.get('errors')}"
+    assert len(res_drr['matches']) == 12, f"Expected 12 matches for 4 teams double RR, got {len(res_drr['matches'])}"
+    # Each directed pair (A vs B) plays exactly once
+    directed_pairs = Counter((m['home_team_id'], m['away_team_id']) for m in res_drr['matches'])
+    assert all(c == 1 for c in directed_pairs.values()) and len(directed_pairs) == 12, "Double RR home/away balance violated!"
+    print(" [PASS] Double Round Robin (4 teams): 12 matches, balanced home & away fixtures")
+
+    # Test 3.9: Pure Knockout with distributed BYEs for odd team count (7 teams -> 6 matches)
+    res_ko_odd = generate_smart_fixtures(comp, {
+        'tournament_format': TournamentFormat.SINGLE_ELIMINATION,
+        'tournament_type': 'single_elimination',
+        'knockout_legs': 'single',
+        'start_date': start.isoformat(),
+        'end_date': gen_end.isoformat(),
+        'matches_per_day': 2,
+        'preferred_days': ['Saturday', 'Sunday'],
+        'selected_team_ids': [t.id for t in teams[:7]]  # 7 teams -> 6 matches with 1 bye in R1
+    })
+    assert res_ko_odd['success'], f"Failed on 7 teams knockout: {res_ko_odd.get('errors')}"
+    assert len(res_ko_odd['matches']) == 6, f"Expected 6 matches for 7 teams knockout, got {len(res_ko_odd['matches'])}"
+    print(" [PASS] Pure Knockout with distributed BYEs (7 teams): exactly 6 matches")
+
+    # Test 3.10: Database transaction commit verification (atomic commit, zero duplicates)
+    from fixtures.services import commit_generated_fixtures
+    from matches.models import Match, MatchStatus
+    committed = commit_generated_fixtures(
+        competition=comp,
+        matches_data=res_group['matches'],
+        groups_data=res_group['groups'],
+        tournament_format=TournamentFormat.GROUP_KNOCKOUT
+    )
+    assert len(committed) == len(res_group['matches']), f"Expected {len(res_group['matches'])} matches saved, got {len(committed)}"
+    assert comp.matches.filter(status=MatchStatus.SCHEDULED).count() == len(committed)
+    print(f" [PASS] Database persistence: {len(committed)} fixtures committed transactionally without duplicates")
 
     print("\n" + "=" * 70)
     print("ALL DYNAMIC FIXTURE SCHEDULER TESTS COMPLETED SUCCESSFULLY!")
