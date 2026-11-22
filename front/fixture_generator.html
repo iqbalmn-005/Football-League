@@ -917,6 +917,20 @@
                             <option value="8">Top 8 Teams Advance (Quarter-Finals &amp; up)</option>
                         </select>
                     </div>
+
+                    <div class="form-group" id="sfPreferenceContainer">
+                        <label class="form-label" id="sfPreferenceLabel">
+                            Semi-Finals Scheduling Preference <span class="badge-req">*</span>
+                        </label>
+                        <select class="form-control" name="sf_preference" id="sfPreferenceSelect"
+                            onchange="updateSummaryKpis();">
+                            <option value="same_day" selected>Same Day (Both semi-finals on same date if daily capacity allows)</option>
+                            <option value="separate_days">Separate Days (Each semi-final on a distinct date)</option>
+                        </select>
+                        <div class="field-hint" style="font-size:11px;color:#6b7280;margin-top:3px;">
+                            The Grand Championship Final is always scheduled on a separate subsequent date.
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1177,6 +1191,7 @@
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const legsContainer = document.getElementById('knockoutLegsContainer');
             const qContainer = document.getElementById('qualifiersContainer');
+            const sfContainer = document.getElementById('sfPreferenceContainer');
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
 
             if (tType === 'page_mcintyre') {
@@ -1184,6 +1199,7 @@
                 if (legsContainer) legsContainer.style.display = 'none';
                 // Automatically uses Top 4 teams, so hide qualifiers select
                 if (qContainer) qContainer.style.display = 'none';
+                if (sfContainer) sfContainer.style.display = 'none';
             } else {
                 // Standard Seeded Single-Elimination Tournament: Ask single leg or double leg!
                 if (legsContainer) legsContainer.style.display = 'block';
@@ -1191,6 +1207,11 @@
                     if (qContainer) qContainer.style.display = 'block';
                 } else {
                     if (qContainer) qContainer.style.display = 'none';
+                }
+                if (fmt === 'ROUND_ROBIN') {
+                    if (sfContainer) sfContainer.style.display = 'none';
+                } else {
+                    if (sfContainer) sfContainer.style.display = 'block';
                 }
             }
         }
@@ -1407,12 +1428,16 @@
             let estWeeks = 1;
             let minStageDays = 1;
 
+            const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
+            const sfDays = (sfPref === 'same_day' && matchesPerDay >= 2) ? 1 : 2;
+
             if (fmt === 'ROUND_ROBIN') {
                 const rounds = totalTeamsCount % 2 === 0 ? totalTeamsCount - 1 : totalTeamsCount;
                 const matchesPerRound = Math.floor(totalTeamsCount / 2);
                 estWeeks = isDouble ? rounds * 2 : rounds;
                 estMatches = estWeeks * matchesPerRound;
-                minStageDays = estWeeks;
+                const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
+                minStageDays = estWeeks * daysPerRound;
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
                 const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
@@ -1420,6 +1445,8 @@
                 const gRounds = isDouble ? (teamsPerGroup - 1) * 2 : (teamsPerGroup - 1);
                 const gMatchesPerRound = Math.floor(teamsPerGroup / 2) * numGroups;
                 const groupMatches = gRounds * gMatchesPerRound;
+                const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
+                const groupDays = gRounds * daysPerGroupRound;
 
                 let tournamentMatches = 0;
                 let koDays = 1;
@@ -1433,18 +1460,19 @@
                         koDays = 1;
                     } else if (totalQualifiers <= 4) {
                         tournamentMatches = isDoubleLegKo ? 5 : 3;
-                        // Always semi-finals and final on separated days: SF1 (day 1), SF2 (day 2), Final (day 3)
-                        koDays = isDoubleLegKo ? 5 : 3;
+                        koDays = isDoubleLegKo ? (sfDays * 2 + 1) : (sfDays + 1);
                     } else if (isDoubleLegKo) {
                         tournamentMatches = (totalQualifiers - 2) * 2 + 1;
-                        koDays = 6;
+                        const qfDays = Math.ceil(4 / matchesPerDay);
+                        koDays = qfDays * 2 + sfDays * 2 + 1;
                     } else {
                         tournamentMatches = Math.max(1, totalQualifiers - 1);
-                        koDays = 4;
+                        const qfDays = Math.ceil(4 / matchesPerDay);
+                        koDays = qfDays + sfDays + 1;
                     }
                 }
                 estMatches = groupMatches + tournamentMatches;
-                minStageDays = gRounds + koDays;
+                minStageDays = groupDays + koDays;
             } else if (fmt === 'KNOCKOUT') {
                 if (tType === 'page_mcintyre') {
                     estMatches = 4;
@@ -1456,13 +1484,15 @@
                         minStageDays = 1;
                     } else if (totalQualifiers <= 4) {
                         estMatches = isDoubleLegKo ? 5 : 3;
-                        minStageDays = isDoubleLegKo ? 5 : 3;
+                        minStageDays = isDoubleLegKo ? (sfDays * 2 + 1) : (sfDays + 1);
                     } else if (isDoubleLegKo) {
                         estMatches = (totalQualifiers - 2) * 2 + 1;
-                        minStageDays = 6;
+                        const qfDays = Math.ceil(4 / matchesPerDay);
+                        minStageDays = qfDays * 2 + sfDays * 2 + 1;
                     } else {
                         estMatches = Math.max(1, totalQualifiers - 1);
-                        minStageDays = 4;
+                        const qfDays = Math.ceil(4 / matchesPerDay);
+                        minStageDays = qfDays + sfDays + 1;
                     }
                 }
             } else if (fmt === 'PAGE_MCINTYRE') {
@@ -1565,6 +1595,7 @@
             const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
 
+            const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
             const payload = {
                 tournament_format: fmt,
                 tournament_type: tType,
@@ -1579,7 +1610,7 @@
                 venues: [],
                 num_groups: numGroups,
                 qualifiers_per_group: qPerGroup,
-                sf_preference: 'separate_days'  // Always separate days for semi-finals and final
+                sf_preference: sfPref
             };
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {

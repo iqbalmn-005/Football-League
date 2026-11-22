@@ -66,11 +66,15 @@ def calculate_required_matches(
     knockout_legs='single',
     knockout_system='single_elimination',
     group_team_counts=None,
-    has_third_place=False
+    has_third_place=False,
+    matches_per_day=1,
+    sf_preference='same_day'
 ):
     """
     Pure calculation function: Computes the exact number of required fixtures and rounds
     based on the tournament format, team counts, group structure, and knockout rules.
+    Also calculates realistic minimum stage days considering matches per day, team rest,
+    and stage separation (e.g. sequential matchweeks, semi-finals, and showcase grand final).
     Does not assign dates or write to database.
     """
     if teams_count < 2:
@@ -81,10 +85,13 @@ def calculate_required_matches(
             'total_rounds': 0,
             'group_rounds': 0,
             'knockout_rounds': 0,
-            'min_stage_days': 0
+            'min_stage_days': 0,
+            'group_days': 0,
+            'ko_days': 0
         }
 
     is_double_leg = (knockout_legs == 'double')
+    mpd = max(1, int(matches_per_day or 1))
 
     if format_type in [TournamentFormat.ROUND_ROBIN, 'ROUND_ROBIN']:
         matches = teams_count * (teams_count - 1)
@@ -93,6 +100,11 @@ def calculate_required_matches(
         rounds = (teams_count - 1) if teams_count % 2 == 0 else teams_count
         if is_double_round:
             rounds *= 2
+
+        matches_per_round = teams_count // 2
+        days_per_round = math.ceil(matches_per_round / mpd)
+        min_stage_days = rounds * days_per_round
+
         return {
             'total_matches': matches,
             'group_stage_matches': matches,
@@ -100,7 +112,9 @@ def calculate_required_matches(
             'total_rounds': rounds,
             'group_rounds': rounds,
             'knockout_rounds': 0,
-            'min_stage_days': rounds
+            'min_stage_days': min_stage_days,
+            'group_days': min_stage_days,
+            'ko_days': 0
         }
 
     elif format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
@@ -108,10 +122,12 @@ def calculate_required_matches(
             'total_matches': 4,
             'group_stage_matches': 0,
             'knockout_matches': 4,
-            'total_rounds': 3,
+            'total_rounds': 4,
             'group_rounds': 0,
-            'knockout_rounds': 3,
-            'min_stage_days': 3
+            'knockout_rounds': 4,
+            'min_stage_days': 4,
+            'group_days': 0,
+            'ko_days': 4
         }
 
     elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
@@ -139,6 +155,10 @@ def calculate_required_matches(
                 if g_r > max_group_rounds:
                     max_group_rounds = g_r
 
+        matches_per_round = sum(cnt // 2 for cnt in group_team_counts)
+        days_per_round = math.ceil(matches_per_round / mpd)
+        group_days = max_group_rounds * days_per_round
+
         # Calculate knockout stage matches based on qualification rules
         default_q = 4 if is_league_knockout else 2
         actual_q_per_group = int(qualifiers_per_group or default_q)
@@ -149,12 +169,15 @@ def calculate_required_matches(
         if total_qualifiers <= 1:
             ko_matches = 0
             ko_rounds = 0
+            ko_days = 0
         elif total_qualifiers == 2:
             ko_matches = 1
             ko_rounds = 1
+            ko_days = 1
         elif knockout_system == 'page_mcintyre':
             ko_matches = 4
-            ko_rounds = 3
+            ko_rounds = 4
+            ko_days = 4
         else:
             if is_double_leg:
                 ko_matches = (total_qualifiers - 2) * 2 + 1
@@ -171,14 +194,16 @@ def calculate_required_matches(
             if is_double_leg:
                 ko_rounds = (ko_rounds - 1) * 2 + 1
 
-        min_ko_days = ko_rounds
-        if total_qualifiers >= 4 and not is_double_leg:
-            # Semi-finals on separate days (+1 day)
-            min_ko_days += 1
+            sf_days = 1 if (sf_preference == 'same_day' and mpd >= 2) else 2
+            if total_qualifiers <= 4:
+                ko_days = (sf_days * 2 + 1) if is_double_leg else (sf_days + 1)
+            else:
+                qf_days = math.ceil(4 / mpd)
+                ko_days = (qf_days * 2 + sf_days * 2 + 1) if is_double_leg else (qf_days + sf_days + 1)
 
         total_matches = group_matches + ko_matches
         total_rounds = max_group_rounds + ko_rounds
-        min_stage_days = max_group_rounds + min_ko_days
+        min_stage_days = group_days + ko_days
 
         return {
             'total_matches': total_matches,
@@ -187,7 +212,9 @@ def calculate_required_matches(
             'total_rounds': total_rounds,
             'group_rounds': max_group_rounds,
             'knockout_rounds': ko_rounds,
-            'min_stage_days': min_stage_days
+            'min_stage_days': min_stage_days,
+            'group_days': group_days,
+            'ko_days': ko_days
         }
 
     elif format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT']:
@@ -199,7 +226,9 @@ def calculate_required_matches(
                 'total_rounds': 4,
                 'group_rounds': 0,
                 'knockout_rounds': 4,
-                'min_stage_days': 4
+                'min_stage_days': 4,
+                'group_days': 0,
+                'ko_days': 4
             }
         else:
             if is_double_leg:
@@ -217,10 +246,14 @@ def calculate_required_matches(
             if is_double_leg:
                 ko_rounds = (ko_rounds - 1) * 2 + 1
 
-            min_ko_days = ko_rounds
-            if teams_count >= 4 and not is_double_leg:
-                # Semi-finals on separate days (+1 day)
-                min_ko_days += 1
+            sf_days = 1 if (sf_preference == 'same_day' and mpd >= 2) else 2
+            if teams_count <= 2:
+                ko_days = 1
+            elif teams_count <= 4:
+                ko_days = (sf_days * 2 + 1) if is_double_leg else (sf_days + 1)
+            else:
+                qf_days = math.ceil(4 / mpd)
+                ko_days = (qf_days * 2 + sf_days * 2 + 1) if is_double_leg else (qf_days + sf_days + 1)
 
             return {
                 'total_matches': ko_matches,
@@ -229,7 +262,9 @@ def calculate_required_matches(
                 'total_rounds': ko_rounds,
                 'group_rounds': 0,
                 'knockout_rounds': ko_rounds,
-                'min_stage_days': min_ko_days
+                'min_stage_days': ko_days,
+                'group_days': 0,
+                'ko_days': ko_days
             }
 
     return {
@@ -249,7 +284,8 @@ def calculate_scheduling_capacity(
     preferred_weekdays,
     matches_per_day,
     total_matches,
-    min_stage_days=1
+    min_stage_days=1,
+    stage_details=None
 ):
     """
     Computes scheduling capacity between start_date and end_date.
@@ -311,6 +347,13 @@ def calculate_scheduling_capacity(
         errors.append(
             f"The selected date range ({start_date.strftime('%d-%m-%Y')} to {end_date.strftime('%d-%m-%Y')}) provides {available_match_days} available match day(s), which is insufficient for {total_matches} required matches at {matches_per_day} match(es) per day."
         )
+        if stage_details and (stage_details.get('group_days') or stage_details.get('ko_days')):
+            g_d = stage_details.get('group_days', 0)
+            k_d = stage_details.get('ko_days', 0)
+            g_r = stage_details.get('group_rounds', 0)
+            errors.append(
+                f"Tournament Stage Breakdown: {g_r} sequential group matchweeks require {g_d} match day(s) at {matches_per_day} match(es)/day, followed by {k_d} dedicated day(s) for knockout stages (Semi-Finals & Championship Final)."
+            )
         errors.append(
             f"Minimum required match days: {required_match_days} day(s) (short by {days_short} match day(s))."
         )
@@ -417,7 +460,7 @@ def generate_smart_fixtures(competition, config):
         venues = list(dict.fromkeys(team_venues + DEFAULT_VENUES))[:6]
 
     round_robin_type = config.get('round_robin_type', 'single')  # 'single' or 'double'
-    sf_preference = 'separate_days'  # Always separate days for semi-finals and final
+    sf_preference = config.get('sf_preference', 'same_day')  # 'same_day' or 'separate_days'
 
     # Determine groups structure if applicable
     groups_info = {}
@@ -460,7 +503,9 @@ def generate_smart_fixtures(competition, config):
         is_double_round=(round_robin_type == 'double'),
         knockout_legs=knockout_legs,
         knockout_system=knockout_system,
-        group_team_counts=group_team_counts
+        group_team_counts=group_team_counts,
+        matches_per_day=matches_per_day,
+        sf_preference=sf_preference
     )
 
     # Step 2: Calculate scheduling capacity and validate feasibility between start_date and end_date
@@ -470,7 +515,8 @@ def generate_smart_fixtures(competition, config):
         preferred_weekdays=preferred_weekdays,
         matches_per_day=matches_per_day,
         total_matches=match_calc['total_matches'],
-        min_stage_days=match_calc['min_stage_days']
+        min_stage_days=match_calc['min_stage_days'],
+        stage_details=match_calc
     )
 
     if end_date and not capacity['is_feasible']:
@@ -557,25 +603,39 @@ def generate_smart_fixtures(competition, config):
 
         if use_page_mcintyre:
             ko_rounds_count = 3
+            ko_days_needed = 3
         elif total_qualifiers <= 2:
             ko_rounds_count = 1
+            ko_days_needed = 1
         elif total_qualifiers <= 4:
             ko_rounds_count = 3 if two_legged_ko else 2
+            sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
+            ko_days_needed = (sf_days * 2 + 1) if two_legged_ko else (sf_days + 1)
         elif total_qualifiers <= 8:
             ko_rounds_count = 5 if two_legged_ko else 3
+            sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
+            qf_days = math.ceil(4 / matches_per_day)
+            ko_days_needed = (qf_days * 2 + sf_days * 2 + 1) if two_legged_ko else (qf_days + sf_days + 1)
         else:
             ko_rounds_count = 7 if two_legged_ko else 4
+            sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
+            qf_days = math.ceil(4 / matches_per_day)
+            ko_days_needed = (qf_days * 2 + sf_days * 2 + 1) if two_legged_ko else (qf_days + sf_days + 1)
 
         num_group_rounds = len(merged_rounds)
-        total_stages = num_group_rounds + ko_rounds_count
 
         if end_date:
-            total_days = max(1, (end_date - start_date).days)
-            if (total_stages - 1) * 7 <= total_days:
-                group_end_target = start_date + timedelta(days=num_group_rounds * 7)
+            avail_dates = []
+            curr = start_date
+            while curr <= end_date:
+                if curr.weekday() in preferred_weekdays:
+                    avail_dates.append(curr)
+                curr += timedelta(days=1)
+
+            if len(avail_dates) > ko_days_needed:
+                group_end_target = avail_dates[-ko_days_needed - 1]
             else:
-                group_days = max(1, (total_days * num_group_rounds) // total_stages)
-                group_end_target = min(start_date + timedelta(days=group_days), end_date - timedelta(days=max(1, ko_rounds_count)))
+                group_end_target = end_date - timedelta(days=max(1, ko_days_needed))
         else:
             group_end_target = None
 
@@ -595,15 +655,7 @@ def generate_smart_fixtures(competition, config):
 
         # Knockout Stage strictly follows the group stage
         last_group_date = max([m['match_date'] for m in group_matches], default=start_date)
-        if end_date and end_date > last_group_date:
-            days_left = (end_date - last_group_date).days
-            ko_step = 7 if ko_rounds_count * 7 <= days_left else max(1, days_left // max(1, ko_rounds_count + 1))
-            ko_start_target = last_group_date + timedelta(days=ko_step)
-            knockout_start_date = _find_next_preferred_date(ko_start_target, preferred_weekdays)
-            if knockout_start_date <= last_group_date:
-                knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
-        else:
-            knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
+        knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
 
         if use_page_mcintyre:
             q_teams = [None, None, None, None]
@@ -978,7 +1030,7 @@ def _calc_next_stage_date(current_stage_date, stages_remaining, end_date, prefer
     Guarantees next stage is on a subsequent date (> current_stage_date).
     """
     if not end_date or end_date <= current_stage_date:
-        return _find_next_preferred_date(current_stage_date + timedelta(days=7), preferred_weekdays)
+        return _find_next_preferred_date(current_stage_date + timedelta(days=1), preferred_weekdays)
 
     days_left = (end_date - current_stage_date).days
     if stages_remaining * 7 <= days_left:
@@ -1290,15 +1342,15 @@ def _generate_knockout_stage_for_groups(
                 })
             last_ko_date = max(leg2_dates) if leg2_dates else leg2_date
             final_date = _calc_next_stage_date(last_ko_date, 1, end_date, preferred_weekdays)
-            if final_date <= last_ko_date and (not end_date or last_ko_date < end_date):
-                final_date = _find_next_preferred_date(last_ko_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
-            min_time = _add_time(max(leg2_times), 150) if final_date <= last_ko_date else None
+            if final_date <= last_ko_date:
+                final_date = _find_next_preferred_date(last_ko_date + timedelta(days=1), preferred_weekdays)
+            min_time = None
         else:
             latest_sf_date = max(sf_dates) if sf_dates else cur_date
             final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
-            if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
-                final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
-            min_time = _add_time(max(sf_times), 150) if final_date <= latest_sf_date else None
+            if final_date <= latest_sf_date:
+                final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays)
+            min_time = None
 
         while global_daily_counts[final_date] >= matches_per_day:
             final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
@@ -1977,8 +2029,8 @@ def _generate_single_elimination_bracket(
         prev_stage_date = last_match_date
         prev_stage_latest_time = max(current_stage_times) if current_stage_times else time(15, 0)
         cur_date = _calc_next_stage_date(last_match_date, max(1, len(stage_names) - stage_idx), end_date, preferred_weekdays)
-        if cur_date <= last_match_date and (not end_date or last_match_date < end_date):
-            cur_date = _find_next_preferred_date(last_match_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        if cur_date <= last_match_date:
+            cur_date = _find_next_preferred_date(last_match_date + timedelta(days=1), preferred_weekdays)
 
     return matches
 
