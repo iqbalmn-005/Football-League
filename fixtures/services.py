@@ -1493,10 +1493,10 @@ def _generate_knockout_stage_for_groups(
 
         latest_sf_date = max(sf_dates) if sf_dates else cur_sf_date
         final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
-        if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
-            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        if final_date <= latest_sf_date:
+            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays)
         while global_daily_counts[final_date] >= matches_per_day:
-            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays)
 
         final_home = {'id': None, 'name': "Winner of Semi-Final 1", 'team_name': "Winner of Semi-Final 1", 'short_name': "W-SF1", 'seed_label': "Winner SF 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
         final_away = {'id': None, 'name': "Winner of Semi-Final 2", 'team_name': "Winner of Semi-Final 2", 'short_name': "W-SF2", 'seed_label': "Winner SF 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}
@@ -1626,10 +1626,10 @@ def _generate_knockout_stage_for_groups(
 
         latest_sf_date = max(sf_dates) if sf_dates else cur_sf_date
         final_date = _calc_next_stage_date(latest_sf_date, 1, end_date, preferred_weekdays)
-        if final_date <= latest_sf_date and (not end_date or latest_sf_date < end_date):
-            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+        if final_date <= latest_sf_date:
+            final_date = _find_next_preferred_date(latest_sf_date + timedelta(days=1), preferred_weekdays)
         while global_daily_counts[final_date] >= matches_per_day:
-            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays, max_date=end_date)
+            final_date = _find_next_preferred_date(final_date + timedelta(days=1), preferred_weekdays)
 
         final_home = {'id': None, 'name': "Winner of Semi-Final 1", 'team_name': "Winner of Semi-Final 1", 'short_name': "W-SF1", 'seed_label': "Winner SF 1", 'is_placeholder': True, 'get_logo_url': lambda: ""}
         final_away = {'id': None, 'name': "Winner of Semi-Final 2", 'team_name': "Winner of Semi-Final 2", 'short_name': "W-SF2", 'seed_label': "Winner SF 2", 'is_placeholder': True, 'get_logo_url': lambda: ""}

@@ -918,19 +918,7 @@
                         </select>
                     </div>
 
-                    <div class="form-group" id="sfPreferenceContainer">
-                        <label class="form-label" id="sfPreferenceLabel">
-                            Semi-Finals Scheduling Preference <span class="badge-req">*</span>
-                        </label>
-                        <select class="form-control" name="sf_preference" id="sfPreferenceSelect"
-                            onchange="updateSummaryKpis();">
-                            <option value="same_day" selected>Same Day (Both semi-finals on same date if daily capacity allows)</option>
-                            <option value="separate_days">Separate Days (Each semi-final on a distinct date)</option>
-                        </select>
-                        <div class="field-hint" style="font-size:11px;color:#6b7280;margin-top:3px;">
-                            The Grand Championship Final is always scheduled on a separate subsequent date.
-                        </div>
-                    </div>
+                    <input type="hidden" name="sf_preference" id="sfPreferenceSelect" value="same_day">
                 </div>
             </section>
 
@@ -1191,7 +1179,6 @@
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const legsContainer = document.getElementById('knockoutLegsContainer');
             const qContainer = document.getElementById('qualifiersContainer');
-            const sfContainer = document.getElementById('sfPreferenceContainer');
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
 
             if (tType === 'page_mcintyre') {
@@ -1199,7 +1186,6 @@
                 if (legsContainer) legsContainer.style.display = 'none';
                 // Automatically uses Top 4 teams, so hide qualifiers select
                 if (qContainer) qContainer.style.display = 'none';
-                if (sfContainer) sfContainer.style.display = 'none';
             } else {
                 // Standard Seeded Single-Elimination Tournament: Ask single leg or double leg!
                 if (legsContainer) legsContainer.style.display = 'block';
@@ -1207,11 +1193,6 @@
                     if (qContainer) qContainer.style.display = 'block';
                 } else {
                     if (qContainer) qContainer.style.display = 'none';
-                }
-                if (fmt === 'ROUND_ROBIN') {
-                    if (sfContainer) sfContainer.style.display = 'none';
-                } else {
-                    if (sfContainer) sfContainer.style.display = 'block';
                 }
             }
         }

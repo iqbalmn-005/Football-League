@@ -160,7 +160,6 @@ def run_tests():
         'matches_per_day': 2,  # Maximum 2 matches per day globally
         'daily_kickoff_times': ['15:00', '17:30'],
         'preferred_days': ['Saturday', 'Sunday'],
-        'sf_preference': 'separate_days',
         'selected_team_ids': [t.id for t in teams[:8]],
     })
     assert res_group['success'], f"Generation failed: {res_group.get('errors')}"
@@ -201,21 +200,20 @@ def run_tests():
     assert min_ko_date >= max_group_date, f"Knockout starts ({min_ko_date}) before group stage ends ({max_group_date})!"
     print(f" [PASS] Stage sequence enforced: Group stage ends {max_group_date}, Knockout starts {min_ko_date}")
 
-    # Test 3.5: Semi-Finals and Final are ALWAYS on separated days
+    # Test 3.5: Semifinals on SAME day, Final on ANOTHER day
     sf_matches = [m for m in matches if 'Semi-Final' in m['round_name']]
     final_matches = [m for m in matches if 'Final' in m['round_name'] and 'Semi' not in m['round_name']]
     assert len(sf_matches) == 2, f"Expected 2 SF matches, got {len(sf_matches)}"
     assert len(final_matches) >= 1, "Expected Final match"
     final_match = final_matches[0]
 
-    # SF1 and SF2 must be on separate dates
-    assert sf_matches[0]['match_date'] != sf_matches[1]['match_date'], \
-        f"Semi-finals on same date {sf_matches[0]['match_date']}! Must always be on separated days."
-    # Final must be strictly after all SF dates
-    latest_sf_date = max(sf_matches[0]['match_date'], sf_matches[1]['match_date'])
-    assert final_match['match_date'] > latest_sf_date, \
-        f"Final date {final_match['match_date']} not after latest semi-final date {latest_sf_date}!"
-    print(f" [PASS] Semi-Finals and Final ALWAYS on separated days: SF1 on {sf_matches[0]['match_date']}, SF2 on {sf_matches[1]['match_date']}, Final on {final_match['match_date']}")
+    # SF1 and SF2 must be on the SAME date (as matches_per_day >= 2)
+    assert sf_matches[0]['match_date'] == sf_matches[1]['match_date'], \
+        f"Semi-finals on different dates {sf_matches[0]['match_date']} vs {sf_matches[1]['match_date']}! Expected same day."
+    # Final must be strictly after the SF date (on another day)
+    assert final_match['match_date'] > sf_matches[0]['match_date'], \
+        f"Final date {final_match['match_date']} not on another day after semi-finals {sf_matches[0]['match_date']}!"
+    print(f" [PASS] Semifinals on SAME day ({sf_matches[0]['match_date']}), Final on ANOTHER day ({final_match['match_date']})")
 
     # Test 3.6: Stage name present in all formatted match objects
     stages_present = set(m.get('stage_name') for m in matches)
