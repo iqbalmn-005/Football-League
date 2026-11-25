@@ -1400,7 +1400,6 @@
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const isDoubleLegKo = (koLegs === 'double');
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
-            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const schedulingStrategy = document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized';
 
             if (totalTeamsCount < 2) {
@@ -1607,8 +1606,6 @@
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
 
             const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
-            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
-            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -1622,8 +1619,6 @@
                 end_date: endDate,
                 preferred_days: preferredDays,
                 matches_per_day: matchesPerDay,
-                max_matches_per_team_per_day: maxTeamMpd,
-                min_rest_days: minRestDays,
                 excluded_dates: excludedDates,
                 scheduling_strategy: document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized',
                 daily_kickoff_times: dailyKickoffTimes,
@@ -1700,8 +1695,11 @@
             container.style.display = 'block';
             list.innerHTML = '';
 
+            const normalDaily = summary.normal_daily_matches || Math.max(1, Math.floor((summary.total_teams || totalTeamsCount) / 2));
+            const reqDaily = summary.requested_daily_matches || summary.matches_per_day;
+            const teamCountDisp = summary.total_teams || totalTeamsCount;
             document.getElementById('previewStatsText').innerText =
-                `${summary.total_matches} ${summary.total_matches === 1 ? 'Match' : 'Matches'} | ${summary.matches_per_day} ${summary.matches_per_day === 1 ? 'Match/Day' : 'Matches/Day'} | From ${summary.start_date} to ${summary.end_date}`;
+                `Teams: ${teamCountDisp} | Total Fixtures: ${summary.total_matches} | Normal/Day: ${normalDaily} | Requested Target: ${reqDaily}/Day | ${summary.start_date} to ${summary.end_date}`;
 
             // Group matches by match_date so that all matches on the same match day show in one section
             const grouped = {};
@@ -1716,10 +1714,16 @@
 
             const distBar = document.getElementById('dailyDistributionBar');
             if (distBar) {
-                distBar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:4px;">Daily Distribution:</span>` +
-                    sortedDates.map((dKey, i) =>
-                        `<span style="font-size:12px;font-weight:600;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:3px 10px;border-radius:14px;">Day ${i + 1} (${dKey}): <strong>${grouped[dKey].length}</strong> ${grouped[dKey].length === 1 ? 'match' : 'matches'}</span>`
-                    ).join('');
+                const pills = sortedDates.map((dKey, i) =>
+                    `<span style="font-size:12px;font-weight:600;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:3px 10px;border-radius:14px;">Day ${i + 1} (${dKey}): <strong>${grouped[dKey].length}</strong> ${grouped[dKey].length === 1 ? 'match' : 'matches'}</span>`
+                ).join('');
+                const teamPartHtml = summary.team_participation_summary
+                    ? `<span style="font-size:12px;font-weight:600;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:3px 10px;border-radius:14px;">👥 ${summary.team_participation_summary}</span>`
+                    : '';
+                const warningsHtml = (summary.warnings && summary.warnings.length > 0)
+                    ? `<div style="width:100%;margin-top:6px;font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:6px 10px;border-radius:6px;">ℹ️ ${summary.warnings.join(' | ')}</div>`
+                    : '';
+                distBar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:4px;">Daily Distribution:</span>${pills}${teamPartHtml}${warningsHtml}`;
             }
 
             for (const dateKey of sortedDates) {
@@ -1853,8 +1857,6 @@
             const startDate = document.getElementById('startDateInput').value;
             const endDate = document.getElementById('endDateInput').value;
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
-            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
-            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
             const preferredDays = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active')).map(c => c.getAttribute('data-day'));
@@ -1872,8 +1874,6 @@
                     start_date: startDate,
                     end_date: endDate,
                     matches_per_day: matchesPerDay,
-                    max_matches_per_team_per_day: maxTeamMpd,
-                    min_rest_days: minRestDays,
                     excluded_dates: excludedDates,
                     preferred_days: preferredDays
                 })
@@ -1924,8 +1924,6 @@
             const startDate = document.getElementById('startDateInput').value;
             const endDate = document.getElementById('endDateInput').value;
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
-            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
-            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
             const schedulingStrategy = document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized';
@@ -1946,8 +1944,6 @@
                     start_date: startDate,
                     end_date: endDate,
                     matches_per_day: matchesPerDay,
-                    max_matches_per_team_per_day: maxTeamMpd,
-                    min_rest_days: minRestDays,
                     excluded_dates: excludedDates,
                     scheduling_strategy: schedulingStrategy,
                     matches: generatedMatches,

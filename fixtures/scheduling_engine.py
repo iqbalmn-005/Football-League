@@ -402,10 +402,15 @@ def _solve_greedy_packed(pairings, candidate_dates, constraints, locked_matches=
                 ok, _ = validate_candidate_assignment(f, d, state, constraints)
                 if not ok:
                     continue
-                # Score: prefer earlier leg, earlier round, and teams with higher remaining workload
+                # Score: prioritize fair team appearance distribution today (0 today before 1 today, etc.),
+                # then earlier leg, earlier round, and teams with higher remaining workload
+                h_today = state['team_date_counts'][(d, f['home_id'])] if f['home_id'] else 0
+                a_today = state['team_date_counts'][(d, f['away_id'])] if f['away_id'] else 0
+                max_today = max(h_today, a_today)
+                sum_today = h_today + a_today
                 workload = (team_remaining[f['home_id']] if f['home_id'] else 0) + \
                            (team_remaining[f['away_id']] if f['away_id'] else 0)
-                score = (f['leg'], f['round_number'], -workload, f['order_idx'])
+                score = (max_today, sum_today, f['leg'], f['round_number'], -workload, f['order_idx'])
                 if best_score is None or score < best_score:
                     best_score = score
                     best_idx = idx
@@ -563,9 +568,13 @@ def optimize_schedule_distribution(pairings, available_dates, constraints, locke
             best_assignments = res
 
     if best_assignments is None:
+        slot_cap = len(constraints.get('slot_times', [time(15, 0)])) * max(1, len(constraints.get('venues', ['Central Stadium'])))
+        team_cap = max(1, (len(team_match_counts) * max_team_mpd) // 2) if team_match_counts else mpd
+        max_feasible = min(slot_cap, team_cap)
         reason = (
             f"No valid schedule satisfies all mandatory constraints within {len(available_dates)} available match dates "
-            f"(Matches: {total_matches}, Max/Day: {mpd}, Min Rest Days: {min_rest})."
+            f"(Matches: {total_matches}, Requested Max/Day: {mpd}, Max Feasible/Day: {max_feasible}, "
+            f"Max/Team/Day: {max_team_mpd}, Min Rest Days: {min_rest})."
         )
         return None, reason
 

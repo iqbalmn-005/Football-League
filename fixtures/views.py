@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
+import math
 from datetime import datetime, date, time, timedelta
 
 from accounts.decorators import approved_organizer_required
@@ -118,11 +119,14 @@ def api_revalidate_fixtures(request, comp_id):
             raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
         excluded_dates = [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None]
 
+        mpd_val = int(data.get('matches_per_day', 1) or 1)
+        t_count = comp.teams.count() or 2
+        auto_team_mpd = 1 if mpd_val <= max(1, t_count // 2) else max(2, math.ceil((2 * mpd_val) / max(2, t_count)))
         constraints = {
             'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
             'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
-            'matches_per_day': int(data.get('matches_per_day', 1) or 1),
-            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day', 1) or 1)),
+            'matches_per_day': mpd_val,
+            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day') or auto_team_mpd)),
             'min_rest_days': int(data.get('min_rest_days', 0) or 0),
             'excluded_dates': excluded_dates,
             'preferred_weekdays': preferred_weekdays,
@@ -179,11 +183,14 @@ def api_publish_fixtures(request, comp_id):
         raw_excl = data.get('excluded_dates', [])
         if isinstance(raw_excl, str):
             raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
+        mpd_val = int(data.get('matches_per_day', 1) or 1)
+        t_count = comp.teams.count() or 2
+        auto_team_mpd = 1 if mpd_val <= max(1, t_count // 2) else max(2, math.ceil((2 * mpd_val) / max(2, t_count)))
         constraints = {
             'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
             'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
-            'matches_per_day': int(data.get('matches_per_day', 1) or 1),
-            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day', 1) or 1)),
+            'matches_per_day': mpd_val,
+            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day') or auto_team_mpd)),
             'min_rest_days': int(data.get('min_rest_days', 0) or 0),
             'excluded_dates': [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None],
         }

@@ -906,9 +906,17 @@ def generate_smart_fixtures(competition, config):
         else:
             fmt_label = dict(TournamentFormat.choices).get(format_type, format_type)
 
+    normal_daily_matches = max(1, len(teams_qs) // 2)
+    extra_team_appearances = max(0, (2 * matches_per_day) - (2 * normal_daily_matches))
+
     daily_dist_counter = Counter(
         m['match_date'].isoformat() if isinstance(m['match_date'], date) else str(m['match_date'])
         for m in scheduled_matches
+    )
+    team_part_summary = (
+        f"Normal 1 match/team/day ({normal_daily_matches} matches/day)"
+        if max_matches_per_team_per_day <= 1
+        else f"Auto-scaled up to {max_matches_per_team_per_day} matches/team/day (fairly distributed)"
     )
     summary = {
         'total_matches': total_matches,
@@ -918,6 +926,10 @@ def generate_smart_fixtures(competition, config):
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
         'days_wanted': capacity['required_match_days'],
         'dates_used': len(set(all_dates)),
+        'normal_daily_matches': normal_daily_matches,
+        'requested_daily_matches': matches_per_day,
+        'extra_team_appearances_required': extra_team_appearances,
+        'team_participation_summary': team_part_summary,
         'daily_distribution': [{'date': d, 'count': c} for d, c in sorted(daily_dist_counter.items())],
         'format_name': fmt_label,
         'matches_per_day': matches_per_day,
@@ -972,6 +984,12 @@ def generate_smart_fixtures(competition, config):
         })
 
     validation_report = validate_complete_schedule(formatted_matches, solver_constraints, locked_matches=locked_matches)
+    if matches_per_day > normal_daily_matches:
+        validation_report.setdefault('warnings', []).append(
+            f"Requested {matches_per_day} matches/day exceeds normal single-appearance capacity ({normal_daily_matches}/day for {len(teams_qs)} teams); "
+            f"{extra_team_appearances} additional team appearance(s)/day distributed fairly across teams."
+        )
+    summary['warnings'] = validation_report.get('warnings', [])
     per_match_status = validation_report.get('per_match_status', {})
     for fm in formatted_matches:
         st = per_match_status.get(fm['temp_id'], {'valid': True, 'messages': []})

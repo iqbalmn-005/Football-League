@@ -265,3 +265,38 @@ class ConstraintBasedFixtureSchedulerTests(TestCase):
         )
         self.assertFalse(res['success'])
         self.assertGreater(len(res['errors']), 0)
+
+    def test_auto_normal_daily_matches_and_requested_targets_6_teams(self):
+        # 6 teams -> normal = 3/day. Test requested 3/day (5 days), 5/day (3 days), 6/day (3 days)
+        for target, expected_days in [(3, 5), (5, 3), (6, 3)]:
+            cfg = {
+                'tournament_format': TournamentFormat.ROUND_ROBIN,
+                'round_robin_type': 'single',
+                'start_date': '2026-12-21',
+                'end_date': '2026-12-27',
+                'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                'matches_per_day': target,
+                'selected_team_ids': [t.id for t in self.teams[:6]],
+            }
+            res = generate_smart_fixtures(self.comp, cfg)
+            self.assertTrue(res['success'], f"Target {target} failed: {res.get('errors')}")
+            self.assertEqual(res['summary']['normal_daily_matches'], 3)
+            self.assertEqual(res['summary']['requested_daily_matches'], target)
+            self.assertEqual(res['summary']['dates_used'], expected_days)
+            self.assertEqual(len(res['matches']), 15)
+            # Verify fairness on every date: max appearances - min appearances <= 1
+            by_date = {}
+            for m in res['matches']:
+                by_date.setdefault(m['match_date'], []).append(m)
+            for d, d_matches in by_date.items():
+                counts = Counter()
+                for m in d_matches:
+                    counts[m['home_team_id']] += 1
+                    counts[m['away_team_id']] += 1
+                self.assertLessEqual(max(counts.values()) - min(counts.values()), 1, f"Unfair distribution on {d}: {counts}")
+
+    def test_dynamic_normal_daily_calculation_various_team_counts(self):
+        from fixtures.services import calculate_required_matches
+        for n, expected_normal_days in [(4, 3), (5, 5), (6, 5), (8, 7), (10, 9)]:
+            calc = calculate_required_matches(n, TournamentFormat.ROUND_ROBIN, matches_per_day=max(1, n // 2))
+            self.assertEqual(calc['min_stage_days'], expected_normal_days)
