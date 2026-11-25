@@ -103,7 +103,7 @@ def generate_league_pairings(groups_dict, is_double_round=False):
     max_rounds = max(len(gr) for _, gr in all_group_rounds)
     pairings = []
     order_idx = 0
-    is_multi_group = len(all_group_rounds) > 1 or (len(all_group_rounds) == 1 and all_group_rounds[0][0] != '')
+    is_multi_group = len(all_group_rounds) > 1
 
     for r_idx in range(max_rounds):
         for g_name, g_rounds in all_group_rounds:
