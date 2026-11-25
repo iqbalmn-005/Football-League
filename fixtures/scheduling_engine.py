@@ -157,43 +157,68 @@ def generate_available_dates(start_date, end_date=None, preferred_weekdays=None,
     return dates
 
 
+def _time_to_minutes(t_val):
+    if isinstance(t_val, time):
+        return t_val.hour * 60 + t_val.minute
+    if isinstance(t_val, str) and ':' in t_val:
+        parts = t_val.strip().split(':')
+        return int(parts[0]) * 60 + int(parts[1][:2])
+    return 15 * 60
+
+
+def _max_compatible_slots(slot_times, min_rest_minutes):
+    if not slot_times:
+        return 1
+    if not min_rest_minutes or min_rest_minutes <= 0:
+        return len(slot_times)
+    sorted_mins = sorted(_time_to_minutes(t) for t in slot_times)
+    count = 1
+    last_m = sorted_mins[0]
+    for m in sorted_mins[1:]:
+        if m - last_m >= min_rest_minutes:
+            count += 1
+            last_m = m
+    return count
+
+
 def validate_candidate_assignment(fixture, cand_date, state, constraints):
     """
     Validates whether `fixture` can be assigned to `cand_date` under all mandatory constraints:
       - Global daily match limit (matches_per_day)
-      - Same-day team conflict (no team plays twice on cand_date)
-      - Minimum team rest days (min_rest_days)
+      - Per-team daily match limit (max_matches_per_team_per_day, configurable 1+)
+      - Minimum team rest days between distinct match dates (min_rest_days)
       - Team unavailability dates (team_unavailable_dates)
       - Leg 2 cannot precede Leg 1 for the same team/pairing
-      - Venue / kickoff slot capacity on cand_date
+      - Non-overlapping kickoff time + venue slot availability on cand_date
     """
     mpd = constraints['matches_per_day']
     if state['daily_counts'][cand_date] >= mpd:
         return False, "Daily match limit reached"
 
+    max_team_mpd = max(1, int(constraints.get('max_matches_per_team_per_day', 1) or 1))
     h_id = fixture['home_id']
     a_id = fixture['away_id']
-    min_rest = constraints.get('min_rest_days', 0)
+    min_rest = int(constraints.get('min_rest_days', 0) or 0)
     unavail = constraints.get('team_unavailable_dates', {})
 
     if h_id:
-        if h_id in state['teams_on_date'][cand_date]:
-            return False, "Home team already plays on this date"
+        if state['team_date_counts'][(cand_date, h_id)] >= max_team_mpd:
+            return False, f"Home team already has {max_team_mpd} match(es) on this date"
         if cand_date in unavail.get(h_id, ()):
             return False, "Home team unavailable on this date"
         if min_rest > 0:
             for prev_d in state['team_dates'][h_id]:
-                if abs((cand_date - prev_d).days) <= min_rest:
+                if prev_d != cand_date and abs((cand_date - prev_d).days) <= min_rest:
                     return False, f"Home team violates {min_rest} rest day(s) requirement"
 
     if a_id:
-        if a_id in state['teams_on_date'][cand_date]:
-            return False, "Away team already plays on this date"
+        if state['team_date_counts'][(cand_date, a_id)] >= max_team_mpd:
+            return False, f"Away team already has {max_team_mpd} match(es) on this date"
         if cand_date in unavail.get(a_id, ()):
             return False, "Away team unavailable on this date"
         if min_rest > 0:
             for prev_d in state['team_dates'][a_id]:
-                if abs((cand_date - prev_d).days) <= min_rest:
+                if prev_d != cand_date and abs((cand_date - prev_d).days) <= min_rest:
                     return False, f"Away team violates {min_rest} rest day(s) requirement"
 
     # Ensure Leg 2 match of same pair (or earlier leg) isn't scheduled before Leg 1
@@ -203,10 +228,16 @@ def validate_candidate_assignment(fixture, cand_date, state, constraints):
         if leg1_date is not None and cand_date <= leg1_date:
             return False, "Second-leg fixture must occur after first-leg fixture"
 
-    # Check venue + kickoff capacity on cand_date
+    # Check venue + non-overlapping kickoff capacity on cand_date (respecting min_rest_minutes)
     slot_times = constraints.get('slot_times', [time(15, 0)])
     venues = constraints.get('venues', ['Central Stadium'])
-    # At least one (time, venue) pair must be free on cand_date
+    min_rest_mins = int(constraints.get('min_rest_minutes', 0) or 0)
+    max_team_slots = _max_compatible_slots(slot_times, min_rest_mins)
+    if h_id and state['team_date_counts'][(cand_date, h_id)] >= max_team_slots:
+        return False, "Not enough rest-compatible daily kickoff slots for home team"
+    if a_id and state['team_date_counts'][(cand_date, a_id)] >= max_team_slots:
+        return False, "Not enough rest-compatible daily kickoff slots for away team"
+
     has_free_slot = False
     for st in slot_times:
         for ven in venues:
@@ -226,11 +257,11 @@ def _assign_to_state(fixture, cand_date, state):
     a_id = fixture['away_id']
     state['daily_counts'][cand_date] += 1
     if h_id:
-        state['teams_on_date'][cand_date].add(h_id)
+        state['team_date_counts'][(cand_date, h_id)] += 1
         state['team_dates'][h_id].append(cand_date)
     if a_id:
-        state['teams_on_date'][cand_date].add(a_id)
-        state['team_dates'][a_id].append(a_date := cand_date)
+        state['team_date_counts'][(cand_date, a_id)] += 1
+        state['team_dates'][a_id].append(cand_date)
     if fixture.get('leg', 1) == 1 and h_id and a_id:
         state['leg1_pair_dates'][frozenset([h_id, a_id])] = cand_date
 
@@ -240,10 +271,10 @@ def _unassign_from_state(fixture, cand_date, state):
     a_id = fixture['away_id']
     state['daily_counts'][cand_date] -= 1
     if h_id:
-        state['teams_on_date'][cand_date].discard(h_id)
+        state['team_date_counts'][(cand_date, h_id)] -= 1
         state['team_dates'][h_id].pop()
     if a_id:
-        state['teams_on_date'][cand_date].discard(a_id)
+        state['team_date_counts'][(cand_date, a_id)] -= 1
         state['team_dates'][a_id].pop()
     if fixture.get('leg', 1) == 1 and h_id and a_id:
         state['leg1_pair_dates'].pop(frozenset([h_id, a_id]), None)
@@ -252,8 +283,9 @@ def _unassign_from_state(fixture, cand_date, state):
 def _init_solver_state(locked_matches=None):
     state = {
         'daily_counts': Counter(),
-        'teams_on_date': defaultdict(set),
+        'team_date_counts': Counter(),
         'team_dates': defaultdict(list),
+        'team_times_on_date': defaultdict(set),
         'booked_slots': set(),
         'leg1_pair_dates': {},
     }
@@ -266,11 +298,15 @@ def _init_solver_state(locked_matches=None):
             a_id = lm.get('away_team_id')
             state['daily_counts'][d] += 1
             if h_id:
-                state['teams_on_date'][d].add(h_id)
+                state['team_date_counts'][(d, h_id)] += 1
                 state['team_dates'][h_id].append(d)
+                if t:
+                    state['team_times_on_date'][(d, t)].add(h_id)
             if a_id:
-                state['teams_on_date'][d].add(a_id)
+                state['team_date_counts'][(d, a_id)] += 1
                 state['team_dates'][a_id].append(d)
+                if t:
+                    state['team_times_on_date'][(d, t)].add(a_id)
             if d and t and v:
                 state['booked_slots'].add((d, t, v))
             if lm.get('leg', 1) == 1 and h_id and a_id:
@@ -279,7 +315,12 @@ def _init_solver_state(locked_matches=None):
 
 
 def _allocate_slot_on_date(fixture, d, state, constraints):
-    """Assigns a conflict-free (kickoff_time, venue) on the already-chosen date `d`."""
+    """
+    Assigns a conflict-free (kickoff_time, venue) on date `d`.
+    Ensures:
+      - (d, st, ven) is not already booked.
+      - Neither home_team nor away_team already has a match at (d, st) when max_team_mpd > 1.
+    """
     slot_times = constraints.get('slot_times', [time(15, 0)])
     venues = constraints.get('venues', ['Central Stadium'])
     desired_venue = _get_team_venue(fixture.get('home_team'))
@@ -287,17 +328,43 @@ def _allocate_slot_on_date(fixture, d, state, constraints):
     if not ordered_venues:
         ordered_venues = ['Central Stadium']
 
-    # Prefer filling earlier kickoff slots evenly
+    h_id = fixture.get('home_id')
+    a_id = fixture.get('away_id')
+
     slot_idx = max(0, state['daily_counts'][d] - 1)
     ordered_times = slot_times[slot_idx % len(slot_times):] + slot_times[:slot_idx % len(slot_times)]
 
+    # First pass: strictly avoid venue double-booking, same-time team overlap, and same-day rest violations
+    min_rest_mins = int(constraints.get('min_rest_minutes', 0) or 0)
+    for st in ordered_times:
+        st_mins = _time_to_minutes(st)
+        conflict = False
+        for booked_t, busy_teams in [
+            (bt_key, bteams) for (bd, bt_key), bteams in state['team_times_on_date'].items() if bd == d
+        ]:
+            if (h_id and h_id in busy_teams) or (a_id and a_id in busy_teams):
+                if booked_t == st or (min_rest_mins > 0 and abs(st_mins - _time_to_minutes(booked_t)) < min_rest_mins):
+                    conflict = True
+                    break
+        if conflict:
+            continue
+        busy = state['team_times_on_date'][(d, st)]
+        for ven in ordered_venues:
+            if (d, st, ven) not in state['booked_slots']:
+                state['booked_slots'].add((d, st, ven))
+                if h_id:
+                    busy.add(h_id)
+                if a_id:
+                    busy.add(a_id)
+                return st, ven
+
+    # Second pass: fallback if needed
     for st in ordered_times:
         for ven in ordered_venues:
             if (d, st, ven) not in state['booked_slots']:
                 state['booked_slots'].add((d, st, ven))
                 return st, ven
 
-    # Fallback if all combinations somehow exhausted
     st = slot_times[0]
     ven = ordered_venues[0]
     state['booked_slots'].add((d, st, ven))
@@ -453,7 +520,8 @@ def optimize_schedule_distribution(pairings, available_dates, constraints, locke
     total_matches = len(pairings)
     min_dates_vol = math.ceil(total_matches / mpd)
 
-    # Team-level lower bound: max matches any single team plays
+    # Team-level lower bound: max matches any single team plays / max_matches_per_team_per_day
+    max_team_mpd = max(1, int(constraints.get('max_matches_per_team_per_day', 1) or 1))
     team_match_counts = Counter()
     for f in pairings:
         if f['home_id']:
@@ -461,14 +529,13 @@ def optimize_schedule_distribution(pairings, available_dates, constraints, locke
         if f['away_id']:
             team_match_counts[f['away_id']] += 1
     max_team_matches = max(team_match_counts.values(), default=0)
+    min_team_dates = math.ceil(max_team_matches / max_team_mpd) if max_team_matches > 0 else 0
 
-    # Each team needs at least `max_team_matches` distinct dates, and with min_rest_days > 0
-    # the span in preferred dates must be large enough
-    lower_bound_d = max(min_dates_vol, max_team_matches)
+    lower_bound_d = max(min_dates_vol, min_team_dates)
     if lower_bound_d > len(available_dates):
         return None, (
             f"Available match dates ({len(available_dates)}) are fewer than the minimum required dates ({lower_bound_d}) "
-            f"for {total_matches} matches at {mpd} match(es)/day."
+            f"for {total_matches} matches at {mpd} match(es)/day and max {max_team_mpd} match(es)/team/day."
         )
 
     best_assignments = None
@@ -717,14 +784,61 @@ def validate_complete_schedule(matches_list, constraints, locked_matches=None):
                         per_match[tid]['valid'] = False
                         per_match[tid]['messages'].append(msg)
 
-    # Check same-day team conflicts
+    # Check per-team daily limits and same-time overlap
+    max_team_mpd = max(1, int(constraints.get('max_matches_per_team_per_day', 1) or 1))
     for (d, t_id), tids in teams_on_date.items():
-        if len(tids) > 1:
-            msg = f"Team ID {t_id} is scheduled {len(tids)} times on {d.isoformat()}."
+        if len(tids) > max_team_mpd:
+            msg = f"Team ID {t_id} is scheduled {len(tids)} times on {d.isoformat()}, exceeding limit of {max_team_mpd} match(es)/team/day."
             errors.append(msg)
             for tid in tids:
                 per_match[tid]['valid'] = False
                 per_match[tid]['messages'].append(msg)
+
+    # Check same-time team overlap (a team cannot play two matches at the exact same kickoff time)
+    team_time_slots = defaultdict(list)
+    for idx, m in enumerate(matches_list):
+        tid = m.get('temp_id') or str(m.get('id') or idx)
+        d = _parse_d(m.get('match_date'))
+        t = str(m.get('kickoff_time', '15:00'))[:5]
+        h_id = m.get('home_team_id') or _get_team_id(m.get('home_team'))
+        a_id = m.get('away_team_id') or _get_team_id(m.get('away_team'))
+        if d:
+            if h_id:
+                team_time_slots[(d, t, h_id)].append(tid)
+            if a_id:
+                team_time_slots[(d, t, a_id)].append(tid)
+    for (d, t, t_id), tids in team_time_slots.items():
+        if len(tids) > 1:
+            msg = f"Team ID {t_id} has overlapping kickoff time {t} on {d.isoformat()}."
+            errors.append(msg)
+            for tid in tids:
+                per_match[tid]['valid'] = False
+                per_match[tid]['messages'].append(msg)
+
+    # Check same-day minimum rest minutes between a team's matches on the same date
+    min_rest_mins = int(constraints.get('min_rest_minutes', 0) or 0)
+    if min_rest_mins > 0:
+        team_day_times = defaultdict(list)
+        for idx, m in enumerate(matches_list):
+            tid = m.get('temp_id') or str(m.get('id') or idx)
+            d = _parse_d(m.get('match_date'))
+            t_mins = _time_to_minutes(str(m.get('kickoff_time', '15:00'))[:5])
+            h_id = m.get('home_team_id') or _get_team_id(m.get('home_team'))
+            a_id = m.get('away_team_id') or _get_team_id(m.get('away_team'))
+            if d:
+                if h_id:
+                    team_day_times[(d, h_id)].append((t_mins, tid))
+                if a_id:
+                    team_day_times[(d, a_id)].append((t_mins, tid))
+        for (d, t_id), items in team_day_times.items():
+            if len(items) > 1:
+                items.sort(key=lambda x: x[0])
+                for i in range(1, len(items)):
+                    if items[i][0] - items[i - 1][0] < min_rest_mins:
+                        msg = f"Team ID {t_id} has less than {min_rest_mins} min rest between matches on {d.isoformat()}."
+                        errors.append(msg)
+                        per_match[items[i][1]]['valid'] = False
+                        per_match[items[i][1]]['messages'].append(msg)
 
     # Check rest days
     if min_rest > 0:

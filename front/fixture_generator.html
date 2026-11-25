@@ -968,6 +968,32 @@
                     </div>
                 </div>
 
+                <div class="form-grid-2" style="margin-top:16px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">
+                            Max Matches per Team / Day <span class="badge-req">*</span>
+                        </label>
+                        <select class="form-control" name="max_matches_per_team_per_day" id="maxMatchesPerTeamSelect" onchange="updateSummaryKpis()">
+                            <option value="1" selected>1 Match per team / day (Default)</option>
+                            <option value="2">2 Matches per team / day</option>
+                            <option value="3">3 Matches per team / day</option>
+                            <option value="4">4 Matches per team / day</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">
+                            Minimum Rest Between Match Days
+                        </label>
+                        <select class="form-control" name="min_rest_days" id="minRestDaysSelect" onchange="updateSummaryKpis()">
+                            <option value="0" selected>0 Rest Days (Consecutive days allowed)</option>
+                            <option value="1">1 Full Rest Day between match days</option>
+                            <option value="2">2 Full Rest Days between match days</option>
+                            <option value="3">3 Full Rest Days between match days</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Dynamic Daily Match Slots with Pre-filled Sample Times -->
                 <div class="daily-slots-card">
                     <div class="daily-slots-header">
@@ -1059,6 +1085,8 @@
                         </button>
                     </div>
                 </div>
+
+                <div id="dailyDistributionBar" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px;background:#f8fafc;border-bottom:1px solid var(--border);align-items:center;"></div>
 
                 <div id="previewMatchesList">
                     <!-- Populated dynamically with matchweeks and editable rows -->
@@ -1398,6 +1426,7 @@
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const isDoubleLegKo = (koLegs === 'double');
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const schedulingStrategy = document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized';
 
             if (totalTeamsCount < 2) {
@@ -1422,8 +1451,10 @@
                     const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
                     minStageDays = estWeeks * daysPerRound;
                 } else {
-                    const effectiveMpd = Math.min(matchesPerDay, Math.max(1, matchesPerRound));
-                    minStageDays = Math.max(estWeeks, Math.ceil(estMatches / effectiveMpd));
+                    const teamCapPerDay = Math.max(1, Math.floor((totalTeamsCount * maxTeamMpd) / 2));
+                    const effectiveMpd = Math.min(matchesPerDay, teamCapPerDay);
+                    const minTeamDays = Math.ceil(estWeeks / maxTeamMpd);
+                    minStageDays = Math.max(minTeamDays, Math.ceil(estMatches / effectiveMpd));
                 }
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
@@ -1438,8 +1469,10 @@
                     const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
                     groupDays = gRounds * daysPerGroupRound;
                 } else {
-                    const effectiveMpd = Math.min(matchesPerDay, Math.max(1, gMatchesPerRound));
-                    groupDays = Math.max(gRounds, Math.ceil(groupMatches / effectiveMpd));
+                    const teamCapPerDay = Math.max(1, Math.floor((totalTeamsCount * maxTeamMpd) / 2));
+                    const effectiveMpd = Math.min(matchesPerDay, teamCapPerDay);
+                    const minTeamDays = Math.ceil(gRounds / maxTeamMpd);
+                    groupDays = Math.max(minTeamDays, Math.ceil(groupMatches / effectiveMpd));
                 }
 
                 let tournamentMatches = 0;
@@ -1607,6 +1640,7 @@
 
             const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
             const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
+            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -1620,6 +1654,7 @@
                 end_date: endDate,
                 preferred_days: preferredDays,
                 matches_per_day: matchesPerDay,
+                max_matches_per_team_per_day: maxTeamMpd,
                 min_rest_days: minRestDays,
                 excluded_dates: excludedDates,
                 scheduling_strategy: document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized',
@@ -1710,6 +1745,14 @@
 
             // Sort dates chronologically
             const sortedDates = Object.keys(grouped).sort();
+
+            const distBar = document.getElementById('dailyDistributionBar');
+            if (distBar) {
+                distBar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:4px;">Daily Distribution:</span>` +
+                    sortedDates.map((dKey, i) =>
+                        `<span style="font-size:12px;font-weight:600;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:3px 10px;border-radius:14px;">Day ${i + 1} (${dKey}): <strong>${grouped[dKey].length}</strong> ${grouped[dKey].length === 1 ? 'match' : 'matches'}</span>`
+                    ).join('');
+            }
 
             for (const dateKey of sortedDates) {
                 const dMatches = grouped[dateKey];
@@ -1842,6 +1885,7 @@
             const startDate = document.getElementById('startDateInput').value;
             const endDate = document.getElementById('endDateInput').value;
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -1860,6 +1904,7 @@
                     start_date: startDate,
                     end_date: endDate,
                     matches_per_day: matchesPerDay,
+                    max_matches_per_team_per_day: maxTeamMpd,
                     min_rest_days: minRestDays,
                     excluded_dates: excludedDates,
                     preferred_days: preferredDays
@@ -1911,6 +1956,7 @@
             const startDate = document.getElementById('startDateInput').value;
             const endDate = document.getElementById('endDateInput').value;
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const maxTeamMpd = parseInt(document.getElementById('maxMatchesPerTeamSelect') ? document.getElementById('maxMatchesPerTeamSelect').value : '1') || 1;
             const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -1932,6 +1978,7 @@
                     start_date: startDate,
                     end_date: endDate,
                     matches_per_day: matchesPerDay,
+                    max_matches_per_team_per_day: maxTeamMpd,
                     min_rest_days: minRestDays,
                     excluded_dates: excludedDates,
                     scheduling_strategy: schedulingStrategy,

@@ -122,6 +122,7 @@ def api_revalidate_fixtures(request, comp_id):
             'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
             'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
             'matches_per_day': int(data.get('matches_per_day', 1) or 1),
+            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day', 1) or 1)),
             'min_rest_days': int(data.get('min_rest_days', 0) or 0),
             'excluded_dates': excluded_dates,
             'preferred_weekdays': preferred_weekdays,
@@ -182,6 +183,7 @@ def api_publish_fixtures(request, comp_id):
             'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
             'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
             'matches_per_day': int(data.get('matches_per_day', 1) or 1),
+            'max_matches_per_team_per_day': max(1, int(data.get('max_matches_per_team_per_day', 1) or 1)),
             'min_rest_days': int(data.get('min_rest_days', 0) or 0),
             'excluded_dates': [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None],
         }

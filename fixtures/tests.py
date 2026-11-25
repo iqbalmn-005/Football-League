@@ -46,7 +46,9 @@ class ConstraintBasedFixtureSchedulerTests(TestCase):
             'end_date': kwargs.get('end_date', '2026-12-30'),
             'preferred_days': kwargs.get('preferred_days', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
             'matches_per_day': kwargs.get('matches_per_day', 2),
+            'max_matches_per_team_per_day': kwargs.get('max_matches_per_team_per_day', 1),
             'min_rest_days': kwargs.get('min_rest_days', 0),
+            'min_rest_minutes': kwargs.get('min_rest_minutes', 0),
             'excluded_dates': kwargs.get('excluded_dates', []),
             'daily_kickoff_times': kwargs.get('daily_kickoff_times', ['14:00', '16:30', '19:00']),
             'venues': kwargs.get('venues', ['Stadium X', 'Stadium Y']),
@@ -186,3 +188,80 @@ class ConstraintBasedFixtureSchedulerTests(TestCase):
         # ScheduleGenerationLog must be recorded
         self.assertEqual(ScheduleGenerationLog.objects.filter(competition=self.comp, is_valid=True).count(), 1)
         self.assertGreater(len(created), 0)
+
+    def test_6_teams_1_match_per_team_per_day_requires_5_days(self):
+        res_fail = self._run_gen(
+            6, matches_per_day=6, max_matches_per_team_per_day=1,
+            start_date='2026-12-21', end_date='2026-12-23'
+        )
+        self.assertFalse(res_fail['success'])
+        self.assertEqual(res_fail['summary']['days_wanted'], 5)
+
+        res_ok = self._run_gen(
+            6, matches_per_day=6, max_matches_per_team_per_day=1,
+            start_date='2026-12-21', end_date='2026-12-25'
+        )
+        self.assertTrue(res_ok['success'], res_ok.get('errors'))
+        self.assertEqual(len(res_ok['matches']), 15)
+        self.assertTrue(res_ok['validation']['is_valid'])
+
+    def test_6_teams_2_matches_per_team_per_day_fits_in_3_days(self):
+        # 6 teams = 15 matches, max 6/day, max 2/team/day -> ceil(15/6) = 3 days!
+        slots = ['09:30', '11:30', '13:30', '15:30', '17:30', '19:30']
+        res = self._run_gen(
+            6, matches_per_day=6, max_matches_per_team_per_day=2,
+            daily_kickoff_times=slots,
+            start_date='2026-12-21', end_date='2026-12-23'
+        )
+        self.assertTrue(res['success'], res.get('errors'))
+        self.assertTrue(res['validation']['is_valid'])
+        self.assertEqual(len(res['matches']), 15)
+        self.assertEqual(res['summary']['dates_used'], 3)
+        # Verify no team has overlapping kickoff times on any day
+        team_times = set()
+        for m in res['matches']:
+            for tid in (m['home_team_id'], m['away_team_id']):
+                key = (m['match_date'], m['kickoff_time'], tid)
+                self.assertNotIn(key, team_times, f"Overlapping kickoff for team {tid}")
+                team_times.add(key)
+
+    def test_8_teams_2_matches_per_team_per_day_fits_in_4_days(self):
+        # 8 teams = 28 matches, max 8/day, max 2/team/day -> ceil(28/8) = 4 days!
+        slots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30']
+        res = self._run_gen(
+            8, matches_per_day=8, max_matches_per_team_per_day=2,
+            daily_kickoff_times=slots,
+            start_date='2026-12-21', end_date='2026-12-24'
+        )
+        self.assertTrue(res['success'], res.get('errors'))
+        self.assertTrue(res['validation']['is_valid'])
+        self.assertEqual(len(res['matches']), 28)
+        self.assertEqual(res['summary']['dates_used'], 4)
+
+    def test_6_teams_3_per_team_per_day_produces_6_6_3_distribution_with_same_day_rest(self):
+        # 6 teams = 15 matches, 3 days, max 6/day, max 3/team/day, 120 min rest between same-day matches
+        slots = ['09:30', '11:30', '13:30', '15:30', '17:30', '19:30']
+        res = self._run_gen(
+            6, matches_per_day=6, max_matches_per_team_per_day=3,
+            min_rest_minutes=120, daily_kickoff_times=slots,
+            start_date='2026-12-21', end_date='2026-12-23'
+        )
+        self.assertTrue(res['success'], res.get('errors'))
+        self.assertTrue(res['validation']['is_valid'])
+        self.assertEqual(len(res['matches']), 15)
+        dist = [item['count'] for item in res['summary']['daily_distribution']]
+        self.assertEqual(dist, [6, 6, 3])
+        # Verify all 15 pairings are unique
+        pairs = {frozenset([m['home_team_id'], m['away_team_id']]) for m in res['matches']}
+        self.assertEqual(len(pairs), 15)
+
+    def test_same_day_rest_minutes_rejects_impossible_schedule(self):
+        # With 300 min (5h) rest between matches, only 2 slots fit in 09:30..19:30 (10h) -> 3rd match/team/day impossible
+        slots = ['09:30', '11:30', '13:30', '15:30', '17:30', '19:30']
+        res = self._run_gen(
+            6, matches_per_day=6, max_matches_per_team_per_day=3,
+            min_rest_minutes=300, daily_kickoff_times=slots,
+            start_date='2026-12-21', end_date='2026-12-22'
+        )
+        self.assertFalse(res['success'])
+        self.assertGreater(len(res['errors']), 0)

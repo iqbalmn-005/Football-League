@@ -76,7 +76,8 @@ def calculate_required_matches(
     has_third_place=False,
     matches_per_day=1,
     sf_preference='same_day',
-    scheduling_strategy='optimized'
+    scheduling_strategy='optimized',
+    max_matches_per_team_per_day=1
 ):
     """
     Pure calculation function: Computes the exact number of required fixtures and rounds
@@ -101,6 +102,7 @@ def calculate_required_matches(
 
     is_double_leg = (knockout_legs == 'double')
     mpd = max(1, int(matches_per_day or 1))
+    max_team_mpd = max(1, int(max_matches_per_team_per_day or 1))
 
     if format_type in [TournamentFormat.ROUND_ROBIN, 'ROUND_ROBIN']:
         matches = teams_count * (teams_count - 1)
@@ -115,11 +117,12 @@ def calculate_required_matches(
             days_per_round = math.ceil(matches_per_round / mpd)
             min_stage_days = rounds * days_per_round
         else:
-            # No team can play twice on the same date, so at most (teams_count // 2) matches
-            # can occur on any single day, and each team needs `rounds` distinct dates.
-            max_parallel_matches = max(1, teams_count // 2)
+            # With max_team_mpd matches per team per day, team participation allows
+            # up to floor((teams_count * max_team_mpd) / 2) matches per day.
+            max_parallel_matches = max(1, (teams_count * max_team_mpd) // 2)
             effective_mpd = min(mpd, max_parallel_matches)
-            min_stage_days = max(rounds, math.ceil(matches / effective_mpd))
+            min_team_days = math.ceil(rounds / max_team_mpd)
+            min_stage_days = max(min_team_days, math.ceil(matches / effective_mpd))
 
         return {
             'total_matches': matches,
@@ -176,9 +179,10 @@ def calculate_required_matches(
             days_per_round = math.ceil(matches_per_round / mpd)
             group_days = max_group_rounds * days_per_round
         else:
-            max_parallel_matches = max(1, sum(cnt // 2 for cnt in group_team_counts))
+            max_parallel_matches = max(1, sum((cnt * max_team_mpd) // 2 for cnt in group_team_counts))
             effective_mpd = min(mpd, max_parallel_matches)
-            group_days = max(max_group_rounds, math.ceil(group_matches / effective_mpd))
+            min_team_days = math.ceil(max_group_rounds / max_team_mpd)
+            group_days = max(min_team_days, math.ceil(group_matches / effective_mpd))
 
         # Calculate knockout stage matches based on qualification rules
         default_q = 4 if is_league_knockout else 2
@@ -498,6 +502,8 @@ def generate_smart_fixtures(competition, config):
     sf_preference = config.get('sf_preference', 'same_day')  # 'same_day' or 'separate_days'
     scheduling_strategy = config.get('scheduling_strategy', 'optimized')  # 'optimized' or 'sequential'
     min_rest_days = int(config.get('min_rest_days', 0) or 0)
+    min_rest_minutes = int(config.get('min_rest_minutes', 0) or 0)
+    max_matches_per_team_per_day = max(1, int(config.get('max_matches_per_team_per_day', 1) or 1))
 
     raw_excluded = config.get('excluded_dates', [])
     if isinstance(raw_excluded, str):
@@ -593,7 +599,8 @@ def generate_smart_fixtures(competition, config):
         group_team_counts=group_team_counts,
         matches_per_day=matches_per_day,
         sf_preference=sf_preference,
-        scheduling_strategy=scheduling_strategy
+        scheduling_strategy=scheduling_strategy,
+        max_matches_per_team_per_day=max_matches_per_team_per_day
     )
 
     # Step 2: Calculate scheduling capacity and validate feasibility between start_date and end_date
@@ -657,7 +664,9 @@ def generate_smart_fixtures(competition, config):
         'preferred_weekdays': preferred_weekdays,
         'excluded_dates': excluded_dates,
         'matches_per_day': matches_per_day,
+        'max_matches_per_team_per_day': max_matches_per_team_per_day,
         'min_rest_days': min_rest_days,
+        'min_rest_minutes': min_rest_minutes,
         'slot_times': slot_times,
         'venues': venues,
         'scheduling_strategy': scheduling_strategy,
@@ -888,6 +897,10 @@ def generate_smart_fixtures(competition, config):
         else:
             fmt_label = dict(TournamentFormat.choices).get(format_type, format_type)
 
+    daily_dist_counter = Counter(
+        m['match_date'].isoformat() if isinstance(m['match_date'], date) else str(m['match_date'])
+        for m in scheduled_matches
+    )
     summary = {
         'total_matches': total_matches,
         'total_rounds': total_rounds,
@@ -896,9 +909,12 @@ def generate_smart_fixtures(competition, config):
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
         'days_wanted': capacity['required_match_days'],
         'dates_used': len(set(all_dates)),
+        'daily_distribution': [{'date': d, 'count': c} for d, c in sorted(daily_dist_counter.items())],
         'format_name': fmt_label,
         'matches_per_day': matches_per_day,
+        'max_matches_per_team_per_day': max_matches_per_team_per_day,
         'min_rest_days': min_rest_days,
+        'min_rest_minutes': min_rest_minutes,
         'scheduling_strategy': scheduling_strategy,
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
