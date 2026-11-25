@@ -12,7 +12,9 @@ def _is_ajax_request(request):
     return (
         request.headers.get('x-requested-with') == 'XMLHttpRequest' or
         request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or
-        'application/json' in request.headers.get('accept', '').lower()
+        'application/json' in request.headers.get('accept', '').lower() or
+        'application/json' in (getattr(request, 'content_type', '') or '').lower() or
+        '/api/' in request.path
     )
 
 

@@ -968,44 +968,6 @@
                     </div>
                 </div>
 
-                <div class="form-grid-3" style="margin-top:16px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">
-                            Matchweek Scheduling Strategy <span class="badge-req">*</span>
-                        </label>
-                        <select class="form-control" name="scheduling_strategy" id="schedulingStrategySelect" onchange="updateSummaryKpis()">
-                            <option value="optimized" selected>Fully Optimized Date Distribution (Default)</option>
-                            <option value="sequential">Sequential Matchweeks</option>
-                        </select>
-                        <small class="form-text" style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">
-                            <strong>Optimized:</strong> Distributes eligible fixtures across match days efficiently while respecting all constraints.
-                        </small>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">
-                            Minimum Team Rest Days
-                        </label>
-                        <select class="form-control" name="min_rest_days" id="minRestDaysSelect" onchange="updateSummaryKpis()">
-                            <option value="0" selected>0 Rest Days (Consecutive days allowed, no same-day)</option>
-                            <option value="1">1 Full Rest Day between matches</option>
-                            <option value="2">2 Full Rest Days between matches</option>
-                            <option value="3">3 Full Rest Days between matches</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">
-                            Excluded Dates (Optional)
-                        </label>
-                        <input type="text" class="form-control" name="excluded_dates" id="excludedDatesInput"
-                            placeholder="YYYY-MM-DD, YYYY-MM-DD" onchange="updateSummaryKpis()">
-                        <small class="form-text" style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">
-                            Comma-separated dates to block (e.g. holidays).
-                        </small>
-                    </div>
-                </div>
-
                 <!-- Dynamic Daily Match Slots with Pre-filled Sample Times -->
                 <div class="daily-slots-card">
                     <div class="daily-slots-header">
@@ -1579,6 +1541,22 @@
             }
         }
 
+        async function parseApiJsonResponse(res) {
+            const contentType = (res.headers.get('content-type') || '').toLowerCase();
+            if (contentType.includes('application/json')) {
+                const data = await res.json();
+                return { ok: res.ok, status: res.status, data };
+            }
+            const text = await res.text();
+            if (res.status === 401 || text.includes('/login')) {
+                throw new Error("Session expired or authentication required. Please refresh and log in again.");
+            }
+            if (res.status === 403) {
+                throw new Error("Permission denied or invalid CSRF token. Please refresh the page and try again.");
+            }
+            throw new Error(`Server returned an unexpected HTML response (HTTP ${res.status}). Please check server logs.`);
+        }
+
         // GENERATE FIXTURE PREVIEW AJAX
         function requestFixturePreview() {
             if (totalTeamsCount < 2) {
@@ -1654,18 +1632,24 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(payload)
             })
-                .then(res => res.json())
-                .then(data => {
+                .then(parseApiJsonResponse)
+                .then(({ data }) => {
                     btn.disabled = false;
                     btn.innerText = "⚡ Generate Fixtures Preview";
 
                     if (!data.success) {
                         document.getElementById('previewContainer').style.display = 'none';
-                        showToast(data.errors[0] || "Failed to generate fixtures.", "error");
+                        const errMsg = (data.errors && data.errors[0]) || data.error || "Failed to generate fixtures.";
+                        showToast(errMsg, "error");
+                        if (data.redirect) {
+                            setTimeout(() => { window.location.href = data.redirect; }, 1200);
+                        }
                         return;
                     }
 
@@ -1865,6 +1849,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
@@ -1877,8 +1863,8 @@
                     preferred_days: preferredDays
                 })
             })
-                .then(res => res.json())
-                .then(data => {
+                .then(parseApiJsonResponse)
+                .then(({ data }) => {
                     if (data.success && data.validation) {
                         const pStatus = data.validation.per_match_status || {};
                         generatedMatches.forEach(m => {
@@ -1932,6 +1918,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
@@ -1949,8 +1937,8 @@
                     groups: generatedGroups
                 })
             })
-                .then(res => res.json())
-                .then(data => {
+                .then(parseApiJsonResponse)
+                .then(({ data }) => {
                     if (data.success) {
                         showToast("Fixtures published successfully! Redirecting...", "success");
                         setTimeout(() => {
@@ -1959,7 +1947,8 @@
                     } else {
                         btn.disabled = false;
                         btn.innerText = "✓ Publish & Save Fixtures";
-                        showToast(data.errors.join(' | ') || "Failed to publish fixtures.", "error");
+                        const errMsg = (data.errors && data.errors.join(' | ')) || data.error || "Failed to publish fixtures.";
+                        showToast(errMsg, "error");
                     }
                 })
                 .catch(err => {

@@ -513,19 +513,35 @@ def generate_smart_fixtures(competition, config):
     respect_locked = config.get('respect_locked_matches', True)
     locked_matches = []
     if respect_locked:
-        existing_locked = competition.matches.filter(
-            status__in=[MatchStatus.COMPLETED, MatchStatus.LIVE]
-        ) | competition.matches.filter(is_locked=True)
-        for lm in existing_locked.distinct():
-            locked_matches.append({
-                'id': lm.id,
-                'match_date': lm.match_date,
-                'kickoff_time': lm.kickoff_time,
-                'venue': lm.venue,
-                'home_team_id': lm.home_team_id,
-                'away_team_id': lm.away_team_id,
-                'leg': lm.leg,
-            })
+        try:
+            existing_locked = (
+                competition.matches.filter(status__in=[MatchStatus.COMPLETED, MatchStatus.LIVE]) |
+                competition.matches.filter(is_locked=True)
+            ).distinct()
+            for lm in existing_locked:
+                locked_matches.append({
+                    'id': lm.id,
+                    'match_date': lm.match_date,
+                    'kickoff_time': lm.kickoff_time,
+                    'venue': lm.venue,
+                    'home_team_id': lm.home_team_id,
+                    'away_team_id': lm.away_team_id,
+                    'leg': getattr(lm, 'leg', 1),
+                })
+        except Exception:
+            # Fallback if new columns (is_locked/leg) are not yet migrated in target DB
+            for lm in competition.matches.filter(status__in=[MatchStatus.COMPLETED, MatchStatus.LIVE]).only(
+                'id', 'match_date', 'kickoff_time', 'venue', 'home_team_id', 'away_team_id'
+            ):
+                locked_matches.append({
+                    'id': lm.id,
+                    'match_date': lm.match_date,
+                    'kickoff_time': lm.kickoff_time,
+                    'venue': lm.venue,
+                    'home_team_id': lm.home_team_id,
+                    'away_team_id': lm.away_team_id,
+                    'leg': 1,
+                })
 
     # Determine groups structure if applicable
     groups_info = {}

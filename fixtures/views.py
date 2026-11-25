@@ -66,18 +66,31 @@ def api_generate_fixture_preview(request, comp_id):
     Django JSON API endpoint: Runs the SmartFixtureGenerator algorithm and returns
     calculated fixtures for preview and inline editing without persisting to DB yet.
     """
-    comp = get_object_or_404(Competition, id=comp_id)
-
-    if comp.is_completed:
-        return JsonResponse({'success': False, 'errors': ["This competition is already completed. Fixtures cannot be generated."]}, status=400)
-
     try:
-        data = json.loads(request.body.decode('utf-8'))
-    except Exception as e:
-        return JsonResponse({'success': False, 'errors': [f"Invalid request data: {str(e)}"]}, status=400)
+        comp = Competition.objects.filter(id=comp_id).first()
+        if not comp:
+            return JsonResponse({'success': False, 'errors': [f"Competition (ID {comp_id}) not found."]}, status=404)
 
-    result = generate_smart_fixtures(competition=comp, config=data)
-    return JsonResponse(result)
+        if comp.is_completed:
+            return JsonResponse({'success': False, 'errors': ["This competition is already completed. Fixtures cannot be generated."]}, status=400)
+
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception as e:
+            return JsonResponse({'success': False, 'errors': [f"Invalid request data: {str(e)}"]}, status=400)
+
+        result = generate_smart_fixtures(competition=comp, config=data)
+        status_code = 200 if result.get('success', False) else 400
+        return JsonResponse(result, status=status_code)
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'errors': [f"Fixture generation failed: {str(exc)}"],
+            'matches': [],
+            'summary': {}
+        }, status=500)
 
 
 @approved_organizer_required
@@ -87,34 +100,41 @@ def api_revalidate_fixtures(request, comp_id):
     Django JSON API endpoint: Revalidates manually edited draft fixtures against all
     scheduling constraints (daily limit, rest days, date range, team conflicts, venue slots).
     """
-    comp = get_object_or_404(Competition, id=comp_id)
     try:
-        data = json.loads(request.body.decode('utf-8'))
-    except Exception as e:
-        return JsonResponse({'success': False, 'errors': [f"Invalid request data: {str(e)}"]}, status=400)
+        comp = Competition.objects.filter(id=comp_id).first()
+        if not comp:
+            return JsonResponse({'success': False, 'errors': [f"Competition (ID {comp_id}) not found."]}, status=404)
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception as e:
+            return JsonResponse({'success': False, 'errors': [f"Invalid request data: {str(e)}"]}, status=400)
 
-    matches_data = data.get('matches', [])
-    preferred_days = data.get('preferred_days', [])
-    preferred_weekdays = [WEEKDAY_MAP[d] for d in preferred_days if d in WEEKDAY_MAP] or None
+        matches_data = data.get('matches', [])
+        preferred_days = data.get('preferred_days', [])
+        preferred_weekdays = [WEEKDAY_MAP[d] for d in preferred_days if d in WEEKDAY_MAP] or None
 
-    raw_excl = data.get('excluded_dates', [])
-    if isinstance(raw_excl, str):
-        raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
-    excluded_dates = [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None]
+        raw_excl = data.get('excluded_dates', [])
+        if isinstance(raw_excl, str):
+            raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
+        excluded_dates = [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None]
 
-    constraints = {
-        'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
-        'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
-        'matches_per_day': int(data.get('matches_per_day', 1) or 1),
-        'min_rest_days': int(data.get('min_rest_days', 0) or 0),
-        'excluded_dates': excluded_dates,
-        'preferred_weekdays': preferred_weekdays,
-    }
-    report = validate_complete_schedule(matches_data, constraints)
-    return JsonResponse({
-        'success': True,
-        'validation': report,
-    })
+        constraints = {
+            'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
+            'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
+            'matches_per_day': int(data.get('matches_per_day', 1) or 1),
+            'min_rest_days': int(data.get('min_rest_days', 0) or 0),
+            'excluded_dates': excluded_dates,
+            'preferred_weekdays': preferred_weekdays,
+        }
+        report = validate_complete_schedule(matches_data, constraints)
+        return JsonResponse({
+            'success': True,
+            'validation': report,
+        })
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'errors': [f"Revalidation error: {str(exc)}"]}, status=500)
 
 
 @approved_organizer_required
