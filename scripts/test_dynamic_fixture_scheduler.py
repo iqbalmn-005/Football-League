@@ -287,13 +287,13 @@ def run_tests():
     assert comp.matches.filter(status=MatchStatus.SCHEDULED).count() == len(committed)
     print(f" [PASS] Database persistence: {len(committed)} fixtures committed transactionally without duplicates")
 
-    # Test 3.11: User Exact Problem Scenario (6 teams, League + Knockout, 18 matches, 2 matches/day)
+    # Test 3.11: Dual Scheduling Strategies Verification (6 teams, League + Knockout, 18 matches, 2 matches/day)
     user_start = date(2026, 12, 21)
     user_tight_end = date(2026, 12, 29) # 9 calendar days
     all_weekdays = [0, 1, 2, 3, 4, 5, 6] # Every day available
 
-    # 3.11a: Infeasible check: 18 matches with sequential matchweeks + separate knockout dates requires 12 match days
-    res_user_tight = generate_smart_fixtures(comp, {
+    # 3.11a: Sequential Strategy Infeasible Check: 18 matches requires 12 match days (10 group + 2 KO)
+    res_seq_tight = generate_smart_fixtures(comp, {
         'tournament_format': TournamentFormat.LEAGUE_KNOCKOUT,
         'tournament_type': 'single_elimination',
         'knockout_legs': 'single',
@@ -301,42 +301,85 @@ def run_tests():
         'start_date': user_start.isoformat(),
         'end_date': user_tight_end.isoformat(),
         'matches_per_day': 2,
+        'scheduling_strategy': 'sequential',
         'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
         'sf_preference': 'same_day',
         'selected_team_ids': [t.id for t in teams[:6]]
     })
-    assert not res_user_tight['success'], "Expected failure when 12 match days wanted but only 9 days given"
-    assert res_user_tight['summary']['days_wanted'] == 12, f"Expected 12 days wanted, got {res_user_tight['summary']['days_wanted']}"
-    assert 'Tournament Stage Breakdown' in ' '.join(res_user_tight['errors'])
-    print(f" [PASS] User Scenario (Tight Range): Successfully caught infeasible schedule (12 match days required, 9 provided), recommended: {res_user_tight['summary']['suggested_end_date']}")
+    assert not res_seq_tight['success'], "Expected failure for sequential strategy with 9 days (requires 12)"
+    assert res_seq_tight['summary']['days_wanted'] == 12, f"Expected 12 days wanted, got {res_seq_tight['summary']['days_wanted']}"
+    assert 'Tournament Stage Breakdown' in ' '.join(res_seq_tight['errors'])
+    print(f" [PASS] Sequential Strategy (Tight Range): Caught infeasible schedule (12 match days required, 9 provided), recommended: {res_seq_tight['summary']['suggested_end_date']}")
 
-    # 3.11b: Feasible check: Extended to 2027-01-01 (12 days) -> Exactly 18 matches scheduled!
-    user_valid_end = date(2027, 1, 1)
-    res_user_valid = generate_smart_fixtures(comp, {
+    # 3.11b: Optimized Strategy Infeasible Check: 18 matches requires 10 match days (8 group + 2 KO)
+    res_opt_tight = generate_smart_fixtures(comp, {
         'tournament_format': TournamentFormat.LEAGUE_KNOCKOUT,
         'tournament_type': 'single_elimination',
         'knockout_legs': 'single',
         'round_robin_type': 'single',
         'start_date': user_start.isoformat(),
-        'end_date': user_valid_end.isoformat(),
+        'end_date': user_tight_end.isoformat(),
         'matches_per_day': 2,
+        'scheduling_strategy': 'optimized',
         'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
         'sf_preference': 'same_day',
         'selected_team_ids': [t.id for t in teams[:6]]
     })
-    assert res_user_valid['success'], f"Expected success for valid range: {res_user_valid.get('errors')}"
-    u_matches = res_user_valid['matches']
-    assert len(u_matches) == 18, f"Expected 18 matches, got {len(u_matches)}"
+    assert not res_opt_tight['success'], "Expected failure for optimized strategy with 9 days (requires 10)"
+    assert res_opt_tight['summary']['days_wanted'] == 10, f"Expected 10 days wanted, got {res_opt_tight['summary']['days_wanted']}"
+    print(f" [PASS] Optimized Strategy (Tight Range): Caught infeasible schedule (10 match days required, 9 provided), recommended: {res_opt_tight['summary']['suggested_end_date']}")
 
-    # Check that both semi-finals are on same day (2026-12-31) and final is on 2027-01-01
-    u_sfs = [m for m in u_matches if 'Semi-Final' in m['round_name']]
-    u_finals = [m for m in u_matches if 'Final' in m['round_name'] and 'Semi' not in m['round_name']]
-    assert len(u_sfs) == 2, f"Expected 2 SFs, got {len(u_sfs)}"
-    assert len(u_finals) == 1, f"Expected 1 Final, got {len(u_finals)}"
-    assert u_sfs[0]['match_date'] == u_sfs[1]['match_date'], f"Expected both SFs on same date with sf_preference='same_day': {u_sfs[0]['match_date']} vs {u_sfs[1]['match_date']}"
-    assert u_finals[0]['match_date'] > u_sfs[0]['match_date'], f"Expected Final strictly after SFs: {u_finals[0]['match_date']} <= {u_sfs[0]['match_date']}"
-    assert u_finals[0]['match_date'] <= user_valid_end.isoformat(), f"Final exceeded end_date: {u_finals[0]['match_date']} > {user_valid_end}"
-    print(f" [PASS] User Scenario (Valid Range): All 18 matches scheduled! Both SFs on {u_sfs[0]['match_date']}, Final on {u_finals[0]['match_date']}")
+    # 3.11c: Optimized Strategy (Feasible in 10 days: 2026-12-21 to 2026-12-30)
+    opt_valid_end = date(2026, 12, 30)
+    res_opt_valid = generate_smart_fixtures(comp, {
+        'tournament_format': TournamentFormat.LEAGUE_KNOCKOUT,
+        'tournament_type': 'single_elimination',
+        'knockout_legs': 'single',
+        'round_robin_type': 'single',
+        'start_date': user_start.isoformat(),
+        'end_date': opt_valid_end.isoformat(),
+        'matches_per_day': 2,
+        'scheduling_strategy': 'optimized',
+        'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        'sf_preference': 'same_day',
+        'selected_team_ids': [t.id for t in teams[:6]]
+    })
+    assert res_opt_valid['success'], f"Expected success for optimized valid range: {res_opt_valid.get('errors')}"
+    opt_matches = res_opt_valid['matches']
+    assert len(opt_matches) == 18, f"Expected 18 matches, got {len(opt_matches)}"
+    opt_dates = set(m['match_date'] for m in opt_matches)
+    assert len(opt_dates) == 10, f"Expected exactly 10 match dates in optimized schedule, got {len(opt_dates)}"
+    opt_sfs = [m for m in opt_matches if 'Semi-Final' in m['round_name']]
+    opt_finals = [m for m in opt_matches if 'Final' in m['round_name'] and 'Semi' not in m['round_name']]
+    assert opt_sfs[0]['match_date'] == opt_sfs[1]['match_date'], "Both SFs must be on same date"
+    assert opt_finals[0]['match_date'] > opt_sfs[0]['match_date'], "Final must be strictly after SFs"
+    assert opt_finals[0]['match_date'] == '2026-12-30', f"Expected final on 2026-12-30, got {opt_finals[0]['match_date']}"
+    print(f" [PASS] Optimized Strategy (Valid 10-day Range): All 18 matches scheduled efficiently in 10 days! SFs on {opt_sfs[0]['match_date']}, Final on {opt_finals[0]['match_date']}")
+
+    # 3.11d: Sequential Strategy (Feasible in 12 days: 2026-12-21 to 2027-01-01)
+    seq_valid_end = date(2027, 1, 1)
+    res_seq_valid = generate_smart_fixtures(comp, {
+        'tournament_format': TournamentFormat.LEAGUE_KNOCKOUT,
+        'tournament_type': 'single_elimination',
+        'knockout_legs': 'single',
+        'round_robin_type': 'single',
+        'start_date': user_start.isoformat(),
+        'end_date': seq_valid_end.isoformat(),
+        'matches_per_day': 2,
+        'scheduling_strategy': 'sequential',
+        'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        'sf_preference': 'same_day',
+        'selected_team_ids': [t.id for t in teams[:6]]
+    })
+    assert res_seq_valid['success'], f"Expected success for sequential valid range: {res_seq_valid.get('errors')}"
+    seq_matches = res_seq_valid['matches']
+    assert len(seq_matches) == 18, f"Expected 18 matches, got {len(seq_matches)}"
+    seq_sfs = [m for m in seq_matches if 'Semi-Final' in m['round_name']]
+    seq_finals = [m for m in seq_matches if 'Final' in m['round_name'] and 'Semi' not in m['round_name']]
+    assert seq_sfs[0]['match_date'] == seq_sfs[1]['match_date'], "Both SFs must be on same date"
+    assert seq_finals[0]['match_date'] > seq_sfs[0]['match_date'], "Final must be strictly after SFs"
+    assert seq_finals[0]['match_date'] <= seq_valid_end.isoformat(), f"Final exceeded end_date: {seq_finals[0]['match_date']} > {seq_valid_end}"
+    print(f" [PASS] Sequential Strategy (Valid 12-day Range): All 18 matches scheduled! SFs on {seq_sfs[0]['match_date']}, Final on {seq_finals[0]['match_date']}")
 
     print("\n" + "=" * 70)
     print("ALL DYNAMIC FIXTURE SCHEDULER TESTS COMPLETED SUCCESSFULLY!")

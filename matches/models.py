@@ -26,6 +26,8 @@ class Match(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='matches')
     tournament_round = models.CharField(max_length=60, default="Matchweek 1")
     round_number = models.PositiveIntegerField(default=1)
+    leg = models.PositiveSmallIntegerField(default=1)
+    is_locked = models.BooleanField(default=False)
     group = models.ForeignKey(TournamentGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches')
     home_team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='home_matches')
     away_team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='away_matches')

@@ -9,8 +9,15 @@ import math
 from collections import Counter, defaultdict
 from django.db import transaction
 from matches.models import Match, MatchStatus
+from fixtures.models import ScheduleGenerationLog
 from leagues.models import Competition, TournamentGroup, CompetitionTeam, TournamentFormat, CompetitionStatus
 from teams.models import Team
+from fixtures.scheduling_engine import (
+    generate_league_pairings,
+    generate_available_dates,
+    optimize_schedule_distribution,
+    validate_complete_schedule,
+)
 
 DEFAULT_VENUES = [
     "Central Stadium", "Metropolis Arena", "Riverside Sports Complex",
@@ -68,13 +75,15 @@ def calculate_required_matches(
     group_team_counts=None,
     has_third_place=False,
     matches_per_day=1,
-    sf_preference='same_day'
+    sf_preference='same_day',
+    scheduling_strategy='optimized'
 ):
     """
     Pure calculation function: Computes the exact number of required fixtures and rounds
     based on the tournament format, team counts, group structure, and knockout rules.
     Also calculates realistic minimum stage days considering matches per day, team rest,
-    and stage separation (e.g. sequential matchweeks, semi-finals, and showcase grand final).
+    scheduling strategy (sequential matchweeks vs optimized date distribution),
+    and stage separation (e.g. semi-finals, and showcase grand final).
     Does not assign dates or write to database.
     """
     if teams_count < 2:
@@ -101,9 +110,12 @@ def calculate_required_matches(
         if is_double_round:
             rounds *= 2
 
-        matches_per_round = teams_count // 2
-        days_per_round = math.ceil(matches_per_round / mpd)
-        min_stage_days = rounds * days_per_round
+        if scheduling_strategy == 'sequential':
+            matches_per_round = teams_count // 2
+            days_per_round = math.ceil(matches_per_round / mpd)
+            min_stage_days = rounds * days_per_round
+        else:
+            min_stage_days = math.ceil(matches / mpd)
 
         return {
             'total_matches': matches,
@@ -155,9 +167,12 @@ def calculate_required_matches(
                 if g_r > max_group_rounds:
                     max_group_rounds = g_r
 
-        matches_per_round = sum(cnt // 2 for cnt in group_team_counts)
-        days_per_round = math.ceil(matches_per_round / mpd)
-        group_days = max_group_rounds * days_per_round
+        if scheduling_strategy == 'sequential':
+            matches_per_round = sum(cnt // 2 for cnt in group_team_counts)
+            days_per_round = math.ceil(matches_per_round / mpd)
+            group_days = max_group_rounds * days_per_round
+        else:
+            group_days = math.ceil(group_matches / mpd)
 
         # Calculate knockout stage matches based on qualification rules
         default_q = 4 if is_league_knockout else 2
@@ -285,12 +300,17 @@ def calculate_scheduling_capacity(
     matches_per_day,
     total_matches,
     min_stage_days=1,
-    stage_details=None
+    stage_details=None,
+    excluded_dates=None,
+    min_rest_days=0,
+    venues_count=None,
+    slots_count=None
 ):
     """
     Computes scheduling capacity between start_date and end_date.
-    Determines available match dates, volume capacity, stage requirements,
-    and returns a comprehensive feasibility report with deficit details.
+    Determines available match dates (excluding organizer-excluded dates),
+    volume capacity, stage requirements, venue/kickoff slot capacity,
+    and team rest-day span requirements.
     """
     if not end_date:
         return {
@@ -306,18 +326,24 @@ def calculate_scheduling_capacity(
         }
 
     calendar_days = max(1, (end_date - start_date).days + 1)
+    excl_set = set(excluded_dates or [])
 
-    # Collect all available match dates that match preferred weekdays
-    available_dates = []
-    curr = start_date
-    while curr <= end_date:
-        if curr.weekday() in preferred_weekdays:
-            available_dates.append(curr)
-        curr += timedelta(days=1)
+    # Collect all available match dates that match preferred weekdays and are not excluded
+    available_dates = generate_available_dates(
+        start_date=start_date,
+        end_date=end_date,
+        preferred_weekdays=preferred_weekdays,
+        excluded_dates=excl_set
+    )
 
     available_match_days = len(available_dates)
-    max_capacity = available_match_days * matches_per_day
-    min_days_volume = math.ceil(total_matches / max(1, matches_per_day))
+    effective_mpd = matches_per_day
+    if venues_count is not None and slots_count is not None:
+        slot_cap = max(1, venues_count) * max(1, slots_count)
+        effective_mpd = min(matches_per_day, slot_cap)
+
+    max_capacity = available_match_days * effective_mpd
+    min_days_volume = math.ceil(total_matches / max(1, effective_mpd))
     required_match_days = max(min_days_volume, min_stage_days)
 
     is_feasible = (available_match_days >= required_match_days) and (max_capacity >= total_matches)
@@ -332,15 +358,14 @@ def calculate_scheduling_capacity(
         min_mpd_needed = math.ceil(total_matches / max(1, available_match_days)) if available_match_days > 0 else total_matches
 
         # Calculate suggested end date providing required_match_days
-        match_days_count = 0
-        sug = start_date
-        while match_days_count < required_match_days:
-            if sug.weekday() in preferred_weekdays:
-                match_days_count += 1
-                if match_days_count == required_match_days:
-                    suggested_end_date = sug
-                    break
-            sug += timedelta(days=1)
+        sug_dates = generate_available_dates(
+            start_date=start_date,
+            end_date=None,
+            preferred_weekdays=preferred_weekdays,
+            excluded_dates=excl_set,
+            min_needed=required_match_days
+        )
+        suggested_end_date = sug_dates[-1] if len(sug_dates) >= required_match_days else None
 
         approx_calendar_days = (suggested_end_date - end_date).days if suggested_end_date and suggested_end_date > end_date else days_short * 7
 
@@ -352,7 +377,11 @@ def calculate_scheduling_capacity(
             k_d = stage_details.get('ko_days', 0)
             g_r = stage_details.get('group_rounds', 0)
             errors.append(
-                f"Tournament Stage Breakdown: {g_r} sequential group matchweeks require {g_d} match day(s) at {matches_per_day} match(es)/day, followed by {k_d} dedicated day(s) for knockout stages (Semi-Finals & Championship Final)."
+                f"Tournament Stage Breakdown: {g_r} group matchweeks require {g_d} match day(s) at {matches_per_day} match(es)/day, followed by {k_d} dedicated day(s) for knockout stages (Semi-Finals & Championship Final)."
+            )
+        if min_rest_days > 0:
+            errors.append(
+                f"Active Team Rest Constraint: Minimum {min_rest_days} rest day(s) required between matches for each team."
             )
         errors.append(
             f"Minimum required match days: {required_match_days} day(s) (short by {days_short} match day(s))."
@@ -461,6 +490,42 @@ def generate_smart_fixtures(competition, config):
 
     round_robin_type = config.get('round_robin_type', 'single')  # 'single' or 'double'
     sf_preference = config.get('sf_preference', 'same_day')  # 'same_day' or 'separate_days'
+    scheduling_strategy = config.get('scheduling_strategy', 'optimized')  # 'optimized' or 'sequential'
+    min_rest_days = int(config.get('min_rest_days', 0) or 0)
+
+    raw_excluded = config.get('excluded_dates', [])
+    if isinstance(raw_excluded, str):
+        raw_excluded = [s.strip() for s in raw_excluded.split(',') if s.strip()]
+    excluded_dates = [d for d in (parse_date_safe(x) for x in raw_excluded) if d is not None]
+
+    team_unavail_raw = config.get('team_unavailable_dates', {}) or {}
+    team_unavailable_dates = {}
+    for tid_key, d_list in team_unavail_raw.items():
+        try:
+            tid_int = int(tid_key)
+            parsed_set = {d for d in (parse_date_safe(x) for x in d_list) if d is not None}
+            if parsed_set:
+                team_unavailable_dates[tid_int] = parsed_set
+        except Exception:
+            continue
+
+    # Load existing locked or completed/live matches to prevent scheduling conflicts on regeneration
+    respect_locked = config.get('respect_locked_matches', True)
+    locked_matches = []
+    if respect_locked:
+        existing_locked = competition.matches.filter(
+            status__in=[MatchStatus.COMPLETED, MatchStatus.LIVE]
+        ) | competition.matches.filter(is_locked=True)
+        for lm in existing_locked.distinct():
+            locked_matches.append({
+                'id': lm.id,
+                'match_date': lm.match_date,
+                'kickoff_time': lm.kickoff_time,
+                'venue': lm.venue,
+                'home_team_id': lm.home_team_id,
+                'away_team_id': lm.away_team_id,
+                'leg': lm.leg,
+            })
 
     # Determine groups structure if applicable
     groups_info = {}
@@ -505,7 +570,8 @@ def generate_smart_fixtures(competition, config):
         knockout_system=knockout_system,
         group_team_counts=group_team_counts,
         matches_per_day=matches_per_day,
-        sf_preference=sf_preference
+        sf_preference=sf_preference,
+        scheduling_strategy=scheduling_strategy
     )
 
     # Step 2: Calculate scheduling capacity and validate feasibility between start_date and end_date
@@ -516,7 +582,11 @@ def generate_smart_fixtures(competition, config):
         matches_per_day=matches_per_day,
         total_matches=match_calc['total_matches'],
         min_stage_days=match_calc['min_stage_days'],
-        stage_details=match_calc
+        stage_details=match_calc,
+        excluded_dates=excluded_dates,
+        min_rest_days=min_rest_days,
+        venues_count=len(venues),
+        slots_count=len(slot_times)
     )
 
     if end_date and not capacity['is_feasible']:
@@ -547,6 +617,31 @@ def generate_smart_fixtures(competition, config):
     global_daily_counts = Counter()
     teams_played_on_date = defaultdict(set)
 
+    # Pre-seed booked_slots and daily counts with locked/completed matches
+    for lm in locked_matches:
+        d = lm['match_date']
+        if d:
+            global_daily_counts[d] += 1
+            if lm.get('home_team_id'):
+                teams_played_on_date[d].add(lm['home_team_id'])
+            if lm.get('away_team_id'):
+                teams_played_on_date[d].add(lm['away_team_id'])
+            if lm.get('kickoff_time') and lm.get('venue'):
+                booked_slots.add((d, lm['kickoff_time'], lm['venue']))
+
+    solver_constraints = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'preferred_weekdays': preferred_weekdays,
+        'excluded_dates': excluded_dates,
+        'matches_per_day': matches_per_day,
+        'min_rest_days': min_rest_days,
+        'slot_times': slot_times,
+        'venues': venues,
+        'scheduling_strategy': scheduling_strategy,
+        'team_unavailable_dates': team_unavailable_dates,
+    }
+
     if format_type in [TournamentFormat.PAGE_MCINTYRE, 'PAGE_MCINTYRE'] or (format_type in [TournamentFormat.SINGLE_ELIMINATION, 'KNOCKOUT'] and knockout_system == 'page_mcintyre'):
         if len(teams_qs) < 4:
             return {
@@ -572,90 +667,109 @@ def generate_smart_fixtures(competition, config):
         scheduled_matches.extend(knockout_matches)
 
     elif format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
-        raw_rounds = _build_round_robin_rounds(teams_qs, double_round=(round_robin_type == 'double'))
-        scheduled_matches = _schedule_daily_slots(
-            rounds=raw_rounds,
+        pairings = generate_league_pairings({'': teams_qs}, is_double_round=(round_robin_type == 'double'))
+        avail_dates = generate_available_dates(
             start_date=start_date,
-            preferred_weekdays=preferred_weekdays,
-            matches_per_day=matches_per_day,
-            slot_times=slot_times,
-            venues=venues,
             end_date=end_date,
-            booked_slots=booked_slots,
-            global_daily_counts=global_daily_counts,
-            teams_played_on_date=teams_played_on_date
+            preferred_weekdays=preferred_weekdays,
+            excluded_dates=excluded_dates,
+            min_needed=max(len(pairings) * (min_rest_days + 1), 60)
         )
+        opt_result, opt_info = optimize_schedule_distribution(
+            pairings=pairings,
+            available_dates=avail_dates,
+            constraints=solver_constraints,
+            locked_matches=locked_matches
+        )
+        if opt_result is None:
+            return {
+                'success': False,
+                'is_feasible': False,
+                'errors': [opt_info],
+                'capacity_details': capacity,
+                'matches': [],
+                'summary': {
+                    'total_matches': match_calc['total_matches'],
+                    'total_teams': len(teams_qs),
+                    'is_feasible': False,
+                    'days_wanted': capacity['required_match_days'],
+                    'available_match_days': capacity['available_match_days'],
+                    'suggested_end_date': capacity['suggested_end_date'],
+                    'matches_per_day': matches_per_day
+                }
+            }
+        scheduled_matches = opt_result
 
     elif format_type in [TournamentFormat.GROUP_KNOCKOUT, 'GROUP_KNOCKOUT', TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT']:
         is_league_knockout = (format_type in [TournamentFormat.LEAGUE_KNOCKOUT, 'LEAGUE_KNOCKOUT'])
-
-        # Build group / league stage rounds
-        all_group_rounds = []
-        for g_name, g_teams in groups_dict.items():
-            round_prefix = "" if num_groups == 1 else f"{g_name} - "
-            g_rounds = _build_round_robin_rounds(g_teams, double_round=(round_robin_type == 'double'), prefix=round_prefix)
-            all_group_rounds.append((g_name, g_rounds))
-
-        merged_rounds = _merge_concurrent_group_rounds(all_group_rounds)
-
         total_qualifiers = num_groups * q_per_group
         use_page_mcintyre = (knockout_system == 'page_mcintyre')
 
         if use_page_mcintyre:
-            ko_rounds_count = 3
             ko_days_needed = 3
         elif total_qualifiers <= 2:
-            ko_rounds_count = 1
             ko_days_needed = 1
         elif total_qualifiers <= 4:
-            ko_rounds_count = 3 if two_legged_ko else 2
             sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
             ko_days_needed = (sf_days * 2 + 1) if two_legged_ko else (sf_days + 1)
-        elif total_qualifiers <= 8:
-            ko_rounds_count = 5 if two_legged_ko else 3
-            sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
-            qf_days = math.ceil(4 / matches_per_day)
-            ko_days_needed = (qf_days * 2 + sf_days * 2 + 1) if two_legged_ko else (qf_days + sf_days + 1)
         else:
-            ko_rounds_count = 7 if two_legged_ko else 4
             sf_days = 1 if (sf_preference == 'same_day' and matches_per_day >= 2) else 2
             qf_days = math.ceil(4 / matches_per_day)
             ko_days_needed = (qf_days * 2 + sf_days * 2 + 1) if two_legged_ko else (qf_days + sf_days + 1)
 
-        num_group_rounds = len(merged_rounds)
-
-        if end_date:
-            avail_dates = []
-            curr = start_date
-            while curr <= end_date:
-                if curr.weekday() in preferred_weekdays:
-                    avail_dates.append(curr)
-                curr += timedelta(days=1)
-
-            if len(avail_dates) > ko_days_needed:
-                group_end_target = avail_dates[-ko_days_needed - 1]
-            else:
-                group_end_target = end_date - timedelta(days=max(1, ko_days_needed))
-        else:
-            group_end_target = None
-
-        group_matches = _schedule_daily_slots(
-            rounds=merged_rounds,
+        pairings = generate_league_pairings(groups_dict, is_double_round=(round_robin_type == 'double'))
+        all_avail_dates = generate_available_dates(
             start_date=start_date,
+            end_date=end_date,
             preferred_weekdays=preferred_weekdays,
-            matches_per_day=matches_per_day,
-            slot_times=slot_times,
-            venues=venues,
-            end_date=group_end_target,
-            booked_slots=booked_slots,
-            global_daily_counts=global_daily_counts,
-            teams_played_on_date=teams_played_on_date
+            excluded_dates=excluded_dates,
+            min_needed=max(len(pairings) * (min_rest_days + 1) + ko_days_needed, 60)
         )
+        if end_date and len(all_avail_dates) > ko_days_needed:
+            group_avail_dates = all_avail_dates[:-ko_days_needed]
+        else:
+            group_avail_dates = all_avail_dates
+
+        group_matches, opt_info = optimize_schedule_distribution(
+            pairings=pairings,
+            available_dates=group_avail_dates,
+            constraints=solver_constraints,
+            locked_matches=locked_matches
+        )
+        if group_matches is None:
+            return {
+                'success': False,
+                'is_feasible': False,
+                'errors': [opt_info],
+                'capacity_details': capacity,
+                'matches': [],
+                'summary': {
+                    'total_matches': match_calc['total_matches'],
+                    'total_teams': len(teams_qs),
+                    'is_feasible': False,
+                    'days_wanted': capacity['required_match_days'],
+                    'available_match_days': capacity['available_match_days'],
+                    'suggested_end_date': capacity['suggested_end_date'],
+                    'matches_per_day': matches_per_day
+                }
+            }
         scheduled_matches.extend(group_matches)
 
-        # Knockout Stage strictly follows the group stage
+        # Sync state for knockout phase
+        for gm in group_matches:
+            d = gm['match_date']
+            global_daily_counts[d] += 1
+            booked_slots.add((d, gm['kickoff_time'], gm['venue']))
+            if getattr(gm.get('home_team'), 'id', None):
+                teams_played_on_date[d].add(gm['home_team'].id)
+            if getattr(gm.get('away_team'), 'id', None):
+                teams_played_on_date[d].add(gm['away_team'].id)
+
+        # Knockout Stage strictly follows the group stage (respecting min_rest_days)
         last_group_date = max([m['match_date'] for m in group_matches], default=start_date)
-        knockout_start_date = _find_next_preferred_date(last_group_date + timedelta(days=1), preferred_weekdays)
+        ko_earliest = last_group_date + timedelta(days=max(1, min_rest_days + 1))
+        ko_candidates = [d for d in all_avail_dates if d >= ko_earliest]
+        knockout_start_date = ko_candidates[0] if ko_candidates else _find_next_preferred_date(ko_earliest, preferred_weekdays)
 
         if use_page_mcintyre:
             q_teams = [None, None, None, None]
@@ -759,8 +873,11 @@ def generate_smart_fixtures(competition, config):
         'start_date': first_date.isoformat() if isinstance(first_date, date) else str(first_date),
         'end_date': final_date.isoformat() if isinstance(final_date, date) else str(final_date),
         'days_wanted': capacity['required_match_days'],
+        'dates_used': len(set(all_dates)),
         'format_name': fmt_label,
         'matches_per_day': matches_per_day,
+        'min_rest_days': min_rest_days,
+        'scheduling_strategy': scheduling_strategy,
         'group_count': len(groups_info) if groups_info else 0,
         'venues_used': len(set(m['venue'] for m in scheduled_matches)),
         'byes_by_round': {m['round_name']: m['round_byes'] for m in scheduled_matches if m.get('round_byes')},
@@ -789,6 +906,7 @@ def generate_smart_fixtures(competition, config):
             'stage_name': m.get('stage_name', 'League Stage'),
             'round_name': m['round_name'],
             'round_number': m.get('round_number', 1),
+            'leg': m.get('leg', 1),
             'group_name': m.get('group_name', ''),
             'home_team_id': h_id,
             'home_team_name': h_name,
@@ -802,8 +920,16 @@ def generate_smart_fixtures(competition, config):
             'kickoff_time': m['kickoff_time'].strftime('%H:%M') if isinstance(m['kickoff_time'], time) else str(m['kickoff_time'])[:5],
             'venue': m['venue'],
             'is_knockout': m.get('is_knockout', False),
+            'is_locked': False,
             'round_byes': m.get('round_byes', [])
         })
+
+    validation_report = validate_complete_schedule(formatted_matches, solver_constraints, locked_matches=locked_matches)
+    per_match_status = validation_report.get('per_match_status', {})
+    for fm in formatted_matches:
+        st = per_match_status.get(fm['temp_id'], {'valid': True, 'messages': []})
+        fm['is_valid'] = st['valid']
+        fm['validation_messages'] = st['messages']
 
     return {
         'success': True,
@@ -812,7 +938,8 @@ def generate_smart_fixtures(competition, config):
         'groups': groups_info,
         'matches': formatted_matches,
         'capacity_details': capacity,
-        'errors': []
+        'validation': validation_report,
+        'errors': validation_report['errors'] if not validation_report['is_valid'] else []
     }
 
 
@@ -1048,10 +1175,15 @@ def _schedule_daily_slots(
     end_date=None,
     booked_slots=None,
     global_daily_counts=None,
-    teams_played_on_date=None
+    teams_played_on_date=None,
+    scheduling_strategy='optimized'
 ):
     """
     Schedules matches into daily capacity slots using user-defined kickoff times.
+    Supports two distinct scheduling strategies:
+      - 'optimized': Efficiently packs fixtures across available dates to utilize daily match capacity
+        without leaving slots needlessly empty, while guaranteeing zero team conflicts and rest periods.
+      - 'sequential': Strictly finishes all matches of a matchweek before starting the next on a subsequent date.
     Guarantees no team plays multiple matches on the same date and no match date exceeds end_date.
     Adheres strictly to matches_per_day across all concurrent groups and rounds.
     """
@@ -1119,39 +1251,47 @@ def _schedule_daily_slots(
 
         # Advance current_date for the next matchweek
         if r_idx < num_rounds - 1:
-            rounds_remaining = num_rounds - r_idx - 1
-            if end_date and end_date > current_date:
-                # Collect remaining available preferred dates strictly after current_date up to end_date
-                rem_dates = []
-                c_chk = current_date + timedelta(days=1)
-                while c_chk <= end_date:
-                    if c_chk.weekday() in preferred_weekdays:
-                        rem_dates.append(c_chk)
-                    c_chk += timedelta(days=1)
-
-                if rem_dates:
-                    weekly_cand = _find_next_preferred_date(current_date + timedelta(days=7), preferred_weekdays)
-                    # Calculate actual match days needed for remaining rounds
-                    rounds_days_needed = sum(
-                        math.ceil(len(rounds[r].get('pairs') or rounds[r].get('pairs_with_group', [])) / max(1, matches_per_day))
-                        for r in range(r_idx + 1, num_rounds)
-                    )
-                    # If weekly cadence fits and leaves enough preferred match days for all remaining rounds, use it
-                    if weekly_cand <= end_date and len([d for d in rem_dates if d >= weekly_cand]) >= rounds_days_needed:
-                        current_date = weekly_cand
-                    else:
-                        # Distribute smoothly across remaining preferred dates so no round is pushed past end_date
-                        slack = max(0, len(rem_dates) - rounds_days_needed)
-                        idx_step = min(len(rem_dates) - 1, slack // rounds_remaining) if rounds_remaining > 0 else 0
-                        current_date = rem_dates[idx_step]
-                else:
+            if scheduling_strategy == 'optimized':
+                # In optimized strategy: if current_date is full, advance to next preferred date.
+                # If current_date has remaining capacity, keep current_date active so next round's
+                # conflict-free fixtures can utilize remaining daily slot(s).
+                if global_daily_counts[current_date] >= matches_per_day:
                     current_date = _find_next_preferred_date(current_date + timedelta(days=1), preferred_weekdays)
-            elif not end_date:
-                next_week_target = current_date + timedelta(days=7)
-                current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
             else:
-                next_week_target = current_date + timedelta(days=1)
-                current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
+                # In sequential strategy: strictly finish this matchweek and advance to next date
+                rounds_remaining = num_rounds - r_idx - 1
+                if end_date and end_date > current_date:
+                    # Collect remaining available preferred dates strictly after current_date up to end_date
+                    rem_dates = []
+                    c_chk = current_date + timedelta(days=1)
+                    while c_chk <= end_date:
+                        if c_chk.weekday() in preferred_weekdays:
+                            rem_dates.append(c_chk)
+                        c_chk += timedelta(days=1)
+
+                    if rem_dates:
+                        weekly_cand = _find_next_preferred_date(current_date + timedelta(days=7), preferred_weekdays)
+                        # Calculate actual match days needed for remaining rounds
+                        rounds_days_needed = sum(
+                            math.ceil(len(rounds[r].get('pairs') or rounds[r].get('pairs_with_group', [])) / max(1, matches_per_day))
+                            for r in range(r_idx + 1, num_rounds)
+                        )
+                        # If weekly cadence fits and leaves enough preferred match days for all remaining rounds, use it
+                        if weekly_cand <= end_date and len([d for d in rem_dates if d >= weekly_cand]) >= rounds_days_needed:
+                            current_date = weekly_cand
+                        else:
+                            # Distribute smoothly across remaining preferred dates so no round is pushed past end_date
+                            slack = max(0, len(rem_dates) - rounds_days_needed)
+                            idx_step = min(len(rem_dates) - 1, slack // rounds_remaining) if rounds_remaining > 0 else 0
+                            current_date = rem_dates[idx_step]
+                    else:
+                        current_date = _find_next_preferred_date(current_date + timedelta(days=1), preferred_weekdays)
+                elif not end_date:
+                    next_week_target = current_date + timedelta(days=7)
+                    current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
+                else:
+                    next_week_target = current_date + timedelta(days=1)
+                    current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
 
     return scheduled
 
@@ -2516,13 +2656,46 @@ def advance_knockout_bracket(competition):
                     gf.save(update_fields=['away_team', 'placeholder_away'])
 
 
-def commit_generated_fixtures(competition, matches_data, groups_data=None, tournament_format=None):
+def commit_generated_fixtures(
+    competition,
+    matches_data,
+    groups_data=None,
+    tournament_format=None,
+    constraints=None,
+    overwrite_locked=False,
+    user=None,
+    strategy='optimized',
+    config_snapshot=None
+):
     """
     Atomically writes previewed/edited fixtures into database Match and TournamentGroup records.
-    Supports placeholder fixtures (e.g. Finals with placeholder_home / placeholder_away before SFs conclude).
+    - Validates the complete draft before publishing when constraints are provided.
+    - Preserves COMPLETED, LIVE, and manually locked (is_locked=True) matches unless overwrite_locked=True.
+    - Prevents duplicate fixture creation.
+    - Records ScheduleGenerationLog for auditability.
     """
     if competition.is_completed:
         return []
+
+    validation_errors = []
+    validation_warnings = []
+    if constraints:
+        v_report = validate_complete_schedule(matches_data, constraints)
+        validation_errors = v_report.get('errors', [])
+        validation_warnings = v_report.get('warnings', [])
+        if not v_report.get('is_valid'):
+            ScheduleGenerationLog.objects.create(
+                competition=competition,
+                created_by=user,
+                strategy=strategy,
+                config_snapshot=config_snapshot or {},
+                total_matches=len(matches_data),
+                dates_used=len(set(m.get('match_date') for m in matches_data if m.get('match_date'))),
+                is_valid=False,
+                validation_errors=validation_errors,
+                validation_warnings=validation_warnings,
+            )
+            raise ValueError("; ".join(validation_errors))
 
     with transaction.atomic():
         if tournament_format:
@@ -2538,7 +2711,16 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
             from standings.models import StandingEntry
             StandingEntry.objects.filter(competition=competition).delete()
 
-        competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
+        # Preserve COMPLETED, LIVE, and locked matches unless explicitly authorized
+        if overwrite_locked:
+            competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
+        else:
+            competition.matches.filter(status=MatchStatus.SCHEDULED, is_locked=False).delete()
+
+        existing_preserved = set()
+        for em in competition.matches.all():
+            if em.home_team_id and em.away_team_id:
+                existing_preserved.add((em.home_team_id, em.away_team_id, em.leg, em.tournament_round))
 
         group_objects_map = {}
         if groups_data and isinstance(groups_data, dict):
@@ -2555,6 +2737,7 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
 
         created_matches = []
         teams_cache = {t.id: t for t in competition.teams.all()}
+        seen_in_batch = set()
 
         for m in matches_data:
             home_id = m.get('home_team_id')
@@ -2590,7 +2773,16 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
             venue = m.get('venue', 'Central Stadium')
             round_name = m.get('round_name', 'Scheduled Fixture')
             round_num = int(m.get('round_number', 1) or 1)
+            leg_num = int(m.get('leg', 1) or 1)
+            is_locked_flag = bool(m.get('is_locked', False))
             grp_name = m.get('group_name', '')
+
+            if home_team and away_team:
+                dedup_key = (home_team.id, away_team.id, leg_num, round_name)
+                if dedup_key in existing_preserved or dedup_key in seen_in_batch:
+                    continue
+                seen_in_batch.add(dedup_key)
+
             grp_obj = group_objects_map.get(grp_name) if grp_name else None
             if not grp_obj and grp_name and grp_name != 'Knockout':
                 grp_obj, _ = TournamentGroup.objects.get_or_create(competition=competition, name=grp_name)
@@ -2611,6 +2803,8 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
                 competition=competition,
                 tournament_round=round_name,
                 round_number=round_num,
+                leg=leg_num,
+                is_locked=is_locked_flag,
                 group=grp_obj,
                 home_team=home_team,
                 away_team=away_team,
@@ -2627,5 +2821,17 @@ def commit_generated_fixtures(competition, matches_data, groups_data=None, tourn
         if competition.status == CompetitionStatus.UPCOMING:
             competition.status = CompetitionStatus.ACTIVE
             competition.save(update_fields=['status'])
+
+        ScheduleGenerationLog.objects.create(
+            competition=competition,
+            created_by=user,
+            strategy=strategy,
+            config_snapshot=config_snapshot or {},
+            total_matches=len(created_matches),
+            dates_used=len(set(cm.match_date for cm in created_matches if cm.match_date)),
+            is_valid=True,
+            validation_errors=validation_errors,
+            validation_warnings=validation_warnings,
+        )
 
         return created_matches

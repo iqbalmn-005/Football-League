@@ -15,9 +15,12 @@ from fixtures.services import (
     generate_round_robin_fixtures,
     generate_smart_fixtures,
     commit_generated_fixtures,
+    parse_date_safe,
     DEFAULT_VENUES,
-    DEFAULT_KICKOFF_TIMES
+    DEFAULT_KICKOFF_TIMES,
+    WEEKDAY_MAP,
 )
+from fixtures.scheduling_engine import validate_complete_schedule
 
 
 @approved_organizer_required
@@ -79,6 +82,43 @@ def api_generate_fixture_preview(request, comp_id):
 
 @approved_organizer_required
 @require_POST
+def api_revalidate_fixtures(request, comp_id):
+    """
+    Django JSON API endpoint: Revalidates manually edited draft fixtures against all
+    scheduling constraints (daily limit, rest days, date range, team conflicts, venue slots).
+    """
+    comp = get_object_or_404(Competition, id=comp_id)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception as e:
+        return JsonResponse({'success': False, 'errors': [f"Invalid request data: {str(e)}"]}, status=400)
+
+    matches_data = data.get('matches', [])
+    preferred_days = data.get('preferred_days', [])
+    preferred_weekdays = [WEEKDAY_MAP[d] for d in preferred_days if d in WEEKDAY_MAP] or None
+
+    raw_excl = data.get('excluded_dates', [])
+    if isinstance(raw_excl, str):
+        raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
+    excluded_dates = [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None]
+
+    constraints = {
+        'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
+        'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
+        'matches_per_day': int(data.get('matches_per_day', 1) or 1),
+        'min_rest_days': int(data.get('min_rest_days', 0) or 0),
+        'excluded_dates': excluded_dates,
+        'preferred_weekdays': preferred_weekdays,
+    }
+    report = validate_complete_schedule(matches_data, constraints)
+    return JsonResponse({
+        'success': True,
+        'validation': report,
+    })
+
+
+@approved_organizer_required
+@require_POST
 def api_publish_fixtures(request, comp_id):
     """
     Django JSON API endpoint: Finalizes and atomically commits generated (and edited) fixtures to DB.
@@ -97,6 +137,8 @@ def api_publish_fixtures(request, comp_id):
     groups_data = data.get('groups', {})
     tournament_format = data.get('tournament_format')
     tournament_type = data.get('tournament_type') or data.get('knockout_system')
+    overwrite_locked = bool(data.get('overwrite_locked', False))
+    strategy = data.get('scheduling_strategy', 'optimized')
 
     if tournament_format == 'KNOCKOUT':
         if tournament_type == 'page_mcintyre':
@@ -111,12 +153,33 @@ def api_publish_fixtures(request, comp_id):
     if not matches_data:
         return JsonResponse({'success': False, 'errors': ["No fixtures to publish. Please generate fixtures first."]}, status=400)
 
-    created_matches = commit_generated_fixtures(
-        competition=comp,
-        matches_data=matches_data,
-        groups_data=groups_data,
-        tournament_format=tournament_format
-    )
+    constraints = None
+    if data.get('matches_per_day') or data.get('start_date') or data.get('end_date'):
+        raw_excl = data.get('excluded_dates', [])
+        if isinstance(raw_excl, str):
+            raw_excl = [s.strip() for s in raw_excl.split(',') if s.strip()]
+        constraints = {
+            'start_date': parse_date_safe(data.get('start_date')) if data.get('start_date') else None,
+            'end_date': parse_date_safe(data.get('end_date')) if data.get('end_date') else None,
+            'matches_per_day': int(data.get('matches_per_day', 1) or 1),
+            'min_rest_days': int(data.get('min_rest_days', 0) or 0),
+            'excluded_dates': [d for d in (parse_date_safe(x) for x in raw_excl) if d is not None],
+        }
+
+    try:
+        created_matches = commit_generated_fixtures(
+            competition=comp,
+            matches_data=matches_data,
+            groups_data=groups_data,
+            tournament_format=tournament_format,
+            constraints=constraints,
+            overwrite_locked=overwrite_locked,
+            user=request.user if request.user.is_authenticated else None,
+            strategy=strategy,
+            config_snapshot=data.get('config_snapshot') or {}
+        )
+    except ValueError as ve:
+        return JsonResponse({'success': False, 'errors': [str(ve)]}, status=400)
 
     messages.success(request, f"✓ Successfully generated and published {len(created_matches)} fixtures for {comp.name}!")
     return JsonResponse({

@@ -968,6 +968,44 @@
                     </div>
                 </div>
 
+                <div class="form-grid-3" style="margin-top:16px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">
+                            Matchweek Scheduling Strategy <span class="badge-req">*</span>
+                        </label>
+                        <select class="form-control" name="scheduling_strategy" id="schedulingStrategySelect" onchange="updateSummaryKpis()">
+                            <option value="optimized" selected>Fully Optimized Date Distribution (Default)</option>
+                            <option value="sequential">Sequential Matchweeks</option>
+                        </select>
+                        <small class="form-text" style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">
+                            <strong>Optimized:</strong> Distributes eligible fixtures across match days efficiently while respecting all constraints.
+                        </small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">
+                            Minimum Team Rest Days
+                        </label>
+                        <select class="form-control" name="min_rest_days" id="minRestDaysSelect" onchange="updateSummaryKpis()">
+                            <option value="0" selected>0 Rest Days (Consecutive days allowed, no same-day)</option>
+                            <option value="1">1 Full Rest Day between matches</option>
+                            <option value="2">2 Full Rest Days between matches</option>
+                            <option value="3">3 Full Rest Days between matches</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">
+                            Excluded Dates (Optional)
+                        </label>
+                        <input type="text" class="form-control" name="excluded_dates" id="excludedDatesInput"
+                            placeholder="YYYY-MM-DD, YYYY-MM-DD" onchange="updateSummaryKpis()">
+                        <small class="form-text" style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">
+                            Comma-separated dates to block (e.g. holidays).
+                        </small>
+                    </div>
+                </div>
+
                 <!-- Dynamic Daily Match Slots with Pre-filled Sample Times -->
                 <div class="daily-slots-card">
                     <div class="daily-slots-header">
@@ -1398,6 +1436,7 @@
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
             const isDoubleLegKo = (koLegs === 'double');
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const schedulingStrategy = document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized';
 
             if (totalTeamsCount < 2) {
                 document.getElementById('summaryEstMatches').innerText = "0";
@@ -1417,8 +1456,12 @@
                 const matchesPerRound = Math.floor(totalTeamsCount / 2);
                 estWeeks = isDouble ? rounds * 2 : rounds;
                 estMatches = estWeeks * matchesPerRound;
-                const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
-                minStageDays = estWeeks * daysPerRound;
+                if (schedulingStrategy === 'sequential') {
+                    const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
+                    minStageDays = estWeeks * daysPerRound;
+                } else {
+                    minStageDays = Math.ceil(estMatches / matchesPerDay);
+                }
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
                 const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
@@ -1426,8 +1469,14 @@
                 const gRounds = isDouble ? (teamsPerGroup - 1) * 2 : (teamsPerGroup - 1);
                 const gMatchesPerRound = Math.floor(teamsPerGroup / 2) * numGroups;
                 const groupMatches = gRounds * gMatchesPerRound;
-                const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
-                const groupDays = gRounds * daysPerGroupRound;
+
+                let groupDays = 0;
+                if (schedulingStrategy === 'sequential') {
+                    const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
+                    groupDays = gRounds * daysPerGroupRound;
+                } else {
+                    groupDays = Math.ceil(groupMatches / matchesPerDay);
+                }
 
                 let tournamentMatches = 0;
                 let koDays = 1;
@@ -1577,6 +1626,10 @@
             const qPerGroup = parseInt(document.getElementById('qualifiersPerGroupSelect').value) || (fmt === 'LEAGUE_KNOCKOUT' ? 4 : 2);
 
             const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
+            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
+            const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
+            const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
+
             const payload = {
                 tournament_format: fmt,
                 tournament_type: tType,
@@ -1587,6 +1640,9 @@
                 end_date: endDate,
                 preferred_days: preferredDays,
                 matches_per_day: matchesPerDay,
+                min_rest_days: minRestDays,
+                excluded_dates: excludedDates,
+                scheduling_strategy: document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized',
                 daily_kickoff_times: dailyKickoffTimes,
                 venues: [],
                 num_groups: numGroups,
@@ -1615,6 +1671,7 @@
 
                     generatedMatches = data.matches;
                     generatedGroups = data.groups;
+                    window.lastPreviewSummary = data.summary;
                     renderPreviewTable(data.matches, data.summary);
                     showToast(`Generated ${data.matches.length} fixtures between ${startDate} and ${endDate}!`, "success");
 
@@ -1675,8 +1732,16 @@
 
                 let rowsHtml = '';
                 dMatches.forEach((m) => {
+                    const isValid = m.is_valid !== false;
+                    const vMsgs = (m.validation_messages || []).join(' ');
+                    const statusBadge = isValid
+                        ? `<span style="font-size:11px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:12px;font-weight:700;">✓ Valid</span>`
+                        : `<span title="${vMsgs}" style="font-size:11px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-weight:700;cursor:help;">⚠️ Conflict</span>`;
+                    const legBadge = m.leg && !m.is_knockout
+                        ? `<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:3px;margin-left:4px;font-weight:600;">Leg ${m.leg}</span>`
+                        : '';
                     rowsHtml += `
-                    <tr data-temp-id="${m.temp_id}">
+                    <tr data-temp-id="${m.temp_id}" style="${isValid ? '' : 'background:rgba(239,68,68,0.06);'}">
                         <td style="width:140px;">
                             <input type="date" class="inline-input" value="${m.match_date}" onchange="updateMatchDate('${m.temp_id}', this.value)">
                         </td>
@@ -1687,6 +1752,7 @@
                             ${m.home_team_name}
                             ${m.stage_name ? `<span style="font-size:10px;background:#15803d;color:#ffffff;padding:2px 7px;border-radius:3px;margin-left:6px;font-weight:700;letter-spacing:0.3px;">${m.stage_name}</span>` : ''}
                             ${m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:2px 6px;border-radius:3px;margin-left:4px;font-weight:600;">${m.round_name}</span>` : ''}
+                            ${legBadge}
                             ${m.group_name ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
                         </td>
                         <td style="text-align:center;width:40px;">
@@ -1696,7 +1762,13 @@
                             ${m.away_team_name}
                         </td>
                         <td>
-                            <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:200px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
+                            <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:180px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
+                        </td>
+                        <td style="width:95px;text-align:center;">
+                            ${statusBadge}
+                        </td>
+                        <td style="width:60px;text-align:center;">
+                            <input type="checkbox" title="Lock fixture against regeneration" ${m.is_locked ? 'checked' : ''} onchange="toggleMatchLock('${m.temp_id}', this.checked)">
                         </td>
                     </tr>
                     `;
@@ -1738,6 +1810,8 @@
                                 <th style="text-align:center;"></th>
                                 <th>Away Club</th>
                                 <th>Ground / Pitch</th>
+                                <th style="text-align:center;">Status</th>
+                                <th style="text-align:center;">Lock</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1751,17 +1825,81 @@
 
         function updateMatchDate(tempId, val) {
             const m = generatedMatches.find(x => x.temp_id === tempId);
-            if (m) m.match_date = val;
+            if (m) {
+                m.match_date = val;
+                revalidateDraftSchedule();
+            }
         }
 
         function updateMatchTime(tempId, val) {
             const m = generatedMatches.find(x => x.temp_id === tempId);
-            if (m) m.kickoff_time = val;
+            if (m) {
+                m.kickoff_time = val;
+                revalidateDraftSchedule();
+            }
         }
 
         function updateMatchVenue(tempId, val) {
             const m = generatedMatches.find(x => x.temp_id === tempId);
-            if (m) m.venue = val;
+            if (m) {
+                m.venue = val;
+                revalidateDraftSchedule();
+            }
+        }
+
+        function toggleMatchLock(tempId, checked) {
+            const m = generatedMatches.find(x => x.temp_id === tempId);
+            if (m) m.is_locked = !!checked;
+        }
+
+        function revalidateDraftSchedule() {
+            const startDate = document.getElementById('startDateInput').value;
+            const endDate = document.getElementById('endDateInput').value;
+            const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
+            const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
+            const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
+            const preferredDays = Array.from(document.querySelectorAll('#matchDaysContainer .chip.active')).map(c => c.getAttribute('data-day'));
+
+            fetch(`/organizer/${compId}/api/revalidate-fixtures/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    matches: generatedMatches,
+                    start_date: startDate,
+                    end_date: endDate,
+                    matches_per_day: matchesPerDay,
+                    min_rest_days: minRestDays,
+                    excluded_dates: excludedDates,
+                    preferred_days: preferredDays
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.validation) {
+                        const pStatus = data.validation.per_match_status || {};
+                        generatedMatches.forEach(m => {
+                            const st = pStatus[m.temp_id];
+                            m.is_valid = st ? st.valid : true;
+                            m.validation_messages = st ? st.messages : [];
+                        });
+                        renderPreviewTable(generatedMatches, window.lastPreviewSummary || {
+                            total_matches: generatedMatches.length,
+                            matches_per_day: matchesPerDay,
+                            start_date: startDate,
+                            end_date: endDate
+                        });
+                        if (!data.validation.is_valid) {
+                            showToast(data.validation.errors[0] || "Schedule constraint conflict detected.", "error");
+                        } else {
+                            showToast("Schedule revalidated: all constraints satisfied!", "success");
+                        }
+                    }
+                })
+                .catch(() => {});
         }
 
         // PUBLISH FINAL FIXTURES TO DB
@@ -1782,6 +1920,13 @@
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
+            const startDate = document.getElementById('startDateInput').value;
+            const endDate = document.getElementById('endDateInput').value;
+            const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
+            const minRestDays = parseInt(document.getElementById('minRestDaysSelect') ? document.getElementById('minRestDaysSelect').value : '0') || 0;
+            const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
+            const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
+            const schedulingStrategy = document.getElementById('schedulingStrategySelect') ? document.getElementById('schedulingStrategySelect').value : 'optimized';
 
             fetch(`/organizer/${compId}/api/publish-fixtures/`, {
                 method: 'POST',
@@ -1794,6 +1939,12 @@
                     tournament_type: tType,
                     knockout_system: tType,
                     knockout_legs: koLegs,
+                    start_date: startDate,
+                    end_date: endDate,
+                    matches_per_day: matchesPerDay,
+                    min_rest_days: minRestDays,
+                    excluded_dates: excludedDates,
+                    scheduling_strategy: schedulingStrategy,
                     matches: generatedMatches,
                     groups: generatedGroups
                 })
