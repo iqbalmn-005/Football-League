@@ -115,7 +115,11 @@ def calculate_required_matches(
             days_per_round = math.ceil(matches_per_round / mpd)
             min_stage_days = rounds * days_per_round
         else:
-            min_stage_days = math.ceil(matches / mpd)
+            # No team can play twice on the same date, so at most (teams_count // 2) matches
+            # can occur on any single day, and each team needs `rounds` distinct dates.
+            max_parallel_matches = max(1, teams_count // 2)
+            effective_mpd = min(mpd, max_parallel_matches)
+            min_stage_days = max(rounds, math.ceil(matches / effective_mpd))
 
         return {
             'total_matches': matches,
@@ -172,7 +176,9 @@ def calculate_required_matches(
             days_per_round = math.ceil(matches_per_round / mpd)
             group_days = max_group_rounds * days_per_round
         else:
-            group_days = math.ceil(group_matches / mpd)
+            max_parallel_matches = max(1, sum(cnt // 2 for cnt in group_team_counts))
+            effective_mpd = min(mpd, max_parallel_matches)
+            group_days = max(max_group_rounds, math.ceil(group_matches / effective_mpd))
 
         # Calculate knockout stage matches based on qualification rules
         default_q = 4 if is_league_knockout else 2

@@ -1422,7 +1422,8 @@
                     const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
                     minStageDays = estWeeks * daysPerRound;
                 } else {
-                    minStageDays = Math.ceil(estMatches / matchesPerDay);
+                    const effectiveMpd = Math.min(matchesPerDay, Math.max(1, matchesPerRound));
+                    minStageDays = Math.max(estWeeks, Math.ceil(estMatches / effectiveMpd));
                 }
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
@@ -1437,7 +1438,8 @@
                     const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
                     groupDays = gRounds * daysPerGroupRound;
                 } else {
-                    groupDays = Math.ceil(groupMatches / matchesPerDay);
+                    const effectiveMpd = Math.min(matchesPerDay, Math.max(1, gMatchesPerRound));
+                    groupDays = Math.max(gRounds, Math.ceil(groupMatches / effectiveMpd));
                 }
 
                 let tournamentMatches = 0;
