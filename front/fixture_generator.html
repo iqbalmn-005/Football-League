@@ -1734,13 +1734,6 @@
                 let rowsHtml = '';
                 dMatches.forEach((m) => {
                     const isValid = m.is_valid !== false;
-                    const vMsgs = (m.validation_messages || []).join(' ');
-                    const statusBadge = isValid
-                        ? `<span style="font-size:11px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:12px;font-weight:700;">✓ Valid</span>`
-                        : `<span title="${vMsgs}" style="font-size:11px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-weight:700;cursor:help;">⚠️ Conflict</span>`;
-                    const legBadge = m.leg && !m.is_knockout
-                        ? `<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:3px;margin-left:4px;font-weight:600;">Leg ${m.leg}</span>`
-                        : '';
                     rowsHtml += `
                     <tr data-temp-id="${m.temp_id}" style="${isValid ? '' : 'background:rgba(239,68,68,0.06);'}">
                         <td style="width:140px;">
@@ -1751,9 +1744,6 @@
                         </td>
                         <td style="font-weight:700;">
                             ${m.home_team_name}
-                            ${m.stage_name ? `<span style="font-size:10px;background:#15803d;color:#ffffff;padding:2px 7px;border-radius:3px;margin-left:6px;font-weight:700;letter-spacing:0.3px;">${m.stage_name}</span>` : ''}
-                            ${m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:2px 6px;border-radius:3px;margin-left:4px;font-weight:600;">${m.round_name}</span>` : ''}
-                            ${legBadge}
                             ${m.group_name ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
                         </td>
                         <td style="text-align:center;width:40px;">
@@ -1763,13 +1753,7 @@
                             ${m.away_team_name}
                         </td>
                         <td>
-                            <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:180px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
-                        </td>
-                        <td style="width:95px;text-align:center;">
-                            ${statusBadge}
-                        </td>
-                        <td style="width:60px;text-align:center;">
-                            <input type="checkbox" title="Lock fixture against regeneration" ${m.is_locked ? 'checked' : ''} onchange="toggleMatchLock('${m.temp_id}', this.checked)">
+                            <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:200px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
                         </td>
                     </tr>
                     `;
@@ -1811,8 +1795,6 @@
                                 <th style="text-align:center;"></th>
                                 <th>Away Club</th>
                                 <th>Ground / Pitch</th>
-                                <th style="text-align:center;">Status</th>
-                                <th style="text-align:center;">Lock</th>
                             </tr>
                         </thead>
                         <tbody>
