@@ -968,32 +968,6 @@
                     </div>
                 </div>
 
-                <div class="form-grid-2" style="margin-top:16px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">
-                            Max Matches per Team / Day <span class="badge-req">*</span>
-                        </label>
-                        <select class="form-control" name="max_matches_per_team_per_day" id="maxMatchesPerTeamSelect" onchange="updateSummaryKpis()">
-                            <option value="1" selected>1 Match per team / day (Default)</option>
-                            <option value="2">2 Matches per team / day</option>
-                            <option value="3">3 Matches per team / day</option>
-                            <option value="4">4 Matches per team / day</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">
-                            Minimum Rest Between Match Days
-                        </label>
-                        <select class="form-control" name="min_rest_days" id="minRestDaysSelect" onchange="updateSummaryKpis()">
-                            <option value="0" selected>0 Rest Days (Consecutive days allowed)</option>
-                            <option value="1">1 Full Rest Day between match days</option>
-                            <option value="2">2 Full Rest Days between match days</option>
-                            <option value="3">3 Full Rest Days between match days</option>
-                        </select>
-                    </div>
-                </div>
-
                 <!-- Dynamic Daily Match Slots with Pre-filled Sample Times -->
                 <div class="daily-slots-card">
                     <div class="daily-slots-header">
@@ -1451,10 +1425,7 @@
                     const daysPerRound = Math.ceil(matchesPerRound / matchesPerDay);
                     minStageDays = estWeeks * daysPerRound;
                 } else {
-                    const teamCapPerDay = Math.max(1, Math.floor((totalTeamsCount * maxTeamMpd) / 2));
-                    const effectiveMpd = Math.min(matchesPerDay, teamCapPerDay);
-                    const minTeamDays = Math.ceil(estWeeks / maxTeamMpd);
-                    minStageDays = Math.max(minTeamDays, Math.ceil(estMatches / effectiveMpd));
+                    minStageDays = Math.ceil(estMatches / matchesPerDay);
                 }
             } else if (fmt === 'GROUP_KNOCKOUT' || fmt === 'LEAGUE_KNOCKOUT') {
                 const numGroups = fmt === 'LEAGUE_KNOCKOUT' ? 1 : (parseInt(document.getElementById('numGroupsSelect').value) || 2);
@@ -1469,10 +1440,7 @@
                     const daysPerGroupRound = Math.ceil(gMatchesPerRound / matchesPerDay);
                     groupDays = gRounds * daysPerGroupRound;
                 } else {
-                    const teamCapPerDay = Math.max(1, Math.floor((totalTeamsCount * maxTeamMpd) / 2));
-                    const effectiveMpd = Math.min(matchesPerDay, teamCapPerDay);
-                    const minTeamDays = Math.ceil(gRounds / maxTeamMpd);
-                    groupDays = Math.max(minTeamDays, Math.ceil(groupMatches / effectiveMpd));
+                    groupDays = Math.ceil(groupMatches / matchesPerDay);
                 }
 
                 let tournamentMatches = 0;

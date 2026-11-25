@@ -77,7 +77,7 @@ def calculate_required_matches(
     matches_per_day=1,
     sf_preference='same_day',
     scheduling_strategy='optimized',
-    max_matches_per_team_per_day=1
+    max_matches_per_team_per_day=None
 ):
     """
     Pure calculation function: Computes the exact number of required fixtures and rounds
@@ -102,7 +102,10 @@ def calculate_required_matches(
 
     is_double_leg = (knockout_legs == 'double')
     mpd = max(1, int(matches_per_day or 1))
-    max_team_mpd = max(1, int(max_matches_per_team_per_day or 1))
+    if max_matches_per_team_per_day is None:
+        max_team_mpd = 1 if mpd <= max(1, teams_count // 2) else max(2, math.ceil((2 * mpd) / max(2, teams_count)))
+    else:
+        max_team_mpd = max(1, int(max_matches_per_team_per_day or 1))
 
     if format_type in [TournamentFormat.ROUND_ROBIN, 'ROUND_ROBIN']:
         matches = teams_count * (teams_count - 1)
@@ -503,7 +506,13 @@ def generate_smart_fixtures(competition, config):
     scheduling_strategy = config.get('scheduling_strategy', 'optimized')  # 'optimized' or 'sequential'
     min_rest_days = int(config.get('min_rest_days', 0) or 0)
     min_rest_minutes = int(config.get('min_rest_minutes', 0) or 0)
-    max_matches_per_team_per_day = max(1, int(config.get('max_matches_per_team_per_day', 1) or 1))
+    if config.get('max_matches_per_team_per_day') is not None:
+        max_matches_per_team_per_day = max(1, int(config.get('max_matches_per_team_per_day') or 1))
+    else:
+        max_matches_per_team_per_day = (
+            1 if matches_per_day <= max(1, len(teams_qs) // 2)
+            else max(2, math.ceil((2 * matches_per_day) / max(2, len(teams_qs))))
+        )
 
     raw_excluded = config.get('excluded_dates', [])
     if isinstance(raw_excluded, str):
