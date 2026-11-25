@@ -1119,15 +1119,33 @@ def _schedule_daily_slots(
 
         # Advance current_date for the next matchweek
         if r_idx < num_rounds - 1:
+            rounds_remaining = num_rounds - r_idx - 1
             if end_date and end_date > current_date:
-                rounds_remaining = num_rounds - r_idx - 1
-                days_remaining = (end_date - current_date).days
-                if rounds_remaining * 7 <= days_remaining:
-                    step_days = 7
+                # Collect remaining available preferred dates strictly after current_date up to end_date
+                rem_dates = []
+                c_chk = current_date + timedelta(days=1)
+                while c_chk <= end_date:
+                    if c_chk.weekday() in preferred_weekdays:
+                        rem_dates.append(c_chk)
+                    c_chk += timedelta(days=1)
+
+                if rem_dates:
+                    weekly_cand = _find_next_preferred_date(current_date + timedelta(days=7), preferred_weekdays)
+                    # Calculate actual match days needed for remaining rounds
+                    rounds_days_needed = sum(
+                        math.ceil(len(rounds[r].get('pairs') or rounds[r].get('pairs_with_group', [])) / max(1, matches_per_day))
+                        for r in range(r_idx + 1, num_rounds)
+                    )
+                    # If weekly cadence fits and leaves enough preferred match days for all remaining rounds, use it
+                    if weekly_cand <= end_date and len([d for d in rem_dates if d >= weekly_cand]) >= rounds_days_needed:
+                        current_date = weekly_cand
+                    else:
+                        # Distribute smoothly across remaining preferred dates so no round is pushed past end_date
+                        slack = max(0, len(rem_dates) - rounds_days_needed)
+                        idx_step = min(len(rem_dates) - 1, slack // rounds_remaining) if rounds_remaining > 0 else 0
+                        current_date = rem_dates[idx_step]
                 else:
-                    step_days = max(1, days_remaining // (rounds_remaining + 1))
-                next_target = current_date + timedelta(days=step_days)
-                current_date = _find_next_preferred_date(next_target, preferred_weekdays)
+                    current_date = _find_next_preferred_date(current_date + timedelta(days=1), preferred_weekdays)
             elif not end_date:
                 next_week_target = current_date + timedelta(days=7)
                 current_date = _find_next_preferred_date(next_week_target, preferred_weekdays)
