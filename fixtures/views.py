@@ -41,6 +41,14 @@ def fixture_generator_page(request, comp_id):
         return redirect(f"/organizer/{comp.id}/?tab=fixtures")
 
     teams = list(comp.teams.all())
+    ct_group_map = {
+        ct.team_id: ct.group.name
+        for ct in comp.competitionteam_set.filter(group__isnull=False).select_related('group')
+    }
+    comp_teams_json = json.dumps([
+        {'id': t.id, 'name': t.name, 'short_name': t.short_name, 'group': ct_group_map.get(t.id, '')}
+        for t in teams
+    ])
     default_start_date = comp.start_date or (date.today() + timedelta(days=7))
     default_end_date = comp.end_date or (default_start_date + timedelta(days=90))
 
@@ -51,6 +59,7 @@ def fixture_generator_page(request, comp_id):
     context = {
         'competition': comp,
         'comp_teams': teams,
+        'comp_teams_json': comp_teams_json,
         'default_start_date': default_start_date.isoformat(),
         'default_end_date': default_end_date.isoformat(),
         'default_venues': venues_list,

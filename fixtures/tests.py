@@ -300,3 +300,27 @@ class ConstraintBasedFixtureSchedulerTests(TestCase):
         for n, expected_normal_days in [(4, 3), (5, 5), (6, 5), (8, 7), (10, 9)]:
             calc = calculate_required_matches(n, TournamentFormat.ROUND_ROBIN, matches_per_day=max(1, n // 2))
             self.assertEqual(calc['min_stage_days'], expected_normal_days)
+
+    def test_custom_group_assignments_respected_in_group_knockout(self):
+        t = self.teams[:6]
+        custom_groups = {
+            'Group A': [t[0].id, t[1].id, t[2].id, t[3].id],
+            'Group B': [t[4].id, t[5].id],
+        }
+        res = generate_smart_fixtures(self.comp, {
+            'tournament_format': TournamentFormat.GROUP_KNOCKOUT,
+            'round_robin_type': 'single',
+            'start_date': '2026-12-01',
+            'end_date': '2026-12-30',
+            'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'matches_per_day': 2,
+            'num_groups': 2,
+            'qualifiers_per_group': 1,
+            'group_assignments': custom_groups,
+            'selected_team_ids': [x.id for x in t],
+        })
+        self.assertTrue(res['success'], res.get('errors'))
+        group_a_matches = [m for m in res['matches'] if not m['is_knockout'] and m['group_name'] == 'Group A']
+        group_b_matches = [m for m in res['matches'] if not m['is_knockout'] and m['group_name'] == 'Group B']
+        self.assertEqual(len(group_a_matches), 6)  # 4 teams -> 6 matches
+        self.assertEqual(len(group_b_matches), 1)  # 2 teams -> 1 match

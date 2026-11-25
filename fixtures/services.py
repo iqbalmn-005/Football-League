@@ -575,17 +575,46 @@ def generate_smart_fixtures(competition, config):
         default_q = 4 if is_league_knockout else 2
         q_per_group = int(config.get('qualifiers_per_group', default_q) or default_q)
 
-        # Check if competition already has established group assignments for teams
-        existing_comp_teams = competition.competitionteam_set.filter(group__isnull=False).select_related('team', 'group')
-        existing_groups_map = {}
-        for ct in existing_comp_teams:
-            if ct.group and ct.team in teams_qs:
-                existing_groups_map.setdefault(ct.group.name, []).append(ct.team)
-
-        if existing_groups_map and len(existing_groups_map) == num_groups and not is_league_knockout and sum(len(tl) for tl in existing_groups_map.values()) == len(teams_qs):
-            groups_dict = existing_groups_map
+        custom_group_assignments = config.get('group_assignments')
+        if custom_group_assignments and isinstance(custom_group_assignments, dict) and not is_league_knockout:
+            teams_by_id = {t.id: t for t in teams_qs}
+            groups_dict = {}
+            assigned_ids = set()
+            for g_name, tid_list in custom_group_assignments.items():
+                if not tid_list:
+                    continue
+                t_objs = []
+                for tid in tid_list:
+                    try:
+                        tid_int = int(tid)
+                    except (TypeError, ValueError):
+                        continue
+                    if tid_int in teams_by_id and tid_int not in assigned_ids:
+                        t_objs.append(teams_by_id[tid_int])
+                        assigned_ids.add(tid_int)
+                if t_objs:
+                    groups_dict[g_name] = t_objs
+            # Any unassigned teams go into the smallest group
+            for t in teams_qs:
+                if t.id not in assigned_ids and groups_dict:
+                    smallest_g = min(groups_dict.keys(), key=lambda g: len(groups_dict[g]))
+                    groups_dict[smallest_g].append(t)
+                    assigned_ids.add(t.id)
+            if not groups_dict:
+                groups_dict = _allocate_groups_equally(teams_qs, num_groups)
+            num_groups = len(groups_dict)
         else:
-            groups_dict = _allocate_groups_equally(teams_qs, num_groups)
+            # Check if competition already has established group assignments for teams
+            existing_comp_teams = competition.competitionteam_set.filter(group__isnull=False).select_related('team', 'group')
+            existing_groups_map = {}
+            for ct in existing_comp_teams:
+                if ct.group and ct.team in teams_qs:
+                    existing_groups_map.setdefault(ct.group.name, []).append(ct.team)
+
+            if existing_groups_map and len(existing_groups_map) == num_groups and not is_league_knockout and sum(len(tl) for tl in existing_groups_map.values()) == len(teams_qs):
+                groups_dict = existing_groups_map
+            else:
+                groups_dict = _allocate_groups_equally(teams_qs, num_groups)
 
         groups_info = {
             g_name: [{'id': t.id, 'name': t.name, 'short_name': t.short_name, 'logo_url': t.get_logo_url()} for t in t_list]

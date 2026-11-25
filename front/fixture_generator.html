@@ -867,7 +867,7 @@
                             Number of Groups <span class="badge-req">*</span>
                         </label>
                         <select class="form-control" name="num_groups" id="numGroupsSelect"
-                            onchange="updateGroupEqualDivisionInfo(); updateSummaryKpis();">
+                            onchange="initGroupAssignments(true); renderEditableGroupList(); updateGroupEqualDivisionInfo(); updateSummaryKpis();">
                             <option value="1">1 Group (Single Group)</option>
                             <option value="2" selected>2 Groups (Group A &amp; Group B)</option>
                             <option value="4">4 Groups (Groups A, B, C, D)</option>
@@ -919,6 +919,21 @@
                     </div>
 
                     <input type="hidden" name="sf_preference" id="sfPreferenceSelect" value="same_day">
+                </div>
+
+                <!-- Editable Group List (Shown for Group-wise League) -->
+                <div id="editableGroupListSection" style="display:none;margin-top:18px;padding:16px;background:#f8fafc;border:1.5px solid var(--border);border-radius:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <strong style="font-size:13px;color:var(--dark);">👥 Group Team Assignments (Editable)</strong>
+                            <div style="font-size:11px;color:var(--muted);">Move clubs between groups before generating fixtures.</div>
+                        </div>
+                        <button type="button" class="btn btn-outline" style="font-size:11px;padding:5px 12px;"
+                            onclick="initGroupAssignments(true); renderEditableGroupList(); updateSummaryKpis();">
+                            ↺ Auto-Balance Equally
+                        </button>
+                    </div>
+                    <div id="editableGroupsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;"></div>
                 </div>
             </section>
 
@@ -1091,6 +1106,8 @@
         const csrfToken = "{{ csrf_token }}";
         const totalTeamsCount = Number("{{ comp_teams|length }}");
         const competitionName = "{{ competition.name|escapejs }}";
+        const compTeamsData = {{ comp_teams_json|safe|default:"[]" }};
+        let groupAssignmentsMap = {};
 
         const SLOT_PRESETS = {
             1: ["15:00"],
@@ -1152,6 +1169,8 @@
                 if (groupBadge) groupBadge.innerText = "GROUP MODE + TOURNAMENT";
                 handleTournamentTypeChange();
                 updateGroupEqualDivisionInfo();
+                if (Object.keys(groupAssignmentsMap).length === 0) initGroupAssignments(false);
+                renderEditableGroupList();
             } else if (fmt === 'KNOCKOUT') {
                 groupSec.style.display = 'block';
                 roundRobinGroup.style.display = 'none';
@@ -1171,7 +1190,88 @@
                 if (roundRobinLabel) roundRobinLabel.innerHTML = 'Tournament Legs / Rounds <span class="badge-req">*</span>';
                 document.getElementById('summaryFormat').innerText = "Round Robin (League)";
             }
+            renderEditableGroupList();
             updateSummaryKpis();
+        }
+
+        function initGroupAssignments(forceReset = false) {
+            const numGroups = Math.max(1, parseInt(document.getElementById('numGroupsSelect')?.value || '2') || 2);
+            const groupNames = Array.from({ length: numGroups }, (_, i) => `Group ${String.fromCharCode(65 + i)}`);
+            const nextMap = {};
+            groupNames.forEach(g => { nextMap[g] = []; });
+
+            if (!forceReset && compTeamsData.length > 0 && compTeamsData.every(t => t.group && groupNames.includes(t.group))) {
+                compTeamsData.forEach(t => { nextMap[t.group].push(t.id); });
+            } else {
+                compTeamsData.forEach((t, idx) => {
+                    const gName = groupNames[idx % numGroups];
+                    nextMap[gName].push(t.id);
+                });
+            }
+            groupAssignmentsMap = nextMap;
+        }
+
+        function moveTeamToGroup(teamId, targetGroup) {
+            const numId = Number(teamId);
+            Object.keys(groupAssignmentsMap).forEach(g => {
+                groupAssignmentsMap[g] = groupAssignmentsMap[g].filter(id => id !== numId);
+            });
+            if (!groupAssignmentsMap[targetGroup]) groupAssignmentsMap[targetGroup] = [];
+            groupAssignmentsMap[targetGroup].push(numId);
+            renderEditableGroupList();
+            updateSummaryKpis();
+        }
+
+        function renderEditableGroupList() {
+            const container = document.getElementById('editableGroupListSection');
+            const grid = document.getElementById('editableGroupsGrid');
+            if (!container || !grid) return;
+
+            const fmt = document.querySelector('input[name="tournament_format"]:checked')?.value;
+            if (fmt !== 'GROUP_KNOCKOUT') {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+
+            if (Object.keys(groupAssignmentsMap).length === 0) {
+                initGroupAssignments(false);
+            }
+
+            const groupNames = Object.keys(groupAssignmentsMap);
+            const teamById = {};
+            compTeamsData.forEach(t => { teamById[t.id] = t; });
+
+            grid.innerHTML = groupNames.map(gName => {
+                const tids = groupAssignmentsMap[gName] || [];
+                const rows = tids.map(tid => {
+                    const t = teamById[tid];
+                    if (!t) return '';
+                    const opts = groupNames.map(gn =>
+                        `<option value="${gn}" ${gn === gName ? 'selected' : ''}>${gn}</option>`
+                    ).join('');
+                    return `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;gap:8px;">
+                            <span style="font-size:12px;font-weight:700;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.name}</span>
+                            <select class="inline-input" style="font-size:11px;padding:3px 6px;width:auto;" onchange="moveTeamToGroup(${t.id}, this.value)">
+                                ${opts}
+                            </select>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div style="background:#ffffff;border:1.5px solid var(--border);border-radius:8px;padding:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f1f5f9;">
+                            <strong style="font-size:13px;color:var(--green-dark);">${gName}</strong>
+                            <span style="font-size:11px;font-weight:700;background:#ecfdf5;color:#065f46;padding:2px 8px;border-radius:10px;">${tids.length} ${tids.length === 1 ? 'Team' : 'Teams'}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            ${rows || '<div style="font-size:11px;color:var(--muted);font-style:italic;">No clubs assigned</div>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // HANDLE TOURNAMENT TYPE CHANGE (Page-McIntyre vs Standard Seeded Single-Elimination)
@@ -1623,7 +1723,8 @@
                 venues: [],
                 num_groups: numGroups,
                 qualifiers_per_group: qPerGroup,
-                sf_preference: sfPref
+                sf_preference: sfPref,
+                group_assignments: fmt === 'GROUP_KNOCKOUT' ? groupAssignmentsMap : null
             };
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {
