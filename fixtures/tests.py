@@ -324,3 +324,27 @@ class ConstraintBasedFixtureSchedulerTests(TestCase):
         group_b_matches = [m for m in res['matches'] if not m['is_knockout'] and m['group_name'] == 'Group B']
         self.assertEqual(len(group_a_matches), 6)  # 4 teams -> 6 matches
         self.assertEqual(len(group_b_matches), 1)  # 2 teams -> 1 match
+
+    def test_shuffle_seed_regeneration_preserves_completeness_and_uniqueness(self):
+        cfg_base = {
+            'tournament_format': TournamentFormat.ROUND_ROBIN,
+            'round_robin_type': 'single',
+            'start_date': '2026-12-01',
+            'end_date': '2026-12-30',
+            'preferred_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'matches_per_day': 3,
+            'selected_team_ids': [t.id for t in self.teams[:6]],
+        }
+        res1 = generate_smart_fixtures(self.comp, {**cfg_base, 'shuffle_seed': 101})
+        res2 = generate_smart_fixtures(self.comp, {**cfg_base, 'shuffle_seed': 202})
+        self.assertTrue(res1['success'] and res2['success'])
+        self.assertTrue(res1['validation']['is_valid'] and res2['validation']['is_valid'])
+        self.assertEqual(len(res1['matches']), 15)
+        self.assertEqual(len(res2['matches']), 15)
+        pairs1 = {frozenset([m['home_team_id'], m['away_team_id']]) for m in res1['matches']}
+        pairs2 = {frozenset([m['home_team_id'], m['away_team_id']]) for m in res2['matches']}
+        self.assertEqual(pairs1, pairs2)
+        self.assertEqual(len(pairs2), 15)
+        seq1 = [(m['home_team_id'], m['away_team_id'], m['match_date']) for m in res1['matches']]
+        seq2 = [(m['home_team_id'], m['away_team_id'], m['match_date']) for m in res2['matches']]
+        self.assertNotEqual(seq1, seq2)

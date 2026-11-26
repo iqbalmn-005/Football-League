@@ -827,7 +827,186 @@
             }
         }
 
+        /* 3-STEP MOBILE-FIRST WIZARD */
+        html, body {
+            overflow-x: hidden;
+        }
+
+        .wizard-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+        }
+
+        .wizard-step-pill {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            min-width: 0;
+        }
+
+        .wizard-step-pill.active {
+            background: #ecfdf5;
+            border-color: var(--green-dark);
+            color: var(--green-dark);
+        }
+
+        .wizard-step-pill.completed {
+            background: #14532d;
+            border-color: #14532d;
+            color: #ffffff;
+        }
+
+        .wizard-step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: var(--dark);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .wizard-step-pill.active .wizard-step-num {
+            background: var(--green-dark);
+            color: #ffffff;
+        }
+
+        .wizard-step-pill.completed .wizard-step-num {
+            background: var(--green-neon);
+            color: #0e1712;
+        }
+
+        .wizard-step-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .wizard-step-sub {
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .wizard-footer-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .wizard-footer-nav .btn {
+            min-height: 44px;
+            font-size: 13.5px;
+            font-weight: 700;
+            padding: 10px 20px;
+        }
+
+        .preview-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .preview-sum-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .preview-sum-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: block;
+        }
+
+        .preview-sum-val {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .team-crest-mini {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .team-inline-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         @media (max-width: 640px) {
+            .wizard-progress {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+
+            .wizard-step-pill {
+                padding: 6px 8px;
+                font-size: 11px;
+                gap: 6px;
+            }
+
+            .wizard-step-sub {
+                display: none;
+            }
+
+            .wizard-footer-nav {
+                flex-wrap: wrap;
+            }
+
+            .wizard-footer-nav .btn {
+                flex: 1 1 45%;
+            }
+
+            .preview-footer-actions {
+                flex-direction: column !important;
+            }
+
+            .preview-footer-actions .btn {
+                width: 100%;
+                min-height: 44px;
+            }
+
             .form-grid-2 {
                 grid-template-columns: 1fr;
             }
@@ -883,10 +1062,35 @@
         <!-- FORM CONTAINER -->
         <form id="fixtureGenForm" onsubmit="event.preventDefault(); requestFixturePreview();">
 
+            <!-- WIZARD PROGRESS INDICATOR -->
+            <div class="wizard-progress" id="wizardProgressBar">
+                <div class="wizard-step-pill active" id="stepPill1" onclick="if (currentWizardStep > 1) goToWizardStep(1);">
+                    <span class="wizard-step-num" id="stepNum1">1</span>
+                    <div class="wizard-step-text">
+                        <span>Step 1 of 3</span>
+                        <span class="wizard-step-sub">Format</span>
+                    </div>
+                </div>
+                <div class="wizard-step-pill" id="stepPill2" onclick="if (currentWizardStep > 2) goToWizardStep(2);">
+                    <span class="wizard-step-num" id="stepNum2">2</span>
+                    <div class="wizard-step-text">
+                        <span>Step 2 of 3</span>
+                        <span class="wizard-step-sub">Playoff &amp; Groups</span>
+                    </div>
+                </div>
+                <div class="wizard-step-pill" id="stepPill3">
+                    <span class="wizard-step-num" id="stepNum3">3</span>
+                    <div class="wizard-step-text">
+                        <span>Step 3 of 3</span>
+                        <span class="wizard-step-sub">Schedule</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- ==========================================
                  SECTION 1: TOURNAMENT FORMAT
                  ========================================== -->
-            <section class="wizard-section">
+            <section class="wizard-section" id="wizardStep1">
                 <div class="section-header">
                     <div class="section-title">
                         <div>
@@ -937,6 +1141,12 @@
                         <option value="single" selected>Single Round (Play each opponent once)</option>
                         <option value="double">Double Round (Home &amp; Away legs)</option>
                     </select>
+                </div>
+
+                <div class="wizard-footer-nav" style="justify-content:flex-end;">
+                    <button type="button" class="btn btn-primary" onclick="nextFromStep1()">
+                        Confirm &amp; Continue →
+                    </button>
                 </div>
             </section>
 
@@ -1028,12 +1238,26 @@
                     </div>
                     <div id="editableGroupsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;"></div>
                 </div>
+
+                <div id="pureLeagueStep2Notice" style="display:none;padding:14px 16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;font-size:13px;color:#065f46;font-weight:600;">
+                    ✓ Single League Table selected — all clubs play each other in round-robin format with no knockout playoff stage.
+                </div>
+
+                <div class="wizard-footer-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToWizardStep(1)">
+                        ← Back
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="nextFromStep2()">
+                        Confirm &amp; Continue →
+                    </button>
+                </div>
             </section>
 
 
             <!-- ==========================================
                  SECTION 3: SCHEDULING, DATES & DAILY SLOTS
                  ========================================== -->
+            <div id="wizardStep3" style="display:none;">
             <section class="wizard-section">
                 <div class="section-header">
                     <div class="section-title">
@@ -1138,33 +1362,65 @@
                     </div>
                 </div>
 
-                <div style="display:flex;gap:10px;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;width:100%;justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,0.4);min-height:44px;"
+                        onclick="goToWizardStep(2)">
+                        ← Back
+                    </button>
                     <button type="button" class="btn btn-primary" id="btnGeneratePreview"
-                        onclick="requestFixturePreview()" style="font-size:14px;padding:12px 24px;">
+                        onclick="requestFixturePreview(false)" style="font-size:14px;padding:12px 24px;min-height:44px;">
                         ⚡ Generate Fixtures Preview
                     </button>
                 </div>
             </div>
+            </div> <!-- /#wizardStep3 -->
 
             <!-- PREVIEW CARD TABLE -->
-            <div class="preview-card" id="previewContainer">
+            <div class="preview-card" id="previewContainer" style="display:none;">
                 <div class="preview-header">
                     <div>
                         <h2>Generated Fixture Schedule Preview</h2>
                         <span style="font-size:11px;color:#a4b4a8;" id="previewStatsText">
-                            Review matches below. You can adjust kickoff times, dates, and venues directly before
-                            publishing.
+                            Review matches below. You can adjust kickoff times, dates, and venues directly before publishing.
                         </span>
                     </div>
-                    <div style="display:flex;gap:10px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <button type="button" class="btn btn-outline"
-                            style="color:#fff;border-color:rgba(255,255,255,0.4);" onclick="requestFixturePreview()">
-                            ↺ Regenerate
+                            style="color:#fff;border-color:rgba(255,255,255,0.4);" onclick="backToSchedulingFromPreview()">
+                            ← Back to Scheduling
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btnRegenerateTop"
+                            style="color:#fff;border-color:rgba(255,255,255,0.4);" onclick="requestFixturePreview(true)">
+                            ↺ Regenerate Fixtures
                         </button>
                         <button type="button" class="btn btn-success" id="btnPublishFixtures"
                             onclick="publishFinalFixtures()">
-                            ✓ Publish &amp; Save Fixtures
+                            ✓ Publish Fixtures
                         </button>
+                    </div>
+                </div>
+
+                <!-- FIXTURE SUMMARY CARD -->
+                <div class="preview-summary-grid" id="previewSummaryGrid">
+                    <div class="preview-sum-item">
+                        <span class="preview-sum-label">Competition</span>
+                        <span class="preview-sum-val">{{ competition.name }}</span>
+                    </div>
+                    <div class="preview-sum-item">
+                        <span class="preview-sum-label">Format</span>
+                        <span class="preview-sum-val" id="prevSumFormat">-</span>
+                    </div>
+                    <div class="preview-sum-item">
+                        <span class="preview-sum-label">Total Teams</span>
+                        <span class="preview-sum-val" id="prevSumTeams">{{ comp_teams|length }}</span>
+                    </div>
+                    <div class="preview-sum-item">
+                        <span class="preview-sum-label">Total Matches</span>
+                        <span class="preview-sum-val" id="prevSumMatches">-</span>
+                    </div>
+                    <div class="preview-sum-item">
+                        <span class="preview-sum-label">Scheduled Dates</span>
+                        <span class="preview-sum-val" id="prevSumDates">-</span>
                     </div>
                 </div>
 
@@ -1172,14 +1428,19 @@
                     <!-- Populated dynamically with matchweeks and editable rows -->
                 </div>
 
-                <div
-                    style="padding:16px 20px;background:#fbfcf9;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px;">
-                    <button type="button" class="btn btn-outline" onclick="requestFixturePreview()">
-                        ↺ Regenerate Fixtures
+                <div class="preview-footer-actions"
+                    style="padding:16px 20px;background:#fbfcf9;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-outline" onclick="backToSchedulingFromPreview()">
+                        ← Back to Scheduling
                     </button>
-                    <button type="button" class="btn btn-success" onclick="publishFinalFixtures()">
-                        ✓ Publish &amp; Save All Fixtures to League
-                    </button>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-outline" id="btnRegenerateBottom" onclick="requestFixturePreview(true)">
+                            ↺ Regenerate Fixtures
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="publishFinalFixtures()">
+                            ✓ Publish Fixtures
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1197,6 +1458,8 @@
         // GLOBAL STATE
         let generatedMatches = [];
         let generatedGroups = {};
+        let currentWizardStep = 1;
+        let regenerateCounter = 0;
         const compId = Number("{{ competition.id }}");
         const csrfToken = "{{ csrf_token }}";
         const totalTeamsCount = Number("{{ comp_teams|length }}");
@@ -1217,6 +1480,99 @@
             5: ["10:00", "12:15", "14:30", "16:45", "19:00"],
             6: ["09:30", "11:30", "13:30", "15:30", "17:30", "19:30"]
         };
+
+        // 3-STEP WIZARD NAVIGATION
+        function goToWizardStep(step, pushHistory = true) {
+            currentWizardStep = step;
+            const s1 = document.getElementById('wizardStep1');
+            const s2 = document.getElementById('sectionGroupSettings');
+            const s3 = document.getElementById('wizardStep3');
+            const prev = document.getElementById('previewContainer');
+            const prog = document.getElementById('wizardProgressBar');
+
+            if (s1) s1.style.display = (step === 1) ? 'block' : 'none';
+            if (s2) s2.style.display = (step === 2) ? 'block' : 'none';
+            if (s3) s3.style.display = (step === 3) ? 'block' : 'none';
+            if (prev) prev.style.display = (step === 'preview') ? 'block' : 'none';
+            if (prog) prog.style.display = (step === 'preview') ? 'none' : 'flex';
+
+            const activeNum = (step === 'preview') ? 3 : Number(step);
+            for (let i = 1; i <= 3; i++) {
+                const pill = document.getElementById('stepPill' + i);
+                const numEl = document.getElementById('stepNum' + i);
+                if (!pill || !numEl) continue;
+                pill.classList.remove('active', 'completed');
+                if (i < activeNum || step === 'preview') {
+                    pill.classList.add('completed');
+                    numEl.textContent = '✓';
+                } else if (i === activeNum) {
+                    pill.classList.add('active');
+                    numEl.textContent = String(i);
+                } else {
+                    numEl.textContent = String(i);
+                }
+            }
+
+            if (step === 2) {
+                const fmt = document.querySelector('input[name="tournament_format"]:checked')?.value || 'ROUND_ROBIN';
+                const pureNotice = document.getElementById('pureLeagueStep2Notice');
+                const formGrid2 = s2 ? s2.querySelector('.form-grid-2') : null;
+                if (fmt === 'ROUND_ROBIN') {
+                    if (formGrid2) formGrid2.style.display = 'none';
+                    if (pureNotice) pureNotice.style.display = 'block';
+                    document.getElementById('groupSectionTitle').innerText = "League Table & Tournament Playoff Settings";
+                    document.getElementById('groupSectionBadge').innerText = "LEAGUE MODE";
+                } else {
+                    if (formGrid2) formGrid2.style.display = 'grid';
+                    if (pureNotice) pureNotice.style.display = 'none';
+                }
+                renderEditableGroupList();
+            }
+
+            if (pushHistory && window.history && window.history.pushState) {
+                window.history.pushState({ wizardStep: step }, '', window.location.href);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextFromStep1() {
+            const fmt = document.querySelector('input[name="tournament_format"]:checked');
+            if (!fmt) {
+                showToast("Please select a tournament format.", "error");
+                return;
+            }
+            goToWizardStep(2);
+        }
+
+        function nextFromStep2() {
+            const fmt = document.querySelector('input[name="tournament_format"]:checked')?.value;
+            if (fmt === 'GROUP_KNOCKOUT') {
+                const groups = Object.entries(groupAssignmentsMap || {});
+                const nonEmpty = groups.filter(([, tids]) => tids.length > 0);
+                if (nonEmpty.length < 2) {
+                    showToast("Group-wise League requires at least 2 groups with teams assigned.", "error");
+                    return;
+                }
+                const tooSmall = nonEmpty.find(([, tids]) => tids.length < 2);
+                if (tooSmall) {
+                    showToast(`${tooSmall[0]} must have at least 2 teams.`, "error");
+                    return;
+                }
+            }
+            goToWizardStep(3);
+        }
+
+        function backToSchedulingFromPreview() {
+            goToWizardStep(3);
+        }
+
+        window.addEventListener('popstate', function (e) {
+            if (e.state && e.state.wizardStep) {
+                goToWizardStep(e.state.wizardStep, false);
+            } else {
+                goToWizardStep(1, false);
+            }
+        });
 
         // TOURNAMENT FORMAT SWITCHING
         function selectFormat(fmt) {
@@ -1288,7 +1644,7 @@
                 updateGroupEqualDivisionInfo();
             } else {
                 // Pure Round Robin / League
-                groupSec.style.display = 'none';
+                if (currentWizardStep !== 2) groupSec.style.display = 'none';
                 roundRobinGroup.style.display = 'block';
                 if (roundRobinLabel) roundRobinLabel.innerHTML = 'Tournament Legs / Rounds <span class="badge-req">*</span>';
                 document.getElementById('summaryFormat').innerText = "Round Robin (League)";
@@ -1780,8 +2136,8 @@
             throw new Error(`Server returned an unexpected HTML response (HTTP ${res.status}). Please check server logs.`);
         }
 
-        // GENERATE FIXTURE PREVIEW AJAX
-        function requestFixturePreview() {
+        // GENERATE FIXTURE PREVIEW AJAX (supports initial generation & Regenerate Fixtures)
+        function requestFixturePreview(isRegenerate = false) {
             if (totalTeamsCount < 2) {
                 showToast("At least 2 participating clubs are required in this league.", "error");
                 return;
@@ -1812,8 +2168,13 @@
             }
 
             const btn = document.getElementById('btnGeneratePreview');
-            btn.disabled = true;
-            btn.innerText = "⏳ Generating Conflict-Free Schedule...";
+            const regenTop = document.getElementById('btnRegenerateTop');
+            const regenBot = document.getElementById('btnRegenerateBottom');
+            if (btn) { btn.disabled = true; btn.innerText = "⏳ Generating Conflict-Free Schedule..."; }
+            if (isRegenerate) {
+                if (regenTop) { regenTop.disabled = true; regenTop.innerText = "⏳ Regenerating..."; }
+                if (regenBot) { regenBot.disabled = true; regenBot.innerText = "⏳ Regenerating..."; }
+            }
 
             // Matches per day & slot times
             const matchesPerDay = parseInt(document.getElementById('matchesPerDaySelect').value) || 1;
@@ -1829,6 +2190,7 @@
             const sfPref = document.getElementById('sfPreferenceSelect') ? document.getElementById('sfPreferenceSelect').value : 'same_day';
             const excludedDatesRaw = document.getElementById('excludedDatesInput') ? document.getElementById('excludedDatesInput').value : '';
             const excludedDates = excludedDatesRaw.split(',').map(s => s.trim()).filter(Boolean);
+            const shuffleSeed = isRegenerate ? (++regenerateCounter * 997 + (Date.now() % 100000)) : null;
 
             const payload = {
                 tournament_format: fmt,
@@ -1847,8 +2209,13 @@
                 num_groups: numGroups,
                 qualifiers_per_group: qPerGroup,
                 sf_preference: sfPref,
+                shuffle_seed: shuffleSeed,
                 group_assignments: fmt === 'GROUP_KNOCKOUT' ? groupAssignmentsMap : null
             };
+
+            const prevSignature = isRegenerate
+                ? JSON.stringify(generatedMatches.map(m => [m.match_date, m.kickoff_time, m.home_team_id, m.away_team_id]))
+                : '';
 
             fetch(`/organizer/${compId}/api/generate-preview/`, {
                 method: 'POST',
@@ -1862,11 +2229,11 @@
             })
                 .then(parseApiJsonResponse)
                 .then(({ data }) => {
-                    btn.disabled = false;
-                    btn.innerText = "⚡ Generate Fixtures Preview";
+                    if (btn) { btn.disabled = false; btn.innerText = "⚡ Generate Fixtures Preview"; }
+                    if (regenTop) { regenTop.disabled = false; regenTop.innerText = "↺ Regenerate Fixtures"; }
+                    if (regenBot) { regenBot.disabled = false; regenBot.innerText = "↺ Regenerate Fixtures"; }
 
                     if (!data.success) {
-                        document.getElementById('previewContainer').style.display = 'none';
                         const errMsg = (data.errors && data.errors[0]) || data.error || "Failed to generate fixtures.";
                         showToast(errMsg, "error");
                         if (data.redirect) {
@@ -1875,17 +2242,23 @@
                         return;
                     }
 
+                    const newSignature = JSON.stringify((data.matches || []).map(m => [m.match_date, m.kickoff_time, m.home_team_id, m.away_team_id]));
                     generatedMatches = data.matches;
                     generatedGroups = data.groups;
                     window.lastPreviewSummary = data.summary;
                     renderPreviewTable(data.matches, data.summary);
-                    showToast(`Generated ${data.matches.length} fixtures between ${startDate} and ${endDate}!`, "success");
+                    goToWizardStep('preview');
 
-                    document.getElementById('previewContainer').scrollIntoView({ behavior: 'smooth' });
+                    if (isRegenerate && prevSignature && newSignature === prevSignature) {
+                        showToast("Only one valid schedule arrangement exists for the current tight constraints.", "success");
+                    } else {
+                        showToast(`${isRegenerate ? 'Regenerated' : 'Generated'} ${data.matches.length} fixtures between ${startDate} and ${endDate}!`, "success");
+                    }
                 })
                 .catch(err => {
-                    btn.disabled = false;
-                    btn.innerText = "⚡ Generate Fixtures Preview";
+                    if (btn) { btn.disabled = false; btn.innerText = "⚡ Generate Fixtures Preview"; }
+                    if (regenTop) { regenTop.disabled = false; regenTop.innerText = "↺ Regenerate Fixtures"; }
+                    if (regenBot) { regenBot.disabled = false; regenBot.innerText = "↺ Regenerate Fixtures"; }
                     showToast(`Error: ${err.message}`, "error");
                 });
         }
@@ -1934,6 +2307,17 @@
             // Sort dates chronologically
             const sortedDates = Object.keys(grouped).sort();
 
+            // Populate Fixture Summary Card
+            const prevSumFormat = document.getElementById('prevSumFormat');
+            const prevSumTeams = document.getElementById('prevSumTeams');
+            const prevSumMatches = document.getElementById('prevSumMatches');
+            const prevSumDates = document.getElementById('prevSumDates');
+            if (prevSumFormat) prevSumFormat.innerText = summary.format_name || document.getElementById('summaryFormat').innerText;
+            if (prevSumTeams) prevSumTeams.innerText = teamCountDisp;
+            if (prevSumMatches) prevSumMatches.innerText = summary.total_matches;
+            if (prevSumDates) prevSumDates.innerText = `${summary.dates_used || sortedDates.length} Days`;
+
+            let matchCounter = 0;
             for (const dateKey of sortedDates) {
                 const dMatches = grouped[dateKey];
                 const block = document.createElement('div');
@@ -1941,23 +2325,37 @@
 
                 let rowsHtml = '';
                 dMatches.forEach((m) => {
+                    matchCounter += 1;
                     const isValid = m.is_valid !== false;
+                    const homeLogoHtml = m.home_team_logo
+                        ? `<img src="${m.home_team_logo}" alt="${m.home_team_name}" class="team-crest-mini">`
+                        : '';
+                    const awayLogoHtml = m.away_team_logo
+                        ? `<img src="${m.away_team_logo}" alt="${m.away_team_name}" class="team-crest-mini">`
+                        : '';
+                    const metaTags = [
+                        `<span style="font-size:10px;font-weight:800;color:#475569;">#${matchCounter}</span>`,
+                        m.round_name ? `<span style="font-size:10px;background:#e9efdf;color:#245d3c;padding:1px 6px;border-radius:3px;font-weight:700;">${m.round_name}</span>` : '',
+                        m.is_knockout && m.stage_name ? `<span style="font-size:10px;background:#15803d;color:#fff;padding:1px 6px;border-radius:3px;font-weight:700;">${m.stage_name}</span>` : ''
+                    ].filter(Boolean).join(' ');
+
                     rowsHtml += `
                     <tr data-temp-id="${m.temp_id}" style="${isValid ? '' : 'background:rgba(239,68,68,0.06);'}">
                         <td data-label="Match Date" style="width:140px;">
                             <input type="date" class="inline-input" value="${m.match_date}" onchange="updateMatchDate('${m.temp_id}', this.value)">
+                            <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${metaTags}</div>
                         </td>
                         <td data-label="Kickoff Time" style="width:110px;">
                             <input type="time" class="inline-input" value="${m.kickoff_time}" onchange="updateMatchTime('${m.temp_id}', this.value)">
                         </td>
                         <td data-label="Home Club" class="full-row-mobile" style="font-weight:700;">
-                            ${m.home_team_name}
+                            <span class="team-inline-wrap">${homeLogoHtml}<span>${m.home_team_name}</span></span>
                         </td>
                         <td class="vs-cell" style="text-align:center;width:40px;">
                             <span class="vs-tag">VS</span>
                         </td>
                         <td data-label="Away Club" class="full-row-mobile" style="font-weight:700;">
-                            ${m.away_team_name}
+                            <span class="team-inline-wrap">${awayLogoHtml}<span>${m.away_team_name}</span></span>
                         </td>
                         <td data-label="Ground / Pitch" class="full-row-mobile">
                             <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:200px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
@@ -2178,6 +2576,10 @@
             renderEditableGroupList();
             handleStartDateChange();
             updateSummaryKpis();
+            goToWizardStep(1, false);
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({ wizardStep: 1 }, '', window.location.href);
+            }
         });
     </script>
 </body>

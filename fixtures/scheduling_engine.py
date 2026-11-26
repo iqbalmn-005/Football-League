@@ -1,4 +1,5 @@
 import math
+import random
 from datetime import date, datetime, time, timedelta
 from collections import defaultdict, Counter
 
@@ -27,7 +28,7 @@ def _get_team_venue(team_obj):
     return getattr(team_obj, 'home_venue', '') or ''
 
 
-def generate_league_pairings(groups_dict, is_double_round=False):
+def generate_league_pairings(groups_dict, is_double_round=False, shuffle_seed=None):
     """
     Phase 2: Pure Pairing Generation.
     Generates all required match pairings for each group (or single league)
@@ -35,12 +36,15 @@ def generate_league_pairings(groups_dict, is_double_round=False):
     Preserves home/away balance, reversed second-leg pairings, group identity,
     matchweek identity, and leg identity (1 or 2).
     """
+    rng = random.Random(shuffle_seed) if shuffle_seed is not None else None
     all_group_rounds = []
     for g_name, teams in groups_dict.items():
         n = len(teams)
         if n < 2:
             continue
         team_list = list(teams)
+        if rng is not None:
+            rng.shuffle(team_list)
         if n % 2 != 0:
             team_list.append(None)  # BYE placeholder
             n += 1

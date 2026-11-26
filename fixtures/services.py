@@ -736,7 +736,8 @@ def generate_smart_fixtures(competition, config):
         scheduled_matches.extend(knockout_matches)
 
     elif format_type == TournamentFormat.ROUND_ROBIN or format_type == 'ROUND_ROBIN':
-        pairings = generate_league_pairings({'': teams_qs}, is_double_round=(round_robin_type == 'double'))
+        shuffle_seed = config.get('shuffle_seed')
+        pairings = generate_league_pairings({'': teams_qs}, is_double_round=(round_robin_type == 'double'), shuffle_seed=shuffle_seed)
         avail_dates = generate_available_dates(
             start_date=start_date,
             end_date=end_date,
@@ -786,7 +787,8 @@ def generate_smart_fixtures(competition, config):
             qf_days = math.ceil(4 / matches_per_day)
             ko_days_needed = (qf_days * 2 + sf_days * 2 + 1) if two_legged_ko else (qf_days + sf_days + 1)
 
-        pairings = generate_league_pairings(groups_dict, is_double_round=(round_robin_type == 'double'))
+        shuffle_seed = config.get('shuffle_seed')
+        pairings = generate_league_pairings(groups_dict, is_double_round=(round_robin_type == 'double'), shuffle_seed=shuffle_seed)
         all_avail_dates = generate_available_dates(
             start_date=start_date,
             end_date=end_date,
