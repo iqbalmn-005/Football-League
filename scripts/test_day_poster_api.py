@@ -164,7 +164,9 @@ def run_tests():
         assert 'DAY 2' in html
         assert '21 December 2026' in html
         assert '22 December 2026' in html
-        assert f'downloadDayPoster({comp.id}, \'{d1.isoformat()}\', this)' in html
+        assert 'downloadDayPoster(this.dataset.compId, this.dataset.date, this)' in html
+        assert f'data-comp-id="{comp.id}"' in html
+        assert f'data-date="{d1.isoformat()}"' in html
         print("✓ Organizer Fixtures page renders day-wise grouped schedule with inline Download Poster buttons")
 
         # Republish / update kickoff time -> fresh data returned
