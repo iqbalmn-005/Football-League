@@ -33,9 +33,16 @@ def recalculate_competition_standings(competition):
         if not comp_teams.exists():
             return []
 
-        # Find distinct groups or None
+        # Only treat competition as group-staged if it is GROUP_KNOCKOUT or actually has group-linked matches
         groups = list(competition.groups.all())
-        if groups:
+        use_groups = bool(
+            groups
+            and (
+                getattr(competition, 'is_group_stage', False)
+                or competition.matches.filter(group__isnull=False).exists()
+            )
+        )
+        if use_groups:
             # Clean up stale entries:
             # 1. Any entry where group is None when groups exist
             StandingEntry.objects.filter(competition=competition, group__isnull=True).delete()
@@ -47,7 +54,7 @@ def recalculate_competition_standings(competition):
                 StandingEntry.objects.filter(competition=competition, group=grp).exclude(team_id__in=grp_team_ids).delete()
         else:
             groups = [None]
-            # Clean up stale entries with a group when competition has no groups
+            # Clean up stale entries with a group when competition is single-table
             StandingEntry.objects.filter(competition=competition, group__isnull=False).delete()
             reg_team_ids = [ct.team_id for ct in comp_teams]
             StandingEntry.objects.filter(competition=competition).exclude(team_id__in=reg_team_ids).delete()
@@ -88,7 +95,10 @@ def recalculate_competition_standings(competition):
 
             # Process all completed matches ordered by date
             ordered_matches = matches_qs.order_by('match_date', 'kickoff_time')
+            is_league_ko = (getattr(competition, 'tournament_format', '') == 'LEAGUE_KNOCKOUT')
             for match in ordered_matches:
+                if group is None and is_league_ko and match.is_knockout:
+                    continue
                 if match.home_score is None or match.away_score is None:
                     continue
 

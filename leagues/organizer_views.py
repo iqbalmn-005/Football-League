@@ -145,7 +145,8 @@ def organizer_dashboard(request, comp_id=None):
         qualified_teams = []
         is_group_stage_completed = False
 
-        if active_competition.is_group_stage or groups.exists():
+        has_group_matches = active_competition.matches.filter(group__isnull=False).exists()
+        if active_competition.is_group_stage or (groups.exists() and has_group_matches):
             from leagues.group_service import (
                 get_group_standings_data, get_group_distribution_status,
                 check_group_stage_completed, update_qualified_teams
@@ -157,10 +158,15 @@ def organizer_dashboard(request, comp_id=None):
                 update_qualified_teams(active_competition)
                 advance_knockout_bracket(active_competition)
             qualified_teams = list(active_competition.qualified_teams.select_related('team', 'group').order_by('group__name', 'rank_in_group'))
-        elif active_competition.tournament_format in ['LEAGUE_KNOCKOUT', 'PAGE_MCINTYRE']:
-            league_matches = active_competition.matches.filter(tournament_round__icontains='Matchweek')
-            if league_matches.exists() and not league_matches.exclude(status=MatchStatus.COMPLETED).exists():
-                advance_knockout_bracket(active_competition)
+        elif not active_competition.is_pure_knockout:
+            if not standings.exists() or (completed_matches.exists() and not standings.filter(played__gt=0).exists()):
+                from standings.services import recalculate_competition_standings
+                recalculate_competition_standings(active_competition)
+                standings = StandingEntry.objects.filter(competition=active_competition).select_related('team').order_by('position')
+            if active_competition.tournament_format in ['LEAGUE_KNOCKOUT', 'PAGE_MCINTYRE']:
+                league_matches = active_competition.matches.filter(tournament_round__icontains='Matchweek')
+                if league_matches.exists() and not league_matches.exclude(status=MatchStatus.COMPLETED).exists():
+                    advance_knockout_bracket(active_competition)
 
         # Eligible co-organizers to invite
         co_organizers = User.objects.filter(

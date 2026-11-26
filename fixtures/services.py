@@ -2807,6 +2807,11 @@ def commit_generated_fixtures(
             from standings.models import StandingEntry
             StandingEntry.objects.filter(competition=competition).delete()
 
+        # Clear stale TournamentGroup records when publishing a non-group format
+        if not groups_data and not competition.is_group_stage:
+            competition.groups.all().delete()
+            CompetitionTeam.objects.filter(competition=competition, group__isnull=False).update(group=None)
+
         # Preserve COMPLETED, LIVE, and locked matches unless explicitly authorized
         if overwrite_locked:
             competition.matches.filter(status=MatchStatus.SCHEDULED).delete()
