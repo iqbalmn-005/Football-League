@@ -2865,8 +2865,7 @@
                                                     action="/super-admin/organizer/{{ org.id }}/toggle-status/"
                                                     style="display:inline;">
                                                     {% csrf_token %}
-                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not
-                                                    org.profile.is_active_organizer %}
+                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not org.profile.is_active_organizer %}
                                                     <button class="btn btn-primary"
                                                         style="padding:4px 8px;font-size:11px"
                                                         type="submit">Reactivate</button>
@@ -3005,15 +3004,13 @@
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if
-                                        platform_settings.allow_organizer_registration %}checked{% endif %}>
+                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if platform_settings.allow_organizer_registration %}checked{% endif %}>
                                     <label for="allowReg" style="font-size:13px;font-weight:700;cursor:pointer;">Allow
                                         Public Organizer Applications</label>
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if
-                                        platform_settings.auto_publish_fixtures %}checked{% endif %}>
+                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if platform_settings.auto_publish_fixtures %}checked{% endif %}>
                                     <label for="autoPub"
                                         style="font-size:13px;font-weight:700;cursor:pointer;">Auto-publish generated
                                         fixtures to public portal</label>
