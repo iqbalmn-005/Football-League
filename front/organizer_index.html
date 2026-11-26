@@ -6043,6 +6043,11 @@
                             </div>
                         </div>
 
+                        <div id="dayPosterErrorBanner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12px;font-weight:600;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                            <span id="dayPosterErrorText">Failed to generate poster.</span>
+                            <button type="button" class="btn btn-outline" id="dayPosterRetryBtn" style="padding:5px 12px;font-size:11px;border-color:#fca5a5;color:#991b1b;background:#fff;">Retry</button>
+                        </div>
+
                         <!-- DESKTOP FIXTURES TABLE (Screens > 768px) -->
                         <div class="table-wrap fixtures-desktop-table">
                             <table>
@@ -6055,7 +6060,29 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for m in upcoming_matches %}
+                                    {% for day_group in upcoming_by_date %}
+                                    <tr style="background:#f3f7ee;border-top:2px solid #d5e2c8;border-bottom:1px solid #d5e2c8;">
+                                        <td colspan="4" style="padding:10px 14px;">
+                                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                                                <div style="display:flex;align-items:center;gap:10px;">
+                                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:6px;background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:13px;font-weight:800;letter-spacing:0.6px;">
+                                                        DAY {{ day_group.day_number }}
+                                                    </span>
+                                                    <strong style="font-size:13px;color:var(--dark);">{{ day_group.display_date }}</strong>
+                                                </div>
+                                                <button type="button"
+                                                    class="btn btn-primary day-poster-download-btn"
+                                                    data-comp-id="{{ active_competition.id }}"
+                                                    data-date="{{ day_group.iso_date }}"
+                                                    data-day="{{ day_group.day_number }}"
+                                                    onclick="downloadDayPoster({{ active_competition.id }}, '{{ day_group.iso_date }}', this)"
+                                                    style="padding:6px 14px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                                    <span>⬇ Download Poster</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% for m in day_group.matches %}
                                     <tr {% if next_match and m.id == next_match.id %}class="highlight-next-match-row"{% endif %}>
                                         <td>
                                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -6103,6 +6130,7 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    {% endfor %}
                                     {% empty %}
                                     <tr>
                                         <td colspan="4" style="text-align:center;padding:40px 20px;color:var(--muted)">
@@ -6139,7 +6167,25 @@
 
                         <!-- MOBILE FIXTURE CARDS VIEW (Screens <= 768px) -->
                         <div class="fixtures-mobile-cards">
-                            {% for m in upcoming_matches %}
+                            {% for day_group in upcoming_by_date %}
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:10px 0 8px;border-radius:10px;background:#f3f7ee;border:1px solid #d5e2c8;">
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 9px;border-radius:6px;background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:12px;font-weight:800;letter-spacing:0.6px;">
+                                        DAY {{ day_group.day_number }}
+                                    </span>
+                                    <strong style="font-size:12px;color:var(--dark);">{{ day_group.display_date }}</strong>
+                                </div>
+                                <button type="button"
+                                    class="btn btn-primary day-poster-download-btn"
+                                    data-comp-id="{{ active_competition.id }}"
+                                    data-date="{{ day_group.iso_date }}"
+                                    data-day="{{ day_group.day_number }}"
+                                    onclick="downloadDayPoster({{ active_competition.id }}, '{{ day_group.iso_date }}', this)"
+                                    style="padding:6px 12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                    <span>⬇ Download Poster</span>
+                                </button>
+                            </div>
+                            {% for m in day_group.matches %}
                             <div
                                 class="fixture-mcard {% if next_match and m.id == next_match.id %}fixture-mcard-next{% endif %}">
                                 <div class="fmc-top">
@@ -6222,6 +6268,7 @@
                                     {% endif %}
                                 </div>
                             </div>
+                            {% endfor %}
                             {% empty %}
                             <div style="text-align:center;padding:40px 20px;color:var(--muted)">
                                 {% if active_competition.is_completed %}
@@ -6245,51 +6292,6 @@
                             </div>
                             {% endfor %}
                         </div>
-                    </div>
-
-                    <!-- DAY-WISE FIXTURE POSTERS -->
-                    <div class="card" id="dayWisePosterCard" style="margin-top:20px;">
-                        <div class="card-heading" style="margin-bottom:14px;">
-                            <div>
-                                <h2 style="letter-spacing:0.4px;">🖼️ DAY-WISE FIXTURE POSTERS</h2>
-                                <p class="card-subtitle">{{ active_competition.name }} &mdash; Download high-resolution 4:5 stadium posters for each matchday.</p>
-                            </div>
-                        </div>
-
-                        <div id="dayPosterErrorBanner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12px;font-weight:600;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                            <span id="dayPosterErrorText">Failed to generate poster.</span>
-                            <button type="button" class="btn btn-outline" id="dayPosterRetryBtn" style="padding:5px 12px;font-size:11px;border-color:#fca5a5;color:#991b1b;background:#fff;">Retry</button>
-                        </div>
-
-                        {% if poster_days %}
-                        <div style="display:flex;flex-direction:column;gap:10px;">
-                            {% for pd in poster_days %}
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:#fafbf8;">
-                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:6px;background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:13px;font-weight:800;letter-spacing:0.6px;">
-                                        DAY {{ pd.day_number }}
-                                    </span>
-                                    <span style="font-weight:700;font-size:13px;color:var(--dark);">
-                                        {{ pd.display_date }} &ndash; Day {{ pd.day_number }}
-                                    </span>
-                                </div>
-                                <button type="button"
-                                    class="btn btn-primary day-poster-download-btn"
-                                    data-comp-id="{{ active_competition.id }}"
-                                    data-date="{{ pd.iso_date }}"
-                                    data-day="{{ pd.day_number }}"
-                                    onclick="downloadDayPoster({{ active_competition.id }}, '{{ pd.iso_date }}', this)"
-                                    style="padding:8px 16px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-                                    <span>⬇ Download Poster</span>
-                                </button>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <div style="padding:20px;text-align:center;color:var(--muted);background:#fafbf8;border:1px dashed var(--border);border-radius:10px;font-size:12px;">
-                            Publish or schedule fixtures first to unlock Day-wise Fixture Poster downloads.
-                        </div>
-                        {% endif %}
                     </div>
                 </section>
 

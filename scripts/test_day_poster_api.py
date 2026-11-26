@@ -160,11 +160,12 @@ def run_tests():
         r_dash = client.get(f'/organizer/{comp.id}/?tab=fixtures')
         assert r_dash.status_code == 200
         html = r_dash.content.decode('utf-8')
-        assert 'DAY-WISE FIXTURE POSTERS' in html
+        assert 'DAY 1' in html
+        assert 'DAY 2' in html
         assert '21 December 2026' in html
         assert '22 December 2026' in html
         assert f'downloadDayPoster({comp.id}, \'{d1.isoformat()}\', this)' in html
-        print("✓ Organizer Fixtures page renders DAY-WISE FIXTURE POSTERS with dynamic dates")
+        print("✓ Organizer Fixtures page renders day-wise grouped schedule with inline Download Poster buttons")
 
         # Republish / update kickoff time -> fresh data returned
         m_early.kickoff_time = time(11, 15)
