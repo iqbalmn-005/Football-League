@@ -1190,6 +1190,8 @@
     <!-- TOAST NOTIFICATION -->
     <div id="toastBox" class="toast-box"></div>
 
+    <script id="compTeamsDataJson" type="application/json">{{ comp_teams_json|safe|default:"[]" }}</script>
+
     <!-- SCRIPT LOGIC -->
     <script>
         // GLOBAL STATE
@@ -1199,7 +1201,12 @@
         const csrfToken = "{{ csrf_token }}";
         const totalTeamsCount = Number("{{ comp_teams|length }}");
         const competitionName = "{{ competition.name|escapejs }}";
-        const compTeamsData = {{ comp_teams_json|safe|default:"[]" }};
+        let compTeamsData = [];
+        try {
+            compTeamsData = JSON.parse(document.getElementById('compTeamsDataJson')?.textContent || '[]');
+        } catch (e) {
+            compTeamsData = [];
+        }
         let groupAssignmentsMap = {};
 
         const SLOT_PRESETS = {
