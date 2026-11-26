@@ -929,8 +929,8 @@
                             <div style="font-size:11px;color:var(--muted);">Move clubs between groups before generating fixtures.</div>
                         </div>
                         <button type="button" class="btn btn-outline" style="font-size:11px;padding:5px 12px;"
-                            onclick="initGroupAssignments(true); renderEditableGroupList(); updateSummaryKpis();">
-                            ↺ Auto-Balance Equally
+                            onclick="shuffleGroups();">
+                            🔀 Shuffle Groups
                         </button>
                     </div>
                     <div id="editableGroupsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;"></div>
@@ -1194,21 +1194,37 @@
             updateSummaryKpis();
         }
 
-        function initGroupAssignments(forceReset = false) {
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function initGroupAssignments(forceRandom = false) {
             const numGroups = Math.max(1, parseInt(document.getElementById('numGroupsSelect')?.value || '2') || 2);
             const groupNames = Array.from({ length: numGroups }, (_, i) => `Group ${String.fromCharCode(65 + i)}`);
             const nextMap = {};
             groupNames.forEach(g => { nextMap[g] = []; });
 
-            if (!forceReset && compTeamsData.length > 0 && compTeamsData.every(t => t.group && groupNames.includes(t.group))) {
+            if (!forceRandom && compTeamsData.length > 0 && compTeamsData.every(t => t.group && groupNames.includes(t.group))) {
                 compTeamsData.forEach(t => { nextMap[t.group].push(t.id); });
             } else {
-                compTeamsData.forEach((t, idx) => {
+                const randomized = shuffleArray(compTeamsData);
+                randomized.forEach((t, idx) => {
                     const gName = groupNames[idx % numGroups];
                     nextMap[gName].push(t.id);
                 });
             }
             groupAssignmentsMap = nextMap;
+        }
+
+        function shuffleGroups() {
+            initGroupAssignments(true);
+            renderEditableGroupList();
+            updateSummaryKpis();
         }
 
         function moveTeamToGroup(teamId, targetGroup) {
