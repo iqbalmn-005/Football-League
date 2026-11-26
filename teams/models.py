@@ -78,7 +78,7 @@ class Player(models.Model):
             return self.photo.url
         if self.photo_url:
             return self.photo_url
-        return "/static/img/players/p1.jpg"
+        return ""
 
     @property
     def total_goals(self):
