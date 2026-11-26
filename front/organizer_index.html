@@ -9015,9 +9015,11 @@
                 <polygon points="0,120 120,165 620,760 220,820" fill="url(#dpFloodLeft)"/>
                 <polygon points="1080,120 960,165 460,760 860,820" fill="url(#dpFloodRight)"/>
                 <!-- Turf glow -->
-                <rect y="760" width="1080" height="590" fill="url(#dpTurfGlow)"/>
-                <!-- Crowd silhouette -->
-                <path d="M0,1215 L0,1170 L28,1162 L44,1178 L66,1152 L88,1176 L112,1155 L140,1180 L165,1148 L188,1174 L218,1150 L246,1178 L272,1156 L300,1179 L325,1148 L352,1175 L380,1154 L410,1180 L438,1152 L468,1176 L496,1149 L526,1178 L554,1153 L582,1179 L610,1150 L640,1176 L670,1154 L700,1179 L728,1152 L758,1176 L788,1149 L818,1178 L846,1154 L876,1178 L906,1150 L936,1177 L966,1152 L994,1176 L1024,1154 L1052,1176 L1080,1162 L1080,1215 Z" fill="#06120a"/>
+                <rect y="640" width="1080" height="710" fill="url(#dpTurfGlow)"/>
+                <ellipse cx="540" cy="1175" rx="520" ry="90" fill="none" stroke="rgba(163,230,53,0.22)" stroke-width="2.5"/>
+                <!-- Smooth crowd silhouette with waving flags -->
+                <path d="M0,1215 L0,1178 Q12,1152 24,1178 Q36,1156 48,1176 Q62,1148 76,1176 Q90,1155 104,1178 Q118,1150 132,1176 Q148,1154 162,1178 Q176,1148 192,1176 Q208,1156 222,1178 Q238,1148 254,1176 Q270,1155 286,1178 Q302,1150 318,1176 Q334,1156 350,1178 Q366,1148 382,1176 Q398,1154 414,1178 Q430,1148 446,1176 Q462,1155 478,1178 Q494,1150 510,1176 Q526,1156 542,1178 Q558,1148 574,1176 Q590,1154 606,1178 Q622,1148 638,1176 Q654,1155 670,1178 Q686,1150 702,1176 Q718,1156 734,1178 Q750,1148 766,1176 Q782,1154 798,1178 Q814,1148 830,1176 Q846,1155 862,1178 Q878,1150 894,1176 Q910,1156 926,1178 Q942,1148 958,1176 Q974,1154 990,1178 Q1006,1148 1022,1176 Q1038,1155 1054,1178 Q1068,1154 1080,1174 L1080,1215 Z" fill="#06120a"/>
+                <path d="M138,1165 L138,1115 L182,1122 L176,1142 L138,1138 Z M588,1165 L588,1118 L628,1125 L622,1144 L588,1140 Z M922,1165 L922,1112 L968,1120 L960,1142 L922,1137 Z" fill="#06120a"/>
                 <!-- Bottom dark footer band -->
                 <rect y="1210" width="1080" height="140" fill="#040a07"/>
                 <!-- Corner diagonal neon stripes -->
@@ -9043,46 +9045,49 @@
                             <path d="M40 22V28M55 34L48 34M49 51L45 44M31 51L35 44M25 34L32 34" stroke="#0d1b14" stroke-width="2.2"/>
                         </svg>
                         <div>
-                            <div style="font-family:'Barlow Condensed', sans-serif;font-size:48px;font-weight:900;font-style:italic;line-height:0.95;color:#ffffff;letter-spacing:0.5px;">Futbolix</div>
-                            <div style="font-size:15px;font-weight:600;color:#cbd5e1;margin-top:4px;letter-spacing:0.3px;">Your Game. Your League.</div>
+                            <div style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:48px;font-weight:900;font-style:italic;line-height:0.95;color:#ffffff;letter-spacing:0.5px;white-space:nowrap;">Futbolix</div>
+                            <div style="font-size:15px;font-weight:600;color:#cbd5e1;margin-top:5px;letter-spacing:0.3px;white-space:nowrap;">Your Game. Your League.</div>
                         </div>
                     </div>
 
-                    <div style="width:2px;height:68px;background:rgba(255,255,255,0.28);"></div>
+                    <div style="width:2px;height:68px;background:rgba(255,255,255,0.28);flex-shrink:0;"></div>
 
-                    <div style="display:flex;align-items:center;gap:14px;max-width:470px;">
+                    <div style="display:flex;align-items:center;gap:14px;max-width:520px;flex:0 1 auto;">
                         <div style="width:66px;height:66px;min-width:66px;border-radius:14px;background:rgba(15,28,22,0.85);border:2px solid rgba(132,255,0,0.45);display:flex;align-items:center;justify-content:center;padding:6px;overflow:hidden;">
                             <img id="dpLeagueLogo" src="" alt="League Logo" style="width:100%;height:100%;object-fit:contain;">
                         </div>
                         <div style="display:flex;flex-direction:column;">
-                            <div id="dpLeagueName" style="font-family:'Barlow Condensed', sans-serif;font-size:38px;font-weight:800;line-height:1.05;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;word-break:break-word;">
+                            <div id="dpLeagueName" style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:38px;font-weight:800;line-height:1.05;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;overflow-wrap:break-word;">
                                 League Name
                             </div>
-                            <div style="height:4px;width:85%;margin-top:6px;border-radius:999px;background:linear-gradient(90deg, #84ff00 0%, rgba(132,255,0,0) 100%);"></div>
+                            <div style="height:4px;width:100%;min-width:90px;margin-top:6px;border-radius:999px;background:linear-gradient(90deg, #84ff00 0%, rgba(132,255,0,0) 100%);"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- DAY BANNER -->
-                <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:20px;">
-                    <div style="width:64px;height:4px;background:linear-gradient(270deg,#84ff00,transparent);border-radius:4px;"></div>
-                    <div style="padding:10px 64px;background:linear-gradient(180deg, rgba(16,32,24,0.95) 0%, rgba(6,14,12,0.98) 100%);border:2.5px solid #84ff00;border-radius:16px;box-shadow:0 0 28px rgba(132,255,0,0.32);display:flex;align-items:center;gap:14px;">
-                        <span style="font-family:'Barlow Condensed', sans-serif;font-size:66px;font-weight:900;font-style:italic;line-height:1;color:#ffffff;letter-spacing:2px;">DAY</span>
-                        <span id="dpDayNumber" style="font-family:'Barlow Condensed', sans-serif;font-size:68px;font-weight:900;font-style:italic;line-height:1;color:#84ff00;">1</span>
+                <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+                    <div style="width:72px;height:4px;background:linear-gradient(270deg,#84ff00,transparent);border-radius:4px;"></div>
+                    <div style="padding:12px 64px;background:linear-gradient(180deg, rgba(16,32,24,0.96) 0%, rgba(6,14,12,0.98) 100%);border:2.5px solid #84ff00;border-radius:16px;box-shadow:0 0 28px rgba(132,255,0,0.35);display:flex;align-items:center;gap:20px;white-space:nowrap;">
+                        <span style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:66px;font-weight:900;font-style:italic;line-height:1;color:#ffffff;letter-spacing:3px;padding-right:6px;">DAY</span>
+                        <span id="dpDayNumber" style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:68px;font-weight:900;font-style:italic;line-height:1;color:#84ff00;">1</span>
                     </div>
-                    <div style="width:64px;height:4px;background:linear-gradient(90deg,#84ff00,transparent);border-radius:4px;"></div>
+                    <div style="width:72px;height:4px;background:linear-gradient(90deg,#84ff00,transparent);border-radius:4px;"></div>
                 </div>
 
                 <!-- DATE & ROUND SUB-BANNER -->
-                <div style="width:100%;max-width:920px;padding:12px 28px;border-radius:14px;background:rgba(7,16,20,0.88);border:1.5px solid rgba(132,255,0,0.65);box-shadow:0 6px 20px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-                    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:100%;max-width:920px;padding:12px 28px;border-radius:14px;background:rgba(7,16,20,0.9);border:1.5px solid rgba(132,255,0,0.65);box-shadow:0 6px 20px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;">
+                    <div style="display:flex;align-items:center;gap:18px;flex-wrap:nowrap;">
+                        <div style="display:flex;align-items:center;gap:10px;white-space:nowrap;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#84ff00" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            <span id="dpDateLabel" style="font-family:'Barlow Condensed', sans-serif;font-size:28px;font-weight:800;letter-spacing:0.8px;color:#ffffff;">21 DEC 2026</span>
+                            <span id="dpDateLabel" style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:28px;font-weight:800;letter-spacing:0.8px;color:#ffffff;white-space:nowrap;">21 DEC 2026</span>
                         </div>
-                        <div id="dpSharedRoundWrap" style="display:flex;align-items:center;gap:18px;">
+                        <div id="dpSharedRoundWrap" style="display:flex;align-items:center;gap:18px;white-space:nowrap;">
                             <div style="width:2px;height:24px;background:rgba(255,255,255,0.28);"></div>
-                            <span id="dpSharedRoundLabel" style="font-family:'Barlow Condensed', sans-serif;font-size:28px;font-weight:700;letter-spacing:0.5px;color:#e2e8f0;">Matchweek 1</span>
+                            <span id="dpSharedRoundLabel" style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:28px;font-weight:700;letter-spacing:0.5px;color:#e2e8f0;white-space:nowrap;">Matchweek 1</span>
+                        </div>
+                        <div id="dpModeBadge" style="display:none;padding:3px 12px;border-radius:999px;background:rgba(132,255,0,0.18);border:1px solid rgba(132,255,0,0.55);color:#84ff00;font-size:14px;font-weight:800;letter-spacing:0.8px;white-space:nowrap;text-transform:uppercase;">
+                            FULL-TIME RESULTS
                         </div>
                     </div>
                     <svg width="32" height="32" viewBox="0 0 80 80" fill="none">
@@ -9099,7 +9104,7 @@
             <!-- FOOTER TAGLINE -->
             <div style="position:relative;z-index:2;width:100%;display:flex;align-items:center;justify-content:center;gap:22px;padding-top:18px;">
                 <div style="flex:1;max-width:190px;height:2.5px;background:linear-gradient(270deg, #84ff00, transparent);"></div>
-                <div style="font-family:'Barlow Condensed', sans-serif;font-size:24px;font-weight:800;font-style:italic;letter-spacing:4px;color:#e2e8f0;">
+                <div style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:24px;font-weight:800;font-style:italic;letter-spacing:4px;color:#e2e8f0;white-space:nowrap;">
                     PLAY <span style="color:#84ff00;margin:0 10px;">&bull;</span> COMPETE <span style="color:#84ff00;margin:0 10px;">&bull;</span> WIN
                 </div>
                 <div style="flex:1;max-width:190px;height:2.5px;background:linear-gradient(90deg, #84ff00, transparent);"></div>
@@ -9199,6 +9204,12 @@
                 const leagueName = (data.league && data.league.name) || 'Futbolix League';
                 leagueNameEl.textContent = leagueName;
                 leagueNameEl.style.fontSize = leagueName.length > 26 ? '30px' : '38px';
+                leagueNameEl.style.whiteSpace = leagueName.length <= 18 ? 'nowrap' : 'normal';
+
+                const modeBadgeEl = document.getElementById('dpModeBadge');
+                if (modeBadgeEl) {
+                    modeBadgeEl.style.display = (data.mode === 'results') ? 'inline-block' : 'none';
+                }
 
                 leagueLogoEl.src = (data.league && data.league.logo_url) ? data.league.logo_url : DEFAULT_LEAGUE_SVG;
                 dayNumberEl.textContent = String(data.day_number || 1);
@@ -9217,15 +9228,17 @@
 
                 // Adapt card sizing for dense matchdays without shrinking text to unreadable sizes
                 const count = matches.length;
+                const isFew = count <= 4;
                 const isCompact = count >= 7 && count <= 10;
                 const isDense = count > 10;
-                const cardPad = isDense ? '12px 22px' : (isCompact ? '14px 24px' : '18px 28px');
-                const cardGap = isDense ? '10px' : (isCompact ? '12px' : '16px');
-                const logoSize = isDense ? '46px' : (isCompact ? '52px' : '60px');
-                const teamFont = isDense ? '22px' : (isCompact ? '25px' : '28px');
-                const timeFont = isDense ? '22px' : (isCompact ? '24px' : '27px');
+                const cardPad = isDense ? '12px 22px' : (isCompact ? '14px 24px' : (isFew ? '24px 30px' : '18px 28px'));
+                const cardGap = isDense ? '10px' : (isCompact ? '12px' : (isFew ? '22px' : '16px'));
+                const logoSize = isDense ? '46px' : (isCompact ? '52px' : (isFew ? '66px' : '60px'));
+                const teamFont = isDense ? '22px' : (isCompact ? '25px' : (isFew ? '30px' : '28px'));
+                const timeFont = isDense ? '22px' : (isCompact ? '24px' : (isFew ? '28px' : '27px'));
 
                 matchesListEl.style.gap = cardGap;
+                matchesListEl.style.marginTop = isFew ? '24px' : '0';
                 matchesListEl.innerHTML = '';
 
                 matches.forEach((m) => {
@@ -9235,7 +9248,7 @@
                         `padding:${cardPad}`,
                         'border-radius:18px',
                         'background:linear-gradient(90deg, rgba(8,18,22,0.92) 0%, rgba(12,26,24,0.9) 50%, rgba(8,18,22,0.92) 100%)',
-                        'border:1.5px solid rgba(255,255,255,0.22)',
+                        'border:1.5px solid rgba(132,255,0,0.28)',
                         'box-shadow:0 8px 24px rgba(0,0,0,0.45)',
                         'display:flex',
                         'align-items:center',
@@ -9245,30 +9258,30 @@
 
                     // Time column
                     const timeCol = document.createElement('div');
-                    timeCol.style.cssText = 'width:168px;min-width:168px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-right:1.5px solid rgba(255,255,255,0.22);padding-right:16px;';
+                    timeCol.style.cssText = 'width:186px;min-width:186px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-right:1.5px solid rgba(255,255,255,0.22);padding-right:16px;';
 
                     const timeRow = document.createElement('div');
-                    timeRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+                    timeRow.style.cssText = 'display:flex;align-items:center;gap:8px;white-space:nowrap;';
                     timeRow.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#84ff00" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
                     const timeSpan = document.createElement('span');
-                    timeSpan.style.cssText = `font-family:"Barlow Condensed", sans-serif;font-size:${timeFont};font-weight:700;color:#ffffff;letter-spacing:0.4px;`;
+                    timeSpan.style.cssText = `font-family:"Barlow Condensed", "Impact", "Arial Narrow", sans-serif;font-size:${timeFont};font-weight:700;color:#ffffff;letter-spacing:0.4px;white-space:nowrap;`;
                     timeSpan.textContent = m.kickoff_time || 'TBA';
                     timeRow.appendChild(timeSpan);
                     timeCol.appendChild(timeRow);
 
                     if (showPerMatchRound && m.tournament_round) {
                         const roundPill = document.createElement('span');
-                        roundPill.style.cssText = 'display:inline-block;align-self:flex-start;padding:2px 8px;border-radius:6px;background:rgba(132,255,0,0.16);border:1px solid rgba(132,255,0,0.45);color:#84ff00;font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;';
+                        roundPill.style.cssText = 'display:inline-block;align-self:flex-start;padding:2px 8px;border-radius:6px;background:rgba(132,255,0,0.16);border:1px solid rgba(132,255,0,0.45);color:#84ff00;font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;white-space:nowrap;';
                         roundPill.textContent = m.tournament_round;
                         timeCol.appendChild(roundPill);
                     }
 
                     // Matchup grid
                     const matchupCol = document.createElement('div');
-                    matchupCol.style.cssText = 'flex:1;display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:14px;';
+                    matchupCol.style.cssText = 'flex:1;display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:16px;';
 
                     const homeName = document.createElement('div');
-                    homeName.style.cssText = `font-family:"Barlow Condensed", sans-serif;font-size:${teamFont};font-weight:700;color:#ffffff;text-align:right;line-height:1.12;word-break:break-word;`;
+                    homeName.style.cssText = `font-family:"Barlow Condensed", "Impact", "Arial Narrow", sans-serif;font-size:${teamFont};font-weight:700;color:#ffffff;text-align:right;line-height:1.12;overflow-wrap:break-word;`;
                     homeName.textContent = m.home_team_name || 'TBD';
 
                     const homeLogoWrap = document.createElement('div');
@@ -9283,10 +9296,10 @@
                     const isResultsMode = data.mode === 'results';
                     const vsBadge = document.createElement('div');
                     if (isResultsMode && m.home_score !== null && m.home_score !== undefined && m.away_score !== null && m.away_score !== undefined) {
-                        vsBadge.style.cssText = 'padding:6px 14px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", sans-serif;font-size:26px;font-weight:900;letter-spacing:1px;box-shadow:0 0 14px rgba(158,240,26,0.4);white-space:nowrap;';
+                        vsBadge.style.cssText = 'min-width:92px;padding:7px 18px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", "Impact", "Arial Narrow", sans-serif;font-size:26px;font-weight:900;letter-spacing:1px;text-align:center;box-shadow:0 0 14px rgba(158,240,26,0.45);white-space:nowrap;box-sizing:border-box;';
                         vsBadge.textContent = m.display_score || `${m.home_score} : ${m.away_score}`;
                     } else {
-                        vsBadge.style.cssText = 'padding:5px 14px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", sans-serif;font-size:24px;font-weight:900;font-style:italic;letter-spacing:1px;box-shadow:0 0 14px rgba(158,240,26,0.4);';
+                        vsBadge.style.cssText = 'min-width:74px;padding:6px 16px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", "Impact", "Arial Narrow", sans-serif;font-size:24px;font-weight:900;font-style:italic;letter-spacing:1px;text-align:center;box-shadow:0 0 14px rgba(158,240,26,0.45);white-space:nowrap;box-sizing:border-box;';
                         vsBadge.textContent = 'VS';
                     }
 
@@ -9300,7 +9313,7 @@
                     awayLogoWrap.appendChild(awayImg);
 
                     const awayName = document.createElement('div');
-                    awayName.style.cssText = `font-family:"Barlow Condensed", sans-serif;font-size:${teamFont};font-weight:700;color:#ffffff;text-align:left;line-height:1.12;word-break:break-word;`;
+                    awayName.style.cssText = `font-family:"Barlow Condensed", "Impact", "Arial Narrow", sans-serif;font-size:${teamFont};font-weight:700;color:#ffffff;text-align:left;line-height:1.12;overflow-wrap:break-word;`;
                     awayName.textContent = m.away_team_name || 'TBD';
 
                     matchupCol.appendChild(homeName);
