@@ -1933,7 +1933,6 @@
                 block.className = 'matchweek-group-block';
 
                 let rowsHtml = '';
-                const isGroupWiseFmt = document.querySelector('input[name="tournament_format"]:checked')?.value === 'GROUP_KNOCKOUT';
                 dMatches.forEach((m) => {
                     const isValid = m.is_valid !== false;
                     rowsHtml += `
@@ -1946,7 +1945,6 @@
                         </td>
                         <td data-label="Home Club" class="full-row-mobile" style="font-weight:700;">
                             ${m.home_team_name}
-                            ${(isGroupWiseFmt && m.group_name) ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
                         </td>
                         <td class="vs-cell" style="text-align:center;width:40px;">
                             <span class="vs-tag">VS</span>
