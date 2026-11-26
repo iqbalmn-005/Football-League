@@ -6321,24 +6321,6 @@
                             </div>
                         </div>
 
-                        {% if groups.exists %}
-                        <!-- GROUP SELECTOR PILLS FOR RESULTS -->
-                        <div class="group-selector-bar" style="padding:12px 18px;background:#17251e;border-bottom:1px solid #26342b;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                            <span style="font-size:11px;font-weight:800;color:#B5C0CB;text-transform:uppercase;margin-right:4px;">Filter Group:</span>
-                            <a href="?tab=results&group=all" class="group-pill {% if not selected_group or selected_group == 'all' %}active{% endif %}">
-                                🌐 All Results
-                            </a>
-                            {% for grp in groups %}
-                            <a href="?tab=results&group={{ grp.name }}" class="group-pill {% if selected_group == grp.name or selected_group == grp.id|stringformat:'s' %}active{% endif %}">
-                                🏆 {{ grp.name }}
-                            </a>
-                            {% endfor %}
-                            <a href="?tab=results&group=knockout" class="group-pill {% if selected_group == 'knockout' %}active{% endif %}">
-                                ⚡ Knockout Stage
-                            </a>
-                        </div>
-                        {% endif %}
-
                         <!-- DESKTOP RESULTS TABLE (Screens > 768px) -->
                         <div class="table-wrap results-desktop-table">
                             <table>
