@@ -2703,17 +2703,8 @@
         <div class="squad-section" style="background:#ffffff;border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:30px;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
             <div class="squad-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
                 <div>
-                    <h2 style="font-family:var(--font-heading);font-size:22px;font-weight:900;color:var(--dark);text-transform:uppercase;letter-spacing:0.5px;margin:0;">👥 Squad Players ({{ players.count }})</h2>
+                    <h2 style="font-family:var(--font-heading);font-size:22px;font-weight:900;color:var(--dark);text-transform:uppercase;letter-spacing:0.5px;margin:0;">👥 Squad Players ({{ players|length }})</h2>
                     <p style="font-size:12px;color:var(--muted);margin-top:2px;">Official registered team roster</p>
-                </div>
-
-                <!-- POSITION FILTER CHIPS -->
-                <div class="filter-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button class="filter-tab active" type="button" onclick="filterTeamPosition('ALL', this)">All ({{ players.count }})</button>
-                    <button class="filter-tab" type="button" onclick="filterTeamPosition('GK', this)">GK ({{ gk_count|default:0 }})</button>
-                    <button class="filter-tab" type="button" onclick="filterTeamPosition('DEF', this)">DEF ({{ def_count|default:0 }})</button>
-                    <button class="filter-tab" type="button" onclick="filterTeamPosition('MID', this)">MID ({{ mid_count|default:0 }})</button>
-                    <button class="filter-tab" type="button" onclick="filterTeamPosition('FWD', this)">FWD ({{ fwd_count|default:0 }})</button>
                 </div>
             </div>
 
