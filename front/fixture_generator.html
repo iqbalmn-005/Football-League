@@ -1561,7 +1561,7 @@
             if (radio) radio.checked = true;
 
             if (fmt === 'LEAGUE_KNOCKOUT') {
-                groupSec.style.display = 'block';
+                if (groupSec) groupSec.style.display = (currentWizardStep === 2) ? 'block' : 'none';
                 roundRobinGroup.style.display = 'block';
                 if (roundRobinLabel) roundRobinLabel.innerHTML = 'League Stage Legs / Rounds <span class="badge-req">*</span>';
                 if (numGroupsContainer) numGroupsContainer.style.display = 'none';
@@ -1574,7 +1574,7 @@
                 handleTournamentTypeChange();
                 updateGroupEqualDivisionInfo();
             } else if (fmt === 'GROUP_KNOCKOUT') {
-                groupSec.style.display = 'block';
+                if (groupSec) groupSec.style.display = (currentWizardStep === 2) ? 'block' : 'none';
                 roundRobinGroup.style.display = 'block';
                 if (roundRobinLabel) roundRobinLabel.innerHTML = 'Group Stage Legs / Rounds <span class="badge-req">*</span>';
                 if (numGroupsContainer) numGroupsContainer.style.display = 'block';
@@ -1594,7 +1594,7 @@
                 renderEditableGroupList();
                 updateGroupEqualDivisionInfo();
             } else if (fmt === 'KNOCKOUT') {
-                groupSec.style.display = 'block';
+                if (groupSec) groupSec.style.display = (currentWizardStep === 2) ? 'block' : 'none';
                 roundRobinGroup.style.display = 'none';
                 if (numGroupsContainer) numGroupsContainer.style.display = 'none';
                 if (singleGroupInfoContainer) singleGroupInfoContainer.style.display = 'none';
