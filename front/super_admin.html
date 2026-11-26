@@ -2276,7 +2276,8 @@
                         </div>
                     </div>
                     <div class="command-actions">
-                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{ all_pending_count }})</button>
+                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{
+                            all_pending_count }})</button>
                         <button class="btn btn-outline" type="button" onclick="openAdminTab('leagues')">🏆 View
                             Leagues</button>
                     </div>
@@ -2318,218 +2319,226 @@
                         </div>
                     </div>
 
-                        <!-- 3. LEAGUE HEALTH & FORMAT DISTRIBUTION -->
-                        <div style="margin-bottom:20px;">
+                    <!-- 3. LEAGUE HEALTH & FORMAT DISTRIBUTION -->
+                    <div style="margin-bottom:20px;">
 
-                            <!-- LEAGUE HEALTH & FORMAT DISTRIBUTION -->
-                            <div class="card" style="margin-bottom:0;">
-                                <div class="card-heading">
-                                    <div>
-                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">📊
-                                            Tournament
-                                            Capacity &amp; Status</h3>
-                                    </div>
-                                    <button type="button" class="btn btn-outline"
-                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('leagues')">
-                                        Manage Leagues ↗
-                                    </button>
+                        <!-- LEAGUE HEALTH & FORMAT DISTRIBUTION -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-heading">
+                                <div>
+                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">📊
+                                        Tournament
+                                        Capacity &amp; Status</h3>
                                 </div>
-
-                                <div style="padding:16px 20px;">
-                                    <!-- Segmented Status Progress Bar -->
-                                    <div
-                                        style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:14px;">
-                                        {% if total_competitions_count > 0 %}
-                                        <div class="stat-bar-seg"
-                                            data-width="{% widthratio active_competitions_count total_competitions_count 100 %}"
-                                            style="background:#10b981;" title="Active: {{ active_competitions_count }}">
-                                        </div>
-                                        <div class="stat-bar-seg"
-                                            data-width="{% widthratio upcoming_competitions_count total_competitions_count 100 %}"
-                                            style="background:#f59e0b;"
-                                            title="Upcoming: {{ upcoming_competitions_count }}">
-                                        </div>
-                                        <div class="stat-bar-seg"
-                                            data-width="{% widthratio completed_competitions_count total_competitions_count 100 %}"
-                                            style="background:#3b82f6;"
-                                            title="Completed: {{ completed_competitions_count }}"></div>
-                                        <script>document.querySelectorAll('.stat-bar-seg').forEach(function (el) { if (el.dataset.width) el.style.width = el.dataset.width + '%'; });</script>
-                                        {% else %}
-                                        <div style="width:100%;background:#cbd5e1;"></div>
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- Status Breakdown Badges -->
-                                    <div
-                                        style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px;text-align:center;">
-                                        <div
-                                            style="padding:10px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
-                                            <div
-                                                style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">
-                                                🟢 Ongoing</div>
-                                            <div style="font-size:20px;font-weight:900;color:#166534;">{{ active_competitions_count }}</div>
-                                        </div>
-                                        <div
-                                            style="padding:10px 8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
-                                            <div
-                                                style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;">
-                                                ⏳ Upcoming</div>
-                                            <div style="font-size:20px;font-weight:900;color:#92400e;">{{ upcoming_competitions_count }}</div>
-                                        </div>
-                                        <div
-                                            style="padding:10px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
-                                            <div
-                                                style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;">
-                                                🏆 Completed</div>
-                                            <div style="font-size:20px;font-weight:900;color:#1e40af;">{{ completed_competitions_count }}</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;"
+                                    onclick="openAdminTab('leagues')">
+                                    Manage Leagues ↗
+                                </button>
                             </div>
 
-                        </div>
-
-                        <!-- 4. TWO-COLUMN ROW 2: LIVE ACTIVITY STREAM & TOP ORGANIZERS -->
-                        <div class="two-column" style="margin-bottom:20px;">
-
-                            <!-- COLUMN C: LIVE ACTIVITY STREAM -->
-                            <div class="card" style="margin-bottom:0;">
-                                <div class="card-heading">
-                                    <div>
-                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚡ Live
-                                            Activity
-                                            &amp; Audit Stream</h3>
-                                        <p class="card-subtitle">Latest administrative and organizer operations on
-                                            Futbolix.
-                                        </p>
+                            <div style="padding:16px 20px;">
+                                <!-- Segmented Status Progress Bar -->
+                                <div
+                                    style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:14px;">
+                                    {% if total_competitions_count > 0 %}
+                                    <div class="stat-bar-seg"
+                                        data-width="{% widthratio active_competitions_count total_competitions_count 100 %}"
+                                        style="background:#10b981;" title="Active: {{ active_competitions_count }}">
                                     </div>
-                                    <button type="button" class="btn btn-outline"
-                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('audit')">
-                                        Full Audit Logs →
-                                    </button>
-                                </div>
-
-                                <div style="padding:12px 20px;">
-                                    {% if recent_activity_logs %}
-                                    <div style="display:flex;flex-direction:column;gap:10px;">
-                                        {% for log in recent_activity_logs %}
-                                        <div
-                                            style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-                                            <div
-                                                style="width:28px;height:28px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
-                                                📋
-                                            </div>
-                                            <div style="flex:1;min-width:0;">
-                                                <div
-                                                    style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-                                                    <strong style="font-size:12px;color:var(--dark);">{{ log.action_type|cut:"_" }}</strong>
-                                                    <small
-                                                        style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{ log.created_at|date:"d M, H:i" }}</small>
-                                                </div>
-                                                <p
-                                                    style="margin:2px 0 0;font-size:12px;color:var(--text);word-break:break-word;line-height:1.4;">
-                                                    {{ log.details }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
+                                    <div class="stat-bar-seg"
+                                        data-width="{% widthratio upcoming_competitions_count total_competitions_count 100 %}"
+                                        style="background:#f59e0b;" title="Upcoming: {{ upcoming_competitions_count }}">
                                     </div>
+                                    <div class="stat-bar-seg"
+                                        data-width="{% widthratio completed_competitions_count total_competitions_count 100 %}"
+                                        style="background:#3b82f6;"
+                                        title="Completed: {{ completed_competitions_count }}"></div>
+                                    <script>document.querySelectorAll('.stat-bar-seg').forEach(function (el) { if (el.dataset.width) el.style.width = el.dataset.width + '%'; });</script>
                                     {% else %}
-                                    <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
-                                        No recent activity logs recorded yet.
-                                    </div>
+                                    <div style="width:100%;background:#cbd5e1;"></div>
                                     {% endif %}
                                 </div>
+
+                                <!-- Status Breakdown Badges -->
+                                <div
+                                    style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px;text-align:center;">
+                                    <div
+                                        style="padding:10px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+                                        <div
+                                            style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">
+                                            🟢 Ongoing</div>
+                                        <div style="font-size:20px;font-weight:900;color:#166534;">{{
+                                            active_competitions_count }}</div>
+                                    </div>
+                                    <div
+                                        style="padding:10px 8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+                                        <div
+                                            style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;">
+                                            ⏳ Upcoming</div>
+                                        <div style="font-size:20px;font-weight:900;color:#92400e;">{{
+                                            upcoming_competitions_count }}</div>
+                                    </div>
+                                    <div
+                                        style="padding:10px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                                        <div
+                                            style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;">
+                                            🏆 Completed</div>
+                                        <div style="font-size:20px;font-weight:900;color:#1e40af;">{{
+                                            completed_competitions_count }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 4. TWO-COLUMN ROW 2: LIVE ACTIVITY STREAM & TOP ORGANIZERS -->
+                    <div class="two-column" style="margin-bottom:20px;">
+
+                        <!-- COLUMN C: LIVE ACTIVITY STREAM -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-heading">
+                                <div>
+                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚡ Live
+                                        Activity
+                                        &amp; Audit Stream</h3>
+                                    <p class="card-subtitle">Latest administrative and organizer operations on
+                                        Futbolix.
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;"
+                                    onclick="openAdminTab('audit')">
+                                    Full Audit Logs →
+                                </button>
                             </div>
 
-                            <!-- COLUMN D: TOP ACTIVE ORGANIZERS SPOTLIGHT -->
-                            <div class="card" style="margin-bottom:0;">
-                                <div class="card-heading">
-                                    <div>
-                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">👔 Top
-                                            Active
-                                            Organizers</h3>
-                                        <p class="card-subtitle">Most active directors managing competitions on the
-                                            platform.</p>
-                                    </div>
-                                    <button type="button" class="btn btn-outline"
-                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('organizers')">
-                                        All Organizers ({{ total_organizers }}) →
-                                    </button>
-                                </div>
-
-                                <div style="padding:12px 20px;">
-                                    {% if top_organizers %}
-                                    <div style="display:flex;flex-direction:column;gap:10px;">
-                                        {% for org in top_organizers %}
+                            <div style="padding:12px 20px;">
+                                {% if recent_activity_logs %}
+                                <div style="display:flex;flex-direction:column;gap:10px;">
+                                    {% for log in recent_activity_logs %}
+                                    <div
+                                        style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
                                         <div
-                                            style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-                                            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                                <div
-                                                    style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
-                                                    👤
-                                                </div>
-                                                <div style="min-width:0;">
-                                                    <strong
-                                                        style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.get_full_name|default:org.username }}</strong>
-                                                    <small
-                                                        style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.profile.organization_name|default:"Independent Organizer" }}</small>
-                                                </div>
+                                            style="width:28px;height:28px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
+                                            📋
+                                        </div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div
+                                                style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+                                                <strong style="font-size:12px;color:var(--dark);">{{
+                                                    log.action_type|cut:"_" }}</strong>
+                                                <small
+                                                    style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{
+                                                    log.created_at|date:"d M, H:i" }}</small>
                                             </div>
-                                            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                                                <span
-                                                    style="font-size:11px;padding:3px 8px;background:var(--soft-green);color:var(--green-dark);border-radius:12px;font-weight:700;">
-                                                    {{ org.all_hosted_competitions|length }} League{{ org.all_hosted_competitions|length|pluralize }}
-                                                </span>
-                                                <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline"
-                                                    style="padding:3px 8px;font-size:11px;">
-                                                    Leagues ↗
-                                                </a>
+                                            <p
+                                                style="margin:2px 0 0;font-size:12px;color:var(--text);word-break:break-word;line-height:1.4;">
+                                                {{ log.details }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
+                                    No recent activity logs recorded yet.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- COLUMN D: TOP ACTIVE ORGANIZERS SPOTLIGHT -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-heading">
+                                <div>
+                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">👔 Top
+                                        Active
+                                        Organizers</h3>
+                                    <p class="card-subtitle">Most active directors managing competitions on the
+                                        platform.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;"
+                                    onclick="openAdminTab('organizers')">
+                                    All Organizers ({{ total_organizers }}) →
+                                </button>
+                            </div>
+
+                            <div style="padding:12px 20px;">
+                                {% if top_organizers %}
+                                <div style="display:flex;flex-direction:column;gap:10px;">
+                                    {% for org in top_organizers %}
+                                    <div
+                                        style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+                                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                                            <div
+                                                style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                                                👤
+                                            </div>
+                                            <div style="min-width:0;">
+                                                <strong
+                                                    style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
+                                                    org.get_full_name|default:org.username }}</strong>
+                                                <small
+                                                    style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
+                                                    org.profile.organization_name|default:"Independent Organizer"
+                                                    }}</small>
                                             </div>
                                         </div>
-                                        {% endfor %}
+                                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                                            <span
+                                                style="font-size:11px;padding:3px 8px;background:var(--soft-green);color:var(--green-dark);border-radius:12px;font-weight:700;">
+                                                {{ org.all_hosted_competitions|length }} League{{
+                                                org.all_hosted_competitions|length|pluralize }}
+                                            </span>
+                                            <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline"
+                                                style="padding:3px 8px;font-size:11px;">
+                                                Leagues ↗
+                                            </a>
+                                        </div>
                                     </div>
-                                    {% else %}
-                                    <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
-                                        No registered organizers on the platform yet.
-                                    </div>
-                                    {% endif %}
+                                    {% endfor %}
                                 </div>
+                                {% else %}
+                                <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
+                                    No registered organizers on the platform yet.
+                                </div>
+                                {% endif %}
                             </div>
-
                         </div>
 
-                        <!-- 5. QUICK ACTIONS DOCK -->
-                        <div class="quick-actions-dock">
-                            <div class="quick-action-item" onclick="openAdminTab('leagues')">
-                                <span class="qa-icon">🏆</span>
-                                <div>
-                                    <strong class="qa-title">Leagues Directory</strong>
-                                    <small class="qa-subtitle">Active competitions</small>
-                                </div>
-                            </div>
-                            <div class="quick-action-item" onclick="openAdminTab('approvals')">
-                                <span class="qa-icon">⏳</span>
-                                <div>
-                                    <strong class="qa-title">Approvals Hub</strong>
-                                    <small class="qa-subtitle">League requests ({{ all_pending_count }})</small>
-                                </div>
-                            </div>
-                            <div class="quick-action-item" onclick="openAdminTab('organizers')">
-                                <span class="qa-icon">👔</span>
-                                <div>
-                                    <strong class="qa-title">Organizers Directory</strong>
-                                    <small class="qa-subtitle">Director profiles</small>
-                                </div>
-                            </div>
-                            <div class="quick-action-item" onclick="openAdminTab('settings')">
-                                <span class="qa-icon">⚙️</span>
-                                <div>
-                                    <strong class="qa-title">Platform Settings</strong>
-                                    <small class="qa-subtitle">Branding, rules, config</small>
-                                </div>
+                    </div>
+
+                    <!-- 5. QUICK ACTIONS DOCK -->
+                    <div class="quick-actions-dock">
+                        <div class="quick-action-item" onclick="openAdminTab('leagues')">
+                            <span class="qa-icon">🏆</span>
+                            <div>
+                                <strong class="qa-title">Leagues Directory</strong>
+                                <small class="qa-subtitle">Active competitions</small>
                             </div>
                         </div>
+                        <div class="quick-action-item" onclick="openAdminTab('approvals')">
+                            <span class="qa-icon">⏳</span>
+                            <div>
+                                <strong class="qa-title">Approvals Hub</strong>
+                                <small class="qa-subtitle">League requests ({{ all_pending_count }})</small>
+                            </div>
+                        </div>
+                        <div class="quick-action-item" onclick="openAdminTab('organizers')">
+                            <span class="qa-icon">👔</span>
+                            <div>
+                                <strong class="qa-title">Organizers Directory</strong>
+                                <small class="qa-subtitle">Director profiles</small>
+                            </div>
+                        </div>
+                        <div class="quick-action-item" onclick="openAdminTab('settings')">
+                            <span class="qa-icon">⚙️</span>
+                            <div>
+                                <strong class="qa-title">Platform Settings</strong>
+                                <small class="qa-subtitle">Branding, rules, config</small>
+                            </div>
+                        </div>
+                    </div>
 
                 </section>
 
@@ -2540,13 +2549,12 @@
                             <div class="card-heading" style="flex-wrap:wrap;gap:12px;">
                                 <div>
                                     <h2 style="font-size:20px;">🏆 League &amp; Competition Registrations</h2>
-                                    <p class="card-subtitle">New tournament registrations awaiting Super Admin
-                                        sanctioning before fixtures and teams can be created.</p>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                                     {% if pending_leagues_count > 0 %}
                                     <span class="nav-badge alert"
-                                        style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{ pending_leagues_count }} Under Review</span>
+                                        style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{
+                                        pending_leagues_count }} Under Review</span>
                                     {% endif %}
                                     <div style="font-size:12px;font-weight:800;color:var(--muted);">
                                         Pending Requests: {{ pending_leagues_count }}
@@ -2582,24 +2590,35 @@
                                                         {% endif %}
                                                     </div>
                                                     <div>
-                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name }}</strong>
-                                                        <div style="font-size:11px;color:var(--muted)">{{ comp.get_category_display }} · {{ comp.season }}</div>
+                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name
+                                                            }}</strong>
+                                                        <div style="font-size:11px;color:var(--muted)">{{
+                                                            comp.get_category_display }} · {{ comp.season }}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
                                                 {% if comp.primary_organizer %}
-                                                <strong style="color:var(--dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong><br>
-                                                <small style="color:var(--muted)">{{ comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email }}</small>
+                                                <strong style="color:var(--dark);">{{
+                                                    comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
+                                                    }}</strong><br>
+                                                <small style="color:var(--muted)">{{
+                                                    comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email
+                                                    }}</small>
                                                 {% elif comp.created_by %}
-                                                <strong style="color:var(--dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong><br>
-                                                <small style="color:var(--muted)">{{ comp.created_by.profile.organization_name|default:comp.created_by.email }}</small>
+                                                <strong style="color:var(--dark);">{{
+                                                    comp.created_by.get_full_name|default:comp.created_by.username
+                                                    }}</strong><br>
+                                                <small style="color:var(--muted)">{{
+                                                    comp.created_by.profile.organization_name|default:comp.created_by.email
+                                                    }}</small>
                                                 {% else %}
                                                 <span style="color:#d93838;font-weight:700;">Unassigned</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <span style="font-weight:600;color:var(--dark);">{{ comp.location|default:"City Ground" }}</span>
+                                                <span style="font-weight:600;color:var(--dark);">{{
+                                                    comp.location|default:"City Ground" }}</span>
                                             </td>
                                             <td style="text-align:right;">
                                                 <div style="display:inline-flex;gap:6px;align-items:center;"
@@ -2668,8 +2687,6 @@
                                                 <strong
                                                     style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
                                                     Approvals</strong>
-                                                <p style="font-size:12px;margin:0;">No league registration approval
-                                                    requests at this time.</p>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -2688,8 +2705,6 @@
                         <div class="card-heading">
                             <div>
                                 <h2>🏆 All Leagues</h2>
-                                <p class="card-subtitle">Overview of registered leagues, assigned organizers, and
-                                    statuses.</p>
                             </div>
                         </div>
 
@@ -2721,22 +2736,30 @@
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name }}</strong>
+                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name
+                                                        }}</strong>
                                                     {% if comp.location %}<br><small
-                                                        style="color:var(--muted);font-size:11px;">📍 {{ comp.location }}</small>{% endif %}
+                                                        style="color:var(--muted);font-size:11px;">📍 {{ comp.location
+                                                        }}</small>{% endif %}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             {% if comp.primary_organizer %}
-                                            <strong style="color:var(--green-dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong>
+                                            <strong style="color:var(--green-dark);">{{
+                                                comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
+                                                }}</strong>
                                             {% if comp.primary_organizer.profile.organization_name %}
-                                            <br><small style="color:var(--muted);font-size:11px;">{{ comp.primary_organizer.profile.organization_name }}</small>
+                                            <br><small style="color:var(--muted);font-size:11px;">{{
+                                                comp.primary_organizer.profile.organization_name }}</small>
                                             {% endif %}
                                             {% elif comp.created_by %}
-                                            <strong style="color:var(--green-dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong>
+                                            <strong style="color:var(--green-dark);">{{
+                                                comp.created_by.get_full_name|default:comp.created_by.username
+                                                }}</strong>
                                             {% if comp.created_by.profile.organization_name %}
-                                            <br><small style="color:var(--muted);font-size:11px;">{{ comp.created_by.profile.organization_name }}</small>
+                                            <br><small style="color:var(--muted);font-size:11px;">{{
+                                                comp.created_by.profile.organization_name }}</small>
                                             {% endif %}
                                             {% else %}
                                             <span style="color:#d93838;font-weight:700;">Unassigned</span>
@@ -2782,8 +2805,6 @@
                         <div class="card-heading">
                             <div>
                                 <h2>👔 Registered League Organizers</h2>
-                                <p class="card-subtitle">Click any organizer to inspect full profile details and all
-                                    hosted leagues.</p>
                             </div>
                         </div>
 
@@ -2808,16 +2829,20 @@
                                                     👤
                                                 </div>
                                                 <div>
-                                                    <strong style="color:var(--dark);font-size:14px;">{{ org.get_full_name|default:org.username }}</strong><br>
-                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username }}</small>
+                                                    <strong style="color:var(--dark);font-size:14px;">{{
+                                                        org.get_full_name|default:org.username }}</strong><br>
+                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username
+                                                        }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span style="font-weight:600;color:var(--text);">{{ org.profile.organization_name|default:"Independent Organizer" }}</span>
+                                            <span style="font-weight:600;color:var(--text);">{{
+                                                org.profile.organization_name|default:"Independent Organizer" }}</span>
                                         </td>
                                         <td>
-                                            <span style="color:var(--text);font-size:13px;">{{ org.profile.phone|default:org.email|default:"N/A" }}</span>
+                                            <span style="color:var(--text);font-size:13px;">{{
+                                                org.profile.phone|default:org.email|default:"N/A" }}</span>
                                         </td>
                                         <td style="text-align:right;">
                                             <div style="display:inline-flex;gap:6px;align-items:center;"
@@ -2831,7 +2856,8 @@
                                                     action="/super-admin/organizer/{{ org.id }}/toggle-status/"
                                                     style="display:inline;">
                                                     {% csrf_token %}
-                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not org.profile.is_active_organizer %}
+                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not
+                                                    org.profile.is_active_organizer %}
                                                     <button class="btn btn-primary"
                                                         style="padding:4px 8px;font-size:11px"
                                                         type="submit">Reactivate</button>
@@ -2892,8 +2918,6 @@
                         <div class="card-heading">
                             <div>
                                 <h2>📋 System Activity Audit Logs</h2>
-                                <p class="card-subtitle">Real-time log of administrative events, match entries,
-                                    approvals, and system changes.</p>
                             </div>
                         </div>
 
@@ -2911,11 +2935,13 @@
                                 <tbody>
                                     {% for log in activity_logs %}
                                     <tr>
-                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{
+                                            log.created_at|date:"Y-m-d H:i:s" }}</td>
                                         <td><strong>{{ log.user.username|default:"System" }}</strong></td>
                                         <td><span class="status-pill">{{ log.action }}</span></td>
                                         <td>{{ log.details }}</td>
-                                        <td style="font-size:11px;color:var(--muted)">{{ log.ip_address|default:"Localhost" }}</td>
+                                        <td style="font-size:11px;color:var(--muted)">{{
+                                            log.ip_address|default:"Localhost" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
@@ -2968,13 +2994,15 @@
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if platform_settings.allow_organizer_registration %}checked{% endif %}>
+                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if
+                                        platform_settings.allow_organizer_registration %}checked{% endif %}>
                                     <label for="allowReg" style="font-size:13px;font-weight:700;cursor:pointer;">Allow
                                         Public Organizer Applications</label>
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if platform_settings.auto_publish_fixtures %}checked{% endif %}>
+                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if
+                                        platform_settings.auto_publish_fixtures %}checked{% endif %}>
                                     <label for="autoPub"
                                         style="font-size:13px;font-weight:700;cursor:pointer;">Auto-publish generated
                                         fixtures to public portal</label>
@@ -3086,7 +3114,8 @@
                         <label>Select Approved Organizer *</label>
                         <select class="field" name="organizer_id" required>
                             {% for org in approved_organizers %}
-                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{ org.profile.organization_name|default:org.username }})</option>
+                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{
+                                org.profile.organization_name|default:org.username }})</option>
                             {% endfor %}
                         </select>
                     </div>
