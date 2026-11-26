@@ -97,6 +97,8 @@ def organizer_dashboard(request, comp_id=None):
                     'date': m.match_date,
                     'iso_date': m.match_date.isoformat(),
                     'display_date': m.match_date.strftime('%d %B %Y'),
+                    'header_date': m.match_date.strftime('%d-%m-%Y (%A)').upper(),
+                    'short_date': m.match_date.strftime('%d-%m-%Y'),
                     'matches': [],
                 }
                 date_bucket[m.match_date] = group_entry

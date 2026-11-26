@@ -6049,131 +6049,138 @@
                         </div>
 
                         <!-- DESKTOP FIXTURES TABLE (Screens > 768px) -->
-                        <div class="table-wrap fixtures-desktop-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ROUND</th>
-                                        <th>DATE &amp; TIME</th>
-                                        <th>FIXTURE</th>
-                                        <th>ACTIONS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for day_group in upcoming_by_date %}
-                                    <tr style="background:#f3f7ee;border-top:2px solid #d5e2c8;border-bottom:1px solid #d5e2c8;">
-                                        <td colspan="4" style="padding:10px 14px;">
-                                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                                                <div style="display:flex;align-items:center;gap:10px;">
-                                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:6px;background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:13px;font-weight:800;letter-spacing:0.6px;">
-                                                        DAY {{ day_group.day_number }}
-                                                    </span>
-                                                    <strong style="font-size:13px;color:var(--dark);">{{ day_group.display_date }}</strong>
-                                                </div>
-                                                <button type="button"
-                                                    class="btn btn-primary day-poster-download-btn"
-                                                    data-comp-id="{{ active_competition.id }}"
-                                                    data-date="{{ day_group.iso_date }}"
-                                                    data-day="{{ day_group.day_number }}"
-                                                    onclick="downloadDayPoster(this.dataset.compId, this.dataset.date, this)"
-                                                    style="padding:6px 14px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-                                                    <span>⬇ Download Poster</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% for m in day_group.matches %}
-                                    <tr {% if next_match and m.id == next_match.id %}class="highlight-next-match-row"{% endif %}>
-                                        <td>
-                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                <strong>{{ m.tournament_round }}</strong>
-                                                {% if m.round_byes %}
-                                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
-                                                {% endif %}
-                                                {% if next_match and m.id == next_match.id %}
-                                                <span class="badge-next-match">⚡ NEXT MATCH</span>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                        <td>{{ m.match_date|date:"D, d M Y" }} · {{ m.kickoff_time|time:"H:i" }}</td>
-                                        <td>
-                                            {% if m.home_team %}
-                                            <a href="/organizer/team/{{ m.home_team.id }}/?competition={{ active_competition.id }}"
-                                                style="color:inherit;text-decoration:none;font-weight:700;">{{ m.home_team.name }}</a>
-                                            {% else %}
-                                            <span style="font-weight:700;color:var(--muted);">{{ m.home_display_name }}</span>
-                                            {% endif %}
-                                            <span style="color:var(--muted);font-weight:600;margin:0 4px;">vs</span>
-                                            {% if m.away_team %}
-                                            <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
-                                                style="color:inherit;text-decoration:none;font-weight:700;">{{ m.away_team.name }}</a>
-                                            {% else %}
-                                            <span style="font-weight:700;color:var(--muted);">{{ m.away_display_name }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div style="display:flex;gap:6px;">
-                                                <button class="btn btn-outline" style="padding:4px 8px;font-size:11px"
-                                                    onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_display_name|escapejs }} vs {{ m.away_display_name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
-                                                    Reschedule
-                                                </button>
-                                                {% if m.home_team and m.away_team %}
-                                                <button class="btn btn-primary" style="padding:4px 8px;font-size:11px"
-                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_display_name|escapejs }}', '{{ m.away_display_name|escapejs }}', '{{ m.tournament_round }}')">
-                                                    Enter Score
-                                                </button>
-                                                {% else %}
-                                                <span style="font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;background:#f1f5f9;border-radius:4px;display:inline-flex;align-items:center;">
-                                                    ⏳ Pending Finalists
-                                                </span>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="4" style="text-align:center;padding:40px 20px;color:var(--muted)">
-                                            {% if active_competition.is_completed %}
-                                            <div style="font-size:36px;margin-bottom:8px;">🏆</div>
-                                            <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
-                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished{% if active_competition.winner %} and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!{% else %} and the tournament has concluded.{% endif %}</p>
-                                            <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-right:6px;">
-                                                View Match Results →
-                                            </button>
-                                            {% if not active_competition.is_pure_knockout %}
-                                            <button class="btn btn-outline" type="button" onclick="openTab('standings')" style="font-size:13px;padding:8px 18px;">
-                                                View Points Table →
-                                            </button>
-                                            {% endif %}
-                                            {% else %}
-                                            <div style="font-size:36px;margin-bottom:8px;">📅</div>
-                                            <strong
-                                                style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
-                                                upcoming fixtures scheduled</strong>
-                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches
-                                                have been completed or no fixtures are scheduled yet.</p>
-                                            <a href="/organizer/{{ active_competition.id }}/fixture-generator/"
-                                                class="btn btn-primary" style="font-size:13px;padding:9px 20px;">
-                                                ⚡ Open Fixture Generation Wizard →
-                                            </a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="fixtures-desktop-table" style="display:flex;flex-direction:column;gap:16px;">
+                            {% for day_group in upcoming_by_date %}
+                            <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#ffffff;box-shadow:0 2px 8px rgba(16,27,22,0.04);">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;background:#e9efdf;border-bottom:1px solid #d5e2c8;">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span style="font-size:15px;">📅</span>
+                                        <strong style="font-family:var(--font-heading);font-size:16px;font-weight:800;letter-spacing:0.4px;color:var(--dark);">{{ day_group.header_date }}</strong>
+                                    </div>
+                                    <button type="button"
+                                        class="btn btn-primary day-poster-download-btn"
+                                        data-comp-id="{{ active_competition.id }}"
+                                        data-date="{{ day_group.iso_date }}"
+                                        data-day="{{ day_group.day_number }}"
+                                        onclick="downloadDayPoster(this.dataset.compId, this.dataset.date, this)"
+                                        style="padding:6px 14px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                        <span>⬇ Download Poster</span>
+                                    </button>
+                                </div>
+                                <div class="table-wrap" style="border:none;border-radius:0;">
+                                    <table style="margin:0;">
+                                        <thead>
+                                            <tr style="background:#fafbf8;">
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">MATCH DATE</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">KICKOFF TIME</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">HOME CLUB</th>
+                                                <th style="width:54px;"></th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">AWAY CLUB</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">ACTIONS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for m in day_group.matches %}
+                                            <tr {% if next_match and m.id == next_match.id %}class="highlight-next-match-row"{% endif %}>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:inline-flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;font-weight:700;color:var(--dark);min-width:128px;">
+                                                        <span>{{ day_group.short_date }}</span>
+                                                        <span style="font-size:12px;opacity:0.7;">📅</span>
+                                                    </div>
+                                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                                                        <span style="font-size:11px;font-weight:700;color:var(--muted);">#{{ forloop.counter }}</span>
+                                                        <span style="display:inline-block;padding:2px 8px;border-radius:5px;background:#e9efdf;color:#1b4332;font-size:11px;font-weight:700;">{{ m.tournament_round }}</span>
+                                                        {% if m.round_byes %}
+                                                        <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
+                                                        {% endif %}
+                                                        {% if next_match and m.id == next_match.id %}
+                                                        <span class="badge-next-match">⚡ NEXT MATCH</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;font-weight:700;color:var(--dark);">
+                                                        <span>{{ m.kickoff_time|time:"H:i" }}</span>
+                                                        <span style="font-size:12px;opacity:0.7;">🕒</span>
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    {% if m.home_team %}
+                                                    <a href="/organizer/team/{{ m.home_team.id }}/?competition={{ active_competition.id }}"
+                                                        style="color:var(--dark);text-decoration:none;font-weight:700;font-size:13px;">{{ m.home_team.name }}</a>
+                                                    {% else %}
+                                                    <span style="font-weight:700;color:var(--muted);font-size:13px;">{{ m.home_display_name }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="vertical-align:middle;text-align:center;">
+                                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:5px;background:#e9efdf;color:#1b4332;font-family:var(--font-heading);font-size:12px;font-weight:800;letter-spacing:0.5px;">VS</span>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    {% if m.away_team %}
+                                                    <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
+                                                        style="color:var(--dark);text-decoration:none;font-weight:700;font-size:13px;">{{ m.away_team.name }}</a>
+                                                    {% else %}
+                                                    <span style="font-weight:700;color:var(--muted);font-size:13px;">{{ m.away_display_name }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:flex;gap:6px;">
+                                                        <button class="btn btn-outline" style="padding:4px 8px;font-size:11px"
+                                                            onclick="openRescheduleModal('{{ m.id }}', '{{ m.home_display_name|escapejs }} vs {{ m.away_display_name|escapejs }}', '{{ m.match_date.isoformat }}', '{{ m.kickoff_time.isoformat }}', '{{ m.venue|escapejs }}', '{{ m.status }}', '{{ m.tournament_round|escapejs }}')">
+                                                            Reschedule
+                                                        </button>
+                                                        {% if m.home_team and m.away_team %}
+                                                        <button class="btn btn-primary" style="padding:4px 8px;font-size:11px"
+                                                            onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_display_name|escapejs }}', '{{ m.away_display_name|escapejs }}', '{{ m.tournament_round }}')">
+                                                            Enter Score
+                                                        </button>
+                                                        {% else %}
+                                                        <span style="font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;background:#f1f5f9;border-radius:4px;display:inline-flex;align-items:center;">
+                                                            ⏳ Pending Finalists
+                                                        </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+                                {% if active_competition.is_completed %}
+                                <div style="font-size:36px;margin-bottom:8px;">🏆</div>
+                                <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">All League Fixtures Completed</strong>
+                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have finished{% if active_competition.winner %} and <strong>{{ active_competition.winner.name }}</strong> has won the tournament!{% else %} and the tournament has concluded.{% endif %}</p>
+                                <button class="btn btn-primary" type="button" onclick="openTab('results')" style="font-size:13px;padding:8px 18px;margin-right:6px;">
+                                    View Match Results →
+                                </button>
+                                {% if not active_competition.is_pure_knockout %}
+                                <button class="btn btn-outline" type="button" onclick="openTab('standings')" style="font-size:13px;padding:8px 18px;">
+                                    View Points Table →
+                                </button>
+                                {% endif %}
+                                {% else %}
+                                <div style="font-size:36px;margin-bottom:8px;">📅</div>
+                                <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No upcoming fixtures scheduled</strong>
+                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">All matches have been completed or no fixtures are scheduled yet.</p>
+                                <a href="/organizer/{{ active_competition.id }}/fixture-generator/"
+                                    class="btn btn-primary" style="font-size:13px;padding:9px 20px;">
+                                    ⚡ Open Fixture Generation Wizard →
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
                         </div>
 
                         <!-- MOBILE FIXTURE CARDS VIEW (Screens <= 768px) -->
                         <div class="fixtures-mobile-cards">
                             {% for day_group in upcoming_by_date %}
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:10px 0 8px;border-radius:10px;background:#f3f7ee;border:1px solid #d5e2c8;">
-                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                    <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 9px;border-radius:6px;background:var(--dark);color:var(--green);font-family:var(--font-heading);font-size:12px;font-weight:800;letter-spacing:0.6px;">
-                                        DAY {{ day_group.day_number }}
-                                    </span>
-                                    <strong style="font-size:12px;color:var(--dark);">{{ day_group.display_date }}</strong>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:10px 0 8px;border-radius:10px;background:#e9efdf;border:1px solid #d5e2c8;">
+                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <span style="font-size:14px;">📅</span>
+                                    <strong style="font-family:var(--font-heading);font-size:14px;font-weight:800;color:var(--dark);">{{ day_group.header_date }}</strong>
                                 </div>
                                 <button type="button"
                                     class="btn btn-primary day-poster-download-btn"
