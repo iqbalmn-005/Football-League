@@ -2276,8 +2276,7 @@
                         </div>
                     </div>
                     <div class="command-actions">
-                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{
-                            all_pending_count }})</button>
+                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{ all_pending_count }})</button>
                         <button class="btn btn-outline" type="button" onclick="openAdminTab('leagues')">🏆 View
                             Leagues</button>
                     </div>
@@ -2367,24 +2366,21 @@
                                         <div
                                             style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">
                                             🟢 Ongoing</div>
-                                        <div style="font-size:20px;font-weight:900;color:#166534;">{{
-                                            active_competitions_count }}</div>
+                                        <div style="font-size:20px;font-weight:900;color:#166534;">{{ active_competitions_count }}</div>
                                     </div>
                                     <div
                                         style="padding:10px 8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
                                         <div
                                             style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;">
                                             ⏳ Upcoming</div>
-                                        <div style="font-size:20px;font-weight:900;color:#92400e;">{{
-                                            upcoming_competitions_count }}</div>
+                                        <div style="font-size:20px;font-weight:900;color:#92400e;">{{ upcoming_competitions_count }}</div>
                                     </div>
                                     <div
                                         style="padding:10px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
                                         <div
                                             style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;">
                                             🏆 Completed</div>
-                                        <div style="font-size:20px;font-weight:900;color:#1e40af;">{{
-                                            completed_competitions_count }}</div>
+                                        <div style="font-size:20px;font-weight:900;color:#1e40af;">{{ completed_competitions_count }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -2425,11 +2421,9 @@
                                         <div style="flex:1;min-width:0;">
                                             <div
                                                 style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-                                                <strong style="font-size:12px;color:var(--dark);">{{
-                                                    log.action_type|cut:"_" }}</strong>
+                                                <strong style="font-size:12px;color:var(--dark);">{{ log.action_type|cut:"_" }}</strong>
                                                 <small
-                                                    style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{
-                                                    log.created_at|date:"d M, H:i" }}</small>
+                                                    style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{ log.created_at|date:"d M, H:i" }}</small>
                                             </div>
                                             <p
                                                 style="margin:2px 0 0;font-size:12px;color:var(--text);word-break:break-word;line-height:1.4;">
@@ -2476,19 +2470,15 @@
                                             </div>
                                             <div style="min-width:0;">
                                                 <strong
-                                                    style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
-                                                    org.get_full_name|default:org.username }}</strong>
+                                                    style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.get_full_name|default:org.username }}</strong>
                                                 <small
-                                                    style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
-                                                    org.profile.organization_name|default:"Independent Organizer"
-                                                    }}</small>
+                                                    style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.profile.organization_name|default:"Independent Organizer" }}</small>
                                             </div>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                                             <span
                                                 style="font-size:11px;padding:3px 8px;background:var(--soft-green);color:var(--green-dark);border-radius:12px;font-weight:700;">
-                                                {{ org.all_hosted_competitions|length }} League{{
-                                                org.all_hosted_competitions|length|pluralize }}
+                                                {{ org.all_hosted_competitions|length }} League{{ org.all_hosted_competitions|length|pluralize }}
                                             </span>
                                             <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline"
                                                 style="padding:3px 8px;font-size:11px;">
@@ -2553,8 +2543,7 @@
                                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                                     {% if pending_leagues_count > 0 %}
                                     <span class="nav-badge alert"
-                                        style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{
-                                        pending_leagues_count }} Under Review</span>
+                                        style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{ pending_leagues_count }} Under Review</span>
                                     {% endif %}
                                     <div style="font-size:12px;font-weight:800;color:var(--muted);">
                                         Pending Requests: {{ pending_leagues_count }}
@@ -2590,35 +2579,24 @@
                                                         {% endif %}
                                                     </div>
                                                     <div>
-                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name
-                                                            }}</strong>
-                                                        <div style="font-size:11px;color:var(--muted)">{{
-                                                            comp.get_category_display }} · {{ comp.season }}</div>
+                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name }}</strong>
+                                                        <div style="font-size:11px;color:var(--muted)">{{ comp.get_category_display }} · {{ comp.season }}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
                                                 {% if comp.primary_organizer %}
-                                                <strong style="color:var(--dark);">{{
-                                                    comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
-                                                    }}</strong><br>
-                                                <small style="color:var(--muted)">{{
-                                                    comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email
-                                                    }}</small>
+                                                <strong style="color:var(--dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong><br>
+                                                <small style="color:var(--muted)">{{ comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email }}</small>
                                                 {% elif comp.created_by %}
-                                                <strong style="color:var(--dark);">{{
-                                                    comp.created_by.get_full_name|default:comp.created_by.username
-                                                    }}</strong><br>
-                                                <small style="color:var(--muted)">{{
-                                                    comp.created_by.profile.organization_name|default:comp.created_by.email
-                                                    }}</small>
+                                                <strong style="color:var(--dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong><br>
+                                                <small style="color:var(--muted)">{{ comp.created_by.profile.organization_name|default:comp.created_by.email }}</small>
                                                 {% else %}
                                                 <span style="color:#d93838;font-weight:700;">Unassigned</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <span style="font-weight:600;color:var(--dark);">{{
-                                                    comp.location|default:"City Ground" }}</span>
+                                                <span style="font-weight:600;color:var(--dark);">{{ comp.location|default:"City Ground" }}</span>
                                             </td>
                                             <td style="text-align:right;">
                                                 <div style="display:inline-flex;gap:6px;align-items:center;"
@@ -2736,30 +2714,22 @@
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name
-                                                        }}</strong>
+                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name }}</strong>
                                                     {% if comp.location %}<br><small
-                                                        style="color:var(--muted);font-size:11px;">📍 {{ comp.location
-                                                        }}</small>{% endif %}
+                                                        style="color:var(--muted);font-size:11px;">📍 {{ comp.location }}</small>{% endif %}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             {% if comp.primary_organizer %}
-                                            <strong style="color:var(--green-dark);">{{
-                                                comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
-                                                }}</strong>
+                                            <strong style="color:var(--green-dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong>
                                             {% if comp.primary_organizer.profile.organization_name %}
-                                            <br><small style="color:var(--muted);font-size:11px;">{{
-                                                comp.primary_organizer.profile.organization_name }}</small>
+                                            <br><small style="color:var(--muted);font-size:11px;">{{ comp.primary_organizer.profile.organization_name }}</small>
                                             {% endif %}
                                             {% elif comp.created_by %}
-                                            <strong style="color:var(--green-dark);">{{
-                                                comp.created_by.get_full_name|default:comp.created_by.username
-                                                }}</strong>
+                                            <strong style="color:var(--green-dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong>
                                             {% if comp.created_by.profile.organization_name %}
-                                            <br><small style="color:var(--muted);font-size:11px;">{{
-                                                comp.created_by.profile.organization_name }}</small>
+                                            <br><small style="color:var(--muted);font-size:11px;">{{ comp.created_by.profile.organization_name }}</small>
                                             {% endif %}
                                             {% else %}
                                             <span style="color:#d93838;font-weight:700;">Unassigned</span>
@@ -2829,20 +2799,16 @@
                                                     👤
                                                 </div>
                                                 <div>
-                                                    <strong style="color:var(--dark);font-size:14px;">{{
-                                                        org.get_full_name|default:org.username }}</strong><br>
-                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username
-                                                        }}</small>
+                                                    <strong style="color:var(--dark);font-size:14px;">{{ org.get_full_name|default:org.username }}</strong><br>
+                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span style="font-weight:600;color:var(--text);">{{
-                                                org.profile.organization_name|default:"Independent Organizer" }}</span>
+                                            <span style="font-weight:600;color:var(--text);">{{ org.profile.organization_name|default:"Independent Organizer" }}</span>
                                         </td>
                                         <td>
-                                            <span style="color:var(--text);font-size:13px;">{{
-                                                org.profile.phone|default:org.email|default:"N/A" }}</span>
+                                            <span style="color:var(--text);font-size:13px;">{{ org.profile.phone|default:org.email|default:"N/A" }}</span>
                                         </td>
                                         <td style="text-align:right;">
                                             <div style="display:inline-flex;gap:6px;align-items:center;"
@@ -2856,8 +2822,7 @@
                                                     action="/super-admin/organizer/{{ org.id }}/toggle-status/"
                                                     style="display:inline;">
                                                     {% csrf_token %}
-                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not
-                                                    org.profile.is_active_organizer %}
+                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not org.profile.is_active_organizer %}
                                                     <button class="btn btn-primary"
                                                         style="padding:4px 8px;font-size:11px"
                                                         type="submit">Reactivate</button>
@@ -2935,13 +2900,11 @@
                                 <tbody>
                                     {% for log in activity_logs %}
                                     <tr>
-                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{
-                                            log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
                                         <td><strong>{{ log.user.username|default:"System" }}</strong></td>
                                         <td><span class="status-pill">{{ log.action }}</span></td>
                                         <td>{{ log.details }}</td>
-                                        <td style="font-size:11px;color:var(--muted)">{{
-                                            log.ip_address|default:"Localhost" }}</td>
+                                        <td style="font-size:11px;color:var(--muted)">{{ log.ip_address|default:"Localhost" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
@@ -2994,15 +2957,13 @@
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if
-                                        platform_settings.allow_organizer_registration %}checked{% endif %}>
+                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if platform_settings.allow_organizer_registration %}checked{% endif %}>
                                     <label for="allowReg" style="font-size:13px;font-weight:700;cursor:pointer;">Allow
                                         Public Organizer Applications</label>
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if
-                                        platform_settings.auto_publish_fixtures %}checked{% endif %}>
+                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if platform_settings.auto_publish_fixtures %}checked{% endif %}>
                                     <label for="autoPub"
                                         style="font-size:13px;font-weight:700;cursor:pointer;">Auto-publish generated
                                         fixtures to public portal</label>
@@ -3114,8 +3075,7 @@
                         <label>Select Approved Organizer *</label>
                         <select class="field" name="organizer_id" required>
                             {% for org in approved_organizers %}
-                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{
-                                org.profile.organization_name|default:org.username }})</option>
+                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{ org.profile.organization_name|default:org.username }})</option>
                             {% endfor %}
                         </select>
                     </div>
