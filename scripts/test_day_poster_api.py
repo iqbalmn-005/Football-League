@@ -89,7 +89,9 @@ def run_tests():
         match_date=d2,
         kickoff_time=time(14, 0),
         tournament_round='Matchweek 2',
-        status=MatchStatus.SCHEDULED,
+        status=MatchStatus.COMPLETED,
+        home_score=2,
+        away_score=1,
     )
 
     try:
@@ -167,6 +169,24 @@ def run_tests():
         assert f'data-comp-id="{comp.id}"' in html
         assert f'data-date="{d1.isoformat()}"' in html
         print("✓ Organizer Fixtures page renders day-grouped schedule cards with Download Poster buttons")
+
+        # Valid Day 2 results score card request
+        r_d2_res = client.get(f'/api/leagues/{comp.id}/fixtures/poster/?date={d2.isoformat()}&mode=results')
+        assert r_d2_res.status_code == 200
+        res_data = r_d2_res.json()
+        assert res_data['mode'] == 'results'
+        assert res_data['matches'][0]['home_score'] == 2
+        assert res_data['matches'][0]['away_score'] == 1
+        assert res_data['matches'][0]['display_score'] == '2 : 1'
+        print("✓ Day 2 results score card API returned score payload")
+
+        # Results tab HTML check
+        r_res_tab = client.get(f'/organizer/{comp.id}/?tab=results')
+        assert r_res_tab.status_code == 200
+        res_html = r_res_tab.content.decode('utf-8')
+        assert 'Download Score Card' in res_html
+        assert '22-12-2026 (TUESDAY)' in res_html
+        print("✓ Organizer Results tab renders date-wise cards with Download Score Card button")
 
         # Republish / update kickoff time -> fresh data returned
         m_early.kickoff_time = time(11, 15)

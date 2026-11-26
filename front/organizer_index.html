@@ -6375,91 +6375,150 @@
                             </div>
                         </div>
 
+                        <div id="resultsPosterErrorBanner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12px;font-weight:600;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                            <span id="resultsPosterErrorText">Failed to generate score card.</span>
+                            <button type="button" class="btn btn-outline" id="resultsPosterRetryBtn" style="padding:5px 12px;font-size:11px;border-color:#fca5a5;color:#991b1b;background:#fff;">Retry</button>
+                        </div>
+
                         <!-- DESKTOP RESULTS TABLE (Screens > 768px) -->
-                        <div class="table-wrap results-desktop-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ROUND</th>
-                                        <th>DATE</th>
-                                        <th>FIXTURE</th>
-                                        <th>SCORE</th>
-                                        <th>ACTION</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for m in completed_matches %}
-                                    <tr {% if last_match and m.id == last_match.id %}class="highlight-last-match-row"{% endif %}>
-                                        <td>
-                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                <strong>{{ m.tournament_round }}</strong>
-                                                {% if m.round_byes %}
-                                                <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
-                                                {% endif %}
-                                                {% if last_match and m.id == last_match.id %}
-                                                <span class="badge-last-match">🏆 LATEST RESULT</span>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                        <td>{{ m.match_date|date:"d M Y" }}</td>
-                                        <td style="cursor:pointer;" onclick="openMatchModal('{{ m.id }}')"
-                                            title="Click to view game details">
-                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                <a href="/organizer/team/{{ m.home_team.id }}/?competition={{ active_competition.id }}"
-                                                    style="color:var(--dark);text-decoration:none;font-weight:700;">{{ m.home_team.name }}</a>
-                                                <span style="color:var(--muted);font-weight:600;">vs</span>
-                                                <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
-                                                    style="color:var(--dark);text-decoration:none;font-weight:700;">{{ m.away_team.name }}</a>
-                                            </div>
-                                        </td>
-                                        <td style="font-size:14px;font-weight:900;cursor:pointer;"
-                                            onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
-                                            <span
-                                                style="background:var(--dark);color:#B4F56B;padding:3px 8px;border-radius:4px;display:inline-block;">
-                                                {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <small style="font-size:11px;color:#B4F56B;font-weight:800;">({{ m.home_penalties }} - {{ m.away_penalties }})</small>{% endif %}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                <button class="btn btn-outline" type="button"
-                                                    style="padding:4px 8px;font-size:11px"
-                                                    onclick="openMatchModal('{{ m.id }}')">
-                                                    👁 Details
-                                                </button>
-                                                {% if m.is_knockout %}
-                                                <a href="/organizer/match/{{ m.id }}/shootout/" class="btn btn-outline"
-                                                    style="padding:4px 8px;font-size:11px;color:#047857;border-color:rgba(16,185,129,0.3);text-decoration:none;"
-                                                    title="Penalty Shootout Console">
-                                                    ⚽ Shootout
-                                                </a>
-                                                {% endif %}
-                                                <button class="btn btn-primary" type="button"
-                                                    style="padding:4px 10px;font-size:11px"
-                                                    onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}', '{{ m.home_score|default_if_none:0 }}', '{{ m.away_score|default_if_none:0 }}')">
-                                                    ✎ Edit
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="5" style="text-align:center;padding:40px 20px;color:var(--muted)">
-                                            <div style="font-size:36px;margin-bottom:8px;">🏆</div>
-                                            <strong
-                                                style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
-                                                completed match results yet</strong>
-                                            <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">Matches appear
-                                                here once scores and results are recorded from the Fixtures tab.</p>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="results-desktop-table">
+                            {% for day_group in completed_by_date %}
+                            <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#ffffff;box-shadow:0 2px 8px rgba(16,27,22,0.04);margin-bottom:16px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;background:#e9efdf;border-bottom:1px solid #d5e2c8;">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span style="font-size:15px;">🏆</span>
+                                        <strong style="font-family:var(--font-heading);font-size:16px;font-weight:800;letter-spacing:0.4px;color:var(--dark);">{{ day_group.header_date }}</strong>
+                                    </div>
+                                    <button type="button"
+                                        class="btn btn-primary day-poster-download-btn"
+                                        data-comp-id="{{ active_competition.id }}"
+                                        data-date="{{ day_group.iso_date }}"
+                                        data-day="{{ day_group.day_number }}"
+                                        data-mode="results"
+                                        onclick="downloadDayPoster(this.dataset.compId, this.dataset.date, this, this.dataset.mode)"
+                                        style="padding:6px 14px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                        <span>⬇ Download Score Card</span>
+                                    </button>
+                                </div>
+                                <div class="table-wrap" style="border:none;border-radius:0;">
+                                    <table style="margin:0;">
+                                        <thead>
+                                            <tr style="background:#fafbf8;">
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">MATCH DATE</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">KICKOFF TIME</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">HOME CLUB</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;text-align:center;">SCORE</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">AWAY CLUB</th>
+                                                <th style="font-size:11px;color:var(--muted);letter-spacing:0.5px;">ACTION</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for m in day_group.matches %}
+                                            <tr {% if last_match and m.id == last_match.id %}class="highlight-last-match-row"{% endif %}>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:inline-flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;font-weight:700;color:var(--dark);min-width:128px;">
+                                                        <span>{{ day_group.short_date }}</span>
+                                                        <span style="font-size:12px;opacity:0.7;">📅</span>
+                                                    </div>
+                                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                                                        <span style="font-size:11px;font-weight:700;color:var(--muted);">#{{ forloop.counter }}</span>
+                                                        <span style="display:inline-block;padding:2px 8px;border-radius:5px;background:#e9efdf;color:#1b4332;font-size:11px;font-weight:700;">{{ m.tournament_round }}</span>
+                                                        {% if m.round_byes %}
+                                                        <span class="badge" style="background:rgba(16, 185, 129, 0.15);color:#047857;border:1px solid rgba(16, 185, 129, 0.3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;" title="BYE: {{ m.round_byes|join:', ' }}">BYE: {{ m.round_byes|join:', ' }}</span>
+                                                        {% endif %}
+                                                        {% if last_match and m.id == last_match.id %}
+                                                        <span class="badge-last-match">🏆 LATEST RESULT</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;font-weight:700;color:var(--dark);">
+                                                        <span>{{ m.kickoff_time|time:"H:i" }}</span>
+                                                        <span style="font-size:12px;opacity:0.7;">🕒</span>
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;cursor:pointer;" onclick="openMatchModal('{{ m.id }}')" title="Click to view game details">
+                                                    {% if m.home_team %}
+                                                    <a href="/organizer/team/{{ m.home_team.id }}/?competition={{ active_competition.id }}"
+                                                        style="color:var(--dark);text-decoration:none;font-weight:700;font-size:13px;">{{ m.home_team.name }}</a>
+                                                    {% else %}
+                                                    <span style="font-weight:700;color:var(--muted);font-size:13px;">{{ m.home_display_name }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="vertical-align:middle;text-align:center;font-size:14px;font-weight:900;cursor:pointer;"
+                                                    onclick="openMatchModal('{{ m.id }}')" title="Click to view scorecard">
+                                                    <span
+                                                        style="background:var(--dark);color:#B4F56B;padding:4px 10px;border-radius:6px;display:inline-block;white-space:nowrap;">
+                                                        {{ m.home_score }} : {{ m.away_score }}{% if m.penalties and m.home_penalties is not None %} <small style="font-size:11px;color:#B4F56B;font-weight:800;">({{ m.home_penalties }} - {{ m.away_penalties }})</small>{% endif %}
+                                                    </span>
+                                                </td>
+                                                <td style="vertical-align:middle;cursor:pointer;" onclick="openMatchModal('{{ m.id }}')" title="Click to view game details">
+                                                    {% if m.away_team %}
+                                                    <a href="/organizer/team/{{ m.away_team.id }}/?competition={{ active_competition.id }}"
+                                                        style="color:var(--dark);text-decoration:none;font-weight:700;font-size:13px;">{{ m.away_team.name }}</a>
+                                                    {% else %}
+                                                    <span style="font-weight:700;color:var(--muted);font-size:13px;">{{ m.away_display_name }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                        <button class="btn btn-outline" type="button"
+                                                            style="padding:4px 8px;font-size:11px"
+                                                            onclick="openMatchModal('{{ m.id }}')">
+                                                            👁 Details
+                                                        </button>
+                                                        {% if m.is_knockout %}
+                                                        <a href="/organizer/match/{{ m.id }}/shootout/" class="btn btn-outline"
+                                                            style="padding:4px 8px;font-size:11px;color:#047857;border-color:rgba(16,185,129,0.3);text-decoration:none;"
+                                                            title="Penalty Shootout Console">
+                                                            ⚽ Shootout
+                                                        </a>
+                                                        {% endif %}
+                                                        <button class="btn btn-primary" type="button"
+                                                            style="padding:4px 10px;font-size:11px"
+                                                            onclick="openRecordResultModal('{{ m.id }}', '{{ m.home_team.name|escapejs }}', '{{ m.away_team.name|escapejs }}', '{{ m.tournament_round }}', '{{ m.home_score|default_if_none:0 }}', '{{ m.away_score|default_if_none:0 }}')">
+                                                            ✎ Edit
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+                                <div style="font-size:36px;margin-bottom:8px;">🏆</div>
+                                <strong
+                                    style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
+                                    completed match results yet</strong>
+                                <p style="font-size:12px;margin:0 auto 16px;max-width:500px;">Matches appear
+                                    here once scores and results are recorded from the Fixtures tab.</p>
+                            </div>
+                            {% endfor %}
                         </div>
 
                         <!-- MOBILE RESULTS CARDS VIEW (Screens <= 768px) -->
                         <div class="results-mobile-cards">
-                            {% for m in completed_matches %}
+                            {% for day_group in completed_by_date %}
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:10px 0 8px;border-radius:10px;background:#e9efdf;border:1px solid #d5e2c8;">
+                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <span style="font-size:14px;">🏆</span>
+                                    <strong style="font-family:var(--font-heading);font-size:14px;font-weight:800;color:var(--dark);">{{ day_group.header_date }}</strong>
+                                </div>
+                                <button type="button"
+                                    class="btn btn-primary day-poster-download-btn"
+                                    data-comp-id="{{ active_competition.id }}"
+                                    data-date="{{ day_group.iso_date }}"
+                                    data-day="{{ day_group.day_number }}"
+                                    data-mode="results"
+                                    onclick="downloadDayPoster(this.dataset.compId, this.dataset.date, this, this.dataset.mode)"
+                                    style="padding:6px 12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                    <span>⬇ Download Score Card</span>
+                                </button>
+                            </div>
+                            {% for m in day_group.matches %}
                             <div
                                 class="result-mcard {% if last_match and m.id == last_match.id %}result-mcard-latest{% endif %}">
                                 <!-- Top Row: Round Badge + Latest Result indicator + Date -->
@@ -6552,6 +6611,7 @@
                                     </button>
                                 </div>
                             </div>
+                            {% endfor %}
                             {% empty %}
                             <div style="text-align:center;padding:40px 20px;color:var(--muted)">
                                 <div style="font-size:36px;margin-bottom:8px;">🏆</div>
@@ -9069,12 +9129,16 @@
             let lastPosterRetryArgs = null;
 
             function setPosterError(msg, retryArgs) {
-                const banner = document.getElementById('dayPosterErrorBanner');
-                const textEl = document.getElementById('dayPosterErrorText');
-                const retryBtn = document.getElementById('dayPosterRetryBtn');
+                const isResults = retryArgs && retryArgs.mode === 'results';
+                const banner = document.getElementById(isResults ? 'resultsPosterErrorBanner' : 'dayPosterErrorBanner');
+                const textEl = document.getElementById(isResults ? 'resultsPosterErrorText' : 'dayPosterErrorText');
+                const retryBtn = document.getElementById(isResults ? 'resultsPosterRetryBtn' : 'dayPosterRetryBtn');
                 if (!banner || !textEl) return;
                 if (!msg) {
-                    banner.style.display = 'none';
+                    const b1 = document.getElementById('dayPosterErrorBanner');
+                    const b2 = document.getElementById('resultsPosterErrorBanner');
+                    if (b1) b1.style.display = 'none';
+                    if (b2) b2.style.display = 'none';
                     return;
                 }
                 lastPosterRetryArgs = retryArgs || null;
@@ -9083,7 +9147,7 @@
                 if (retryBtn) {
                     retryBtn.onclick = function () {
                         if (lastPosterRetryArgs) {
-                            window.downloadDayPoster(lastPosterRetryArgs.compId, lastPosterRetryArgs.isoDate, lastPosterRetryArgs.btnEl);
+                            window.downloadDayPoster(lastPosterRetryArgs.compId, lastPosterRetryArgs.isoDate, lastPosterRetryArgs.btnEl, lastPosterRetryArgs.mode);
                         }
                     };
                 }
@@ -9113,12 +9177,13 @@
                 });
             }
 
-            function buildSafeFilename(leagueName, dayNumber, filenameDate) {
+            function buildSafeFilename(leagueName, dayNumber, filenameDate, mode) {
                 const cleanLeague = (leagueName || 'Futbolix-League')
                     .replace(/[^a-zA-Z0-9\s-]/g, '')
                     .trim()
                     .replace(/\s+/g, '-') || 'Futbolix-League';
-                return `${cleanLeague}-Day-${dayNumber}-${filenameDate}.png`;
+                const suffix = mode === 'results' ? '-Results' : '';
+                return `${cleanLeague}-Day-${dayNumber}${suffix}-${filenameDate}.png`;
             }
 
             function renderPosterDom(data) {
@@ -9215,9 +9280,15 @@
                     homeImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
                     homeLogoWrap.appendChild(homeImg);
 
+                    const isResultsMode = data.mode === 'results';
                     const vsBadge = document.createElement('div');
-                    vsBadge.style.cssText = 'padding:5px 14px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", sans-serif;font-size:24px;font-weight:900;font-style:italic;letter-spacing:1px;box-shadow:0 0 14px rgba(158,240,26,0.4);';
-                    vsBadge.textContent = 'VS';
+                    if (isResultsMode && m.home_score !== null && m.home_score !== undefined && m.away_score !== null && m.away_score !== undefined) {
+                        vsBadge.style.cssText = 'padding:6px 14px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", sans-serif;font-size:26px;font-weight:900;letter-spacing:1px;box-shadow:0 0 14px rgba(158,240,26,0.4);white-space:nowrap;';
+                        vsBadge.textContent = m.display_score || `${m.home_score} : ${m.away_score}`;
+                    } else {
+                        vsBadge.style.cssText = 'padding:5px 14px;border-radius:8px;background:#9ef01a;color:#050b14;font-family:"Barlow Condensed", sans-serif;font-size:24px;font-weight:900;font-style:italic;letter-spacing:1px;box-shadow:0 0 14px rgba(158,240,26,0.4);';
+                        vsBadge.textContent = 'VS';
+                    }
 
                     const awayLogoWrap = document.createElement('div');
                     awayLogoWrap.style.cssText = `width:${logoSize};height:${logoSize};min-width:${logoSize};display:flex;align-items:center;justify-content:center;`;
@@ -9249,10 +9320,11 @@
                 return targetHeight;
             }
 
-            window.downloadDayPoster = async function (compId, isoDate, btnEl) {
+            window.downloadDayPoster = async function (compId, isoDate, btnEl, mode = 'fixtures') {
                 if (isPosterGenerating) return;
                 isPosterGenerating = true;
                 setPosterError(null);
+                const activeMode = mode === 'results' ? 'results' : 'fixtures';
 
                 const originalHtml = btnEl ? btnEl.innerHTML : '';
                 if (btnEl) {
@@ -9265,7 +9337,7 @@
                         throw new Error('Poster export library failed to load. Please check your connection and retry.');
                     }
 
-                    const res = await fetch(`/api/leagues/${compId}/fixtures/poster/?date=${encodeURIComponent(isoDate)}`, {
+                    const res = await fetch(`/api/leagues/${compId}/fixtures/poster/?date=${encodeURIComponent(isoDate)}&mode=${encodeURIComponent(activeMode)}`, {
                         method: 'GET',
                         credentials: 'same-origin',
                         cache: 'no-store',
@@ -9302,13 +9374,14 @@
                     a.download = buildSafeFilename(
                         payload.league && payload.league.name,
                         payload.day_number,
-                        payload.filename_date || payload.date
+                        payload.filename_date || payload.date,
+                        activeMode
                     );
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                 } catch (err) {
-                    setPosterError(err && err.message ? err.message : 'Unable to generate poster.', { compId, isoDate, btnEl });
+                    setPosterError(err && err.message ? err.message : 'Unable to generate poster.', { compId, isoDate, btnEl, mode: activeMode });
                 } finally {
                     isPosterGenerating = false;
                     if (btnEl) {

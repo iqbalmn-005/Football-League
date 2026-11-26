@@ -88,22 +88,28 @@ def organizer_dashboard(request, comp_id=None):
             for idx, d in enumerate(distinct_poster_dates)
         ]
         day_num_map = {d: idx + 1 for idx, d in enumerate(distinct_poster_dates)}
-        upcoming_by_date = []
-        date_bucket = {}
-        for m in upcoming_matches:
-            if m.match_date not in date_bucket:
-                group_entry = {
-                    'day_number': day_num_map.get(m.match_date, len(upcoming_by_date) + 1),
-                    'date': m.match_date,
-                    'iso_date': m.match_date.isoformat(),
-                    'display_date': m.match_date.strftime('%d %B %Y'),
-                    'header_date': m.match_date.strftime('%d-%m-%Y (%A)').upper(),
-                    'short_date': m.match_date.strftime('%d-%m-%Y'),
-                    'matches': [],
-                }
-                date_bucket[m.match_date] = group_entry
-                upcoming_by_date.append(group_entry)
-            date_bucket[m.match_date]['matches'].append(m)
+
+        def _group_matches_by_date(matches_iterable):
+            grouped = []
+            buckets = {}
+            for m in matches_iterable:
+                if m.match_date not in buckets:
+                    entry = {
+                        'day_number': day_num_map.get(m.match_date, len(grouped) + 1),
+                        'date': m.match_date,
+                        'iso_date': m.match_date.isoformat(),
+                        'display_date': m.match_date.strftime('%d %B %Y'),
+                        'header_date': m.match_date.strftime('%d-%m-%Y (%A)').upper(),
+                        'short_date': m.match_date.strftime('%d-%m-%Y'),
+                        'matches': [],
+                    }
+                    buckets[m.match_date] = entry
+                    grouped.append(entry)
+                buckets[m.match_date]['matches'].append(m)
+            return grouped
+
+        upcoming_by_date = _group_matches_by_date(upcoming_matches)
+        completed_by_date = _group_matches_by_date(completed_matches)
         next_match = upcoming_matches.filter(home_team__isnull=False, away_team__isnull=False).first() or upcoming_matches.first()
         last_match = completed_matches.first()
 
@@ -177,6 +183,7 @@ def organizer_dashboard(request, comp_id=None):
             'all_matches': all_matches,
             'poster_days': poster_days,
             'upcoming_by_date': upcoming_by_date,
+            'completed_by_date': completed_by_date,
             'next_match': next_match,
             'last_match': last_match,
             'standings': standings,

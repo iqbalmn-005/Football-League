@@ -344,14 +344,20 @@ def api_fixture_poster_data(request, comp_id):
     except ValueError:
         return JsonResponse({'success': False, 'error': 'Invalid date format. Expected YYYY-MM-DD.'}, status=400)
 
-    matches_qs = (
-        comp.matches.filter(match_date=target_date)
-        .exclude(status=MatchStatus.CANCELLED)
-        .select_related('home_team', 'away_team', 'group')
-        .order_by('kickoff_time', 'id')
-    )
+    mode = (request.GET.get('mode') or 'fixtures').strip().lower()
+    if mode not in ('fixtures', 'results'):
+        mode = 'fixtures'
+
+    base_qs = comp.matches.filter(match_date=target_date)
+    if mode == 'results':
+        matches_qs = base_qs.filter(status=MatchStatus.COMPLETED)
+    else:
+        matches_qs = base_qs.exclude(status=MatchStatus.CANCELLED)
+
+    matches_qs = matches_qs.select_related('home_team', 'away_team', 'group').order_by('kickoff_time', 'id')
     if not matches_qs.exists():
-        return JsonResponse({'success': False, 'error': f'No published fixtures found for {date_str}.'}, status=404)
+        label = 'completed results' if mode == 'results' else 'published fixtures'
+        return JsonResponse({'success': False, 'error': f'No {label} found for {date_str}.'}, status=404)
 
     distinct_dates = list(
         comp.matches.exclude(status=MatchStatus.CANCELLED)
@@ -374,10 +380,15 @@ def api_fixture_poster_data(request, comp_id):
             'home_team_logo': m.home_team.get_logo_url() if m.home_team else '',
             'away_team_name': m.away_display_name,
             'away_team_logo': m.away_team.get_logo_url() if m.away_team else '',
+            'home_score': m.home_score,
+            'away_score': m.away_score,
+            'display_score': m.display_score,
+            'is_completed': m.status == MatchStatus.COMPLETED,
         })
 
     resp = JsonResponse({
         'success': True,
+        'mode': mode,
         'league': {
             'id': comp.id,
             'name': comp.name,
