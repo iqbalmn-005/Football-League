@@ -779,8 +779,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ACTIVITY TIMELINE */
@@ -892,8 +899,15 @@
         }
 
         @keyframes modalPop {
-            from { opacity: 0; transform: translateY(12px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .modal-header {
@@ -1029,7 +1043,7 @@
             pointer-events: auto !important;
         }
 
-/* MODAL SHEET HANDLE */
+        /* MODAL SHEET HANDLE */
         .modal-sheet-handle {
             display: none;
         }
@@ -1046,11 +1060,14 @@
         }
 
         /* Active micro-interactions for touch like organizer_index.html */
-        .btn:active, .tab:active, .bottom-nav-item:active, .preset-chip:active {
+        .btn:active,
+        .tab:active,
+        .bottom-nav-item:active,
+        .preset-chip:active {
             transform: scale(0.97);
         }
 
-        
+
         /* QUICK ACTIONS DOCK (OVERVIEW) */
         .quick-actions-dock {
             display: grid;
@@ -1103,6 +1120,7 @@
             .kpi-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+
             .approvals-kpi-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -1114,6 +1132,7 @@
                 gap: 14px;
                 margin-bottom: 16px;
             }
+
             .approvals-kpi-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -1546,13 +1565,13 @@
                 margin-top: 1px;
             }
 
-            .card-heading > div:last-child {
+            .card-heading>div:last-child {
                 width: 100%;
                 display: flex;
                 gap: 8px;
             }
 
-            .card-heading > div:last-child .btn {
+            .card-heading>div:last-child .btn {
                 width: 100%;
                 justify-content: center;
                 padding: 8px 12px;
@@ -1727,12 +1746,12 @@
                 display: block !important;
             }
 
-            #pendingOrganizersTable td:last-child > div,
-            #activeLeaguesTable td:last-child > div,
-            #leaguesTable td:last-child > div,
-            #organizersTable td:last-child > div,
-            #usersTable td:last-child > div,
-            #approvalsTable td:last-child > div {
+            #pendingOrganizersTable td:last-child>div,
+            #activeLeaguesTable td:last-child>div,
+            #leaguesTable td:last-child>div,
+            #organizersTable td:last-child>div,
+            #usersTable td:last-child>div,
+            #approvalsTable td:last-child>div {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
                 gap: 8px !important;
@@ -1740,7 +1759,7 @@
             }
 
             /* Dedicated 3-action responsive grid for League Approvals (View | Approve | Decline) */
-            #leagueApprovalsTable td:last-child > div {
+            #leagueApprovalsTable td:last-child>div {
                 display: grid !important;
                 grid-template-columns: 1fr 1.25fr 1fr !important;
                 gap: 6px !important;
@@ -1769,9 +1788,10 @@
             }
 
             @media (max-width: 440px) {
-                #leagueApprovalsTable td:last-child > div {
+                #leagueApprovalsTable td:last-child>div {
                     grid-template-columns: 1fr 1fr !important;
                 }
+
                 #leagueApprovalsTable td:last-child form button {
                     grid-column: span 2 !important;
                     order: -1 !important;
@@ -1795,29 +1815,149 @@
             }
 
             /* Contextual Labels for Mobile Item Cards */
-            #pendingOrganizersTable td:nth-child(2)::before { content: 'Organization:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #pendingOrganizersTable td:nth-child(3)::before { content: 'Proposed League:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #pendingOrganizersTable td:nth-child(4)::before { content: 'Submitted:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
+            #pendingOrganizersTable td:nth-child(2)::before {
+                content: 'Organization:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
 
-            #activeLeaguesTable td:nth-child(2)::before { content: 'Organizer:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #activeLeaguesTable td:nth-child(3)::before { content: 'Capacity:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #activeLeaguesTable td:nth-child(4)::before { content: 'Format:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #activeLeaguesTable td:nth-child(5)::before { content: 'Status:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
+            #pendingOrganizersTable td:nth-child(3)::before {
+                content: 'Proposed League:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
 
-            #leaguesTable td:nth-child(2)::before { content: 'Organizer: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
-            #leaguesTable td:nth-child(3)::before { content: 'Status: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
+            #pendingOrganizersTable td:nth-child(4)::before {
+                content: 'Submitted:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
 
-            #leagueApprovalsTable td:nth-child(2)::before { content: 'Organizer: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
-            #leagueApprovalsTable td:nth-child(3)::before { content: 'Location: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
-            #organizersTable td:nth-child(2)::before { content: 'Organization: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
-            #organizersTable td:nth-child(3)::before { content: 'Phone / Contact: '; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 6px; }
+            #activeLeaguesTable td:nth-child(2)::before {
+                content: 'Organizer:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
 
-            #usersTable td:nth-child(2)::before { content: 'Role:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #usersTable td:nth-child(3)::before { content: 'Access:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #usersTable td:nth-child(4)::before { content: 'Active:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
-            #usersTable td:nth-child(5)::before { content: '2FA:'; font-weight: 700; color: var(--muted); font-size: 11px; margin-right: 8px; }
+            #activeLeaguesTable td:nth-child(3)::before {
+                content: 'Capacity:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
 
-            #approvalsTable td:nth-child(5)::before { content: '🕒 Submitted: '; font-weight: 700; color: var(--dark); font-size: 11px; margin-right: 6px; }
+            #activeLeaguesTable td:nth-child(4)::before {
+                content: 'Format:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #activeLeaguesTable td:nth-child(5)::before {
+                content: 'Status:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #leaguesTable td:nth-child(2)::before {
+                content: 'Organizer: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #leaguesTable td:nth-child(3)::before {
+                content: 'Status: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #leagueApprovalsTable td:nth-child(2)::before {
+                content: 'Organizer: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #leagueApprovalsTable td:nth-child(3)::before {
+                content: 'Location: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #organizersTable td:nth-child(2)::before {
+                content: 'Organization: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #organizersTable td:nth-child(3)::before {
+                content: 'Phone / Contact: ';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 6px;
+            }
+
+            #usersTable td:nth-child(2)::before {
+                content: 'Role:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #usersTable td:nth-child(3)::before {
+                content: 'Access:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #usersTable td:nth-child(4)::before {
+                content: 'Active:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #usersTable td:nth-child(5)::before {
+                content: '2FA:';
+                font-weight: 700;
+                color: var(--muted);
+                font-size: 11px;
+                margin-right: 8px;
+            }
+
+            #approvalsTable td:nth-child(5)::before {
+                content: '🕒 Submitted: ';
+                font-weight: 700;
+                color: var(--dark);
+                font-size: 11px;
+                margin-right: 6px;
+            }
 
             /* mobile-bottom-nav consolidated above */
 
@@ -1839,7 +1979,10 @@
             }
 
             /* iOS auto-zoom prevention */
-            input, select, textarea, .field {
+            input,
+            select,
+            textarea,
+            .field {
                 font-size: 16px !important;
             }
 
@@ -1857,7 +2000,7 @@
                 gap: 8px;
             }
 
-            .card-heading > div:last-child {
+            .card-heading>div:last-child {
                 width: 100%;
                 display: flex;
                 gap: 8px;
@@ -1893,8 +2036,13 @@
             }
 
             @keyframes modalSheetUp {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
+                from {
+                    transform: translateY(100%);
+                }
+
+                to {
+                    transform: translateY(0);
+                }
             }
 
             .modal-header {
@@ -1940,11 +2088,11 @@
                 width: 100% !important;
             }
 
-            #leagueDetailModal .modal-footer > * {
+            #leagueDetailModal .modal-footer>* {
                 width: 100% !important;
             }
 
-            #leagueDetailModal .modal-footer > div {
+            #leagueDetailModal .modal-footer>div {
                 display: flex !important;
                 flex-direction: column-reverse !important;
                 width: 100% !important;
@@ -2003,12 +2151,15 @@
 
             <div class="sidebar-label">COMMAND CENTER</div>
 
-            <a href="/super-admin/?tab=overview" class="nav-link {% if active_tab == 'overview' or not active_tab %}active{% endif %}" id="navLinkOverview">
+            <a href="/super-admin/?tab=overview"
+                class="nav-link {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
+                id="navLinkOverview">
                 <span class="nav-icon">▤</span>
                 <span>Platform Overview</span>
             </a>
 
-            <a href="/super-admin/?tab=approvals" class="nav-link {% if active_tab == 'approvals' %}active{% endif %}" id="navLinkApprovals">
+            <a href="/super-admin/?tab=approvals" class="nav-link {% if active_tab == 'approvals' %}active{% endif %}"
+                id="navLinkApprovals">
                 <span class="nav-icon">⏳</span>
                 <span>Approvals Hub</span>
                 {% if all_pending_count > 0 %}
@@ -2016,21 +2167,25 @@
                 {% endif %}
             </a>
 
-            <a href="/super-admin/?tab=leagues" class="nav-link {% if active_tab == 'leagues' %}active{% endif %}" id="navLinkLeagues">
+            <a href="/super-admin/?tab=leagues" class="nav-link {% if active_tab == 'leagues' %}active{% endif %}"
+                id="navLinkLeagues">
                 <span class="nav-icon">🏆</span>
                 <span>Leagues</span>
             </a>
 
-            <a href="/super-admin/?tab=organizers" class="nav-link {% if active_tab == 'organizers' %}active{% endif %}" id="navLinkOrganizers">
+            <a href="/super-admin/?tab=organizers" class="nav-link {% if active_tab == 'organizers' %}active{% endif %}"
+                id="navLinkOrganizers">
                 <span class="nav-icon">👔</span>
                 <span>Organizers</span>
             </a>
-<a href="/super-admin/?tab=audit" class="nav-link {% if active_tab == 'audit' %}active{% endif %}" id="navLinkAudit">
+            <a href="/super-admin/?tab=audit" class="nav-link {% if active_tab == 'audit' %}active{% endif %}"
+                id="navLinkAudit">
                 <span class="nav-icon">📋</span>
                 <span>Activity Logs</span>
             </a>
 
-            <a href="/super-admin/?tab=settings" class="nav-link {% if active_tab == 'settings' %}active{% endif %}" id="navLinkSettings">
+            <a href="/super-admin/?tab=settings" class="nav-link {% if active_tab == 'settings' %}active{% endif %}"
+                id="navLinkSettings">
                 <span class="nav-icon">⚙️</span>
                 <span>Platform Settings</span>
             </a>
@@ -2045,7 +2200,8 @@
                 </div>
                 <div style="display:flex;gap:10px;margin-top:10px;">
                     <a href="/" class="btn btn-outline" style="flex:1;font-size:10px;padding:6px;">View Site ↗</a>
-                    <a href="/logout/" class="btn btn-outline" style="font-size:10px;padding:6px;color:#d93838;">Log out</a>
+                    <a href="/logout/" class="btn btn-outline" style="font-size:10px;padding:6px;color:#d93838;">Log
+                        out</a>
                 </div>
             </div>
         </aside>
@@ -2068,14 +2224,9 @@
                     </div>
                 </div>
 
-                <div class="top-search-wrap">
-                    <span class="top-search-icon">🔍</span>
-                    <input type="text" class="top-search-input" placeholder="Search competitions, organizers, logs..."
-                        id="globalSearchInput" oninput="handleGlobalSearch(this.value)">
-                </div>
-
                 <div class="top-actions">
-                    <a href="/" target="_blank" class="btn btn-outline" style="font-size:12px;padding:6px 12px;white-space:nowrap;">
+                    <a href="/" target="_blank" class="btn btn-outline"
+                        style="font-size:12px;padding:6px 12px;white-space:nowrap;">
                         <span class="desktop-only-text">View Public Site ↗</span>
                         <span class="mobile-only-text">Site ↗</span>
                     </a>
@@ -2088,19 +2239,25 @@
                 <div style="margin-bottom:20px;">
                     {% for message in messages %}
                     {% if message.tags == 'error' %}
-                    <div style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
+                    <div
+                        style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;">
                         <span>● {{ message }}</span>
-                        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+                        <button onclick="this.parentElement.remove()"
+                            style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
                     </div>
                     {% elif message.tags == 'success' %}
-                    <div style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
+                    <div
+                        style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#def7ec;color:#03543f;border:1px solid #bcf0da;">
                         <span>● {{ message }}</span>
-                        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+                        <button onclick="this.parentElement.remove()"
+                            style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
                     </div>
                     {% else %}
-                    <div style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;">
+                    <div
+                        style="padding:12px 18px;border-radius:4px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:#e1effe;color:#1e429f;border:1px solid #b4c6fc;">
                         <span>● {{ message }}</span>
-                        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
+                        <button onclick="this.parentElement.remove()"
+                            style="background:none;border:none;cursor:pointer;font-weight:900;">✕</button>
                     </div>
                     {% endif %}
                     {% endfor %}
@@ -2112,307 +2269,277 @@
                     <div class="command-brand-wrapper">
                         <div class="command-logo-box">⚡</div>
                         <div class="command-info">
-                            <span class="status-pill" style="margin-bottom:4px;background:#b4f56b;color:#101b16;">PLATFORM ENGINE ONLINE</span>
-                            <h2>Futbolix Platform Command</h2>
-                            <div class="command-meta">
-                                <span>🛡️ {{ active_competitions_count }} Active Leagues</span>
-                                <span>👔 {{ total_organizers }} Organizers</span>
-                                <span>⏳ {{ pending_count }} Pending Approvals</span>
-<span>▦ {{ total_matches_count }} Matches</span>
-                            </div>
+                            <span class="status-pill"
+                                style="margin-bottom:4px;background:#b4f56b;color:#101b16;">PLATFORM ENGINE
+                                ONLINE</span>
+                            <h2>Futbolix</h2>
                         </div>
                     </div>
                     <div class="command-actions">
-                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{ all_pending_count }})</button>
-                        <button class="btn btn-outline" type="button" onclick="openAdminTab('leagues')">🏆 View Leagues</button>
+                        <button class="btn" type="button" onclick="openAdminTab('approvals')">⏳ View Approvals ({{
+                            all_pending_count }})</button>
+                        <button class="btn btn-outline" type="button" onclick="openAdminTab('leagues')">🏆 View
+                            Leagues</button>
                     </div>
                 </section>
 
                 <!-- SECTION 1: OVERVIEW -->
-                <section class="tab-content {% if active_tab == 'overview' or not active_tab %}active{% endif %}" id="overview">
-                    
+                <section class="tab-content {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
+                    id="overview">
+
                     <!-- 1. KPI SUMMARY CARDS -->
                     <div class="kpi-grid">
-                        <div class="kpi-card" onclick="openAdminTab('leagues')" style="cursor:pointer;" title="Click to view all leagues">
+                        <div class="kpi-card" onclick="openAdminTab('leagues')" style="cursor:pointer;"
+                            title="Click to view all leagues">
                             <div class="kpi-label">Active Competitions</div>
                             <div class="kpi-value">{{ active_competitions_count }}</div>
-                            <div class="kpi-meta"><span style="color:var(--green)">✓</span> {{ total_competitions_count }} Total created · {{ upcoming_competitions_count }} Upcoming</div>
-                        </div>
-                        <div class="kpi-card {% if all_pending_count > 0 %}pending-alert{% else %}pending-clear{% endif %}" onclick="openAdminTab('approvals')" style="cursor:pointer;" title="Click to review approvals">
-                            <div class="kpi-label">Pending Sanctions &amp; Approvals</div>
-                            <div class="kpi-value">{{ all_pending_count }}</div>
-                            <div class="kpi-meta">
-                                {% if all_pending_count > 0 %}
-                                    {% if pending_leagues_count > 0 %}<strong>{{ pending_leagues_count }} Leagues</strong> · {% endif %}{{ pending_count }} Organizers
-                                {% else %}
-                                    <span style="color:var(--green)">✓</span> All requests processed
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="kpi-card" onclick="openAdminTab('organizers')" style="cursor:pointer;" title="Click to view organizers">
-                            <div class="kpi-label">Approved Organizers</div>
-                            <div class="kpi-value">{{ approved_organizers_count }}</div>
-                            <div class="kpi-meta"><span style="color:var(--green)">✓</span> {{ total_organizers }} Total registered</div>
-                        </div>
-                        <div class="kpi-card" onclick="openAdminTab('audit')" style="cursor:pointer;" title="Click to view activity logs">
-                            <div class="kpi-label">Total Platform Users</div>
-                            <div class="kpi-value">{{ total_users }}</div>
-                            <div class="kpi-meta"><span style="color:var(--green)">✓</span> Registered Futbolix accounts</div>
-                        </div>
-                    </div>
-
-                    <!-- 2. PENDING SANCTIONS ALERT / STATUS STRIP -->
-                    {% if all_pending_count > 0 %}
-                    <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;padding:14px 18px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <span style="font-size:24px;">⏳</span>
-                            <div>
-                                <strong style="color:#92400e;font-size:14px;display:block;">{{ all_pending_count }} Pending League Approval Request{{ all_pending_count|pluralize }} Requiring Action</strong>
-                                <span style="font-size:12px;color:#b45309;">
-                                    <strong>{{ all_pending_count }}</strong> tournament registration{{ all_pending_count|pluralize }} awaiting sanction review.
-                                </span>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary" onclick="openAdminTab('approvals')" style="padding:6px 14px;font-size:12px;">
-                            Review in Approvals Hub →
-                        </button>
-                    </div>
-                    {% else %}
-                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;padding:12px 18px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <span style="font-size:20px;">🛡️</span>
-                            <div>
-                                <strong style="color:#166534;font-size:13px;">All Sanctions &amp; Approvals Up to Date</strong>
-                                <span style="font-size:12px;color:#15803d;display:block;">All submitted organizer applications and tournament registrations have been processed.</span>
-                            </div>
-                        </div>
-                        <span style="font-size:11px;font-weight:700;color:#166534;background:#dcfce7;padding:3px 10px;border-radius:6px;border:1px solid #bbf7d0;">✓ QUEUE CLEAR</span>
-                    </div>
-                    {% endif %}
-
-                    <!-- 3. TWO-COLUMN ROW 1: LEAGUE HEALTH & PLATFORM MATCH PULSE -->
-                    <div class="two-column" style="margin-bottom:20px;">
-                        
-                        <!-- COLUMN A: LEAGUE HEALTH & FORMAT DISTRIBUTION -->
-                        <div class="card" style="margin-bottom:0;">
-                            <div class="card-heading">
-                                <div>
-                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">📊 Tournament Capacity &amp; Status</h3>
-                                    <p class="card-subtitle">Distribution of ongoing, upcoming, and finished competitions.</p>
-                                </div>
-                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('leagues')">
-                                    Manage Leagues ↗
-                                </button>
-                            </div>
-
-                            <div style="padding:16px 20px;">
-                                <!-- Segmented Status Progress Bar -->
-                                <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:14px;">
-                                    {% if total_competitions_count > 0 %}
-                                    <div class="stat-bar-seg" data-width="{% widthratio active_competitions_count total_competitions_count 100 %}" style="background:#10b981;" title="Active: {{ active_competitions_count }}"></div>
-                                    <div class="stat-bar-seg" data-width="{% widthratio upcoming_competitions_count total_competitions_count 100 %}" style="background:#f59e0b;" title="Upcoming: {{ upcoming_competitions_count }}"></div>
-                                    <div class="stat-bar-seg" data-width="{% widthratio completed_competitions_count total_competitions_count 100 %}" style="background:#3b82f6;" title="Completed: {{ completed_competitions_count }}"></div>
-                                    <script>document.querySelectorAll('.stat-bar-seg').forEach(function(el){if(el.dataset.width) el.style.width = el.dataset.width + '%';});</script>
+                            <div class="kpi-card {% if all_pending_count > 0 %}pending-alert{% else %}pending-clear{% endif %}"
+                                onclick="openAdminTab('approvals')" style="cursor:pointer;"
+                                title="Click to review approvals">
+                                <div class="kpi-label">Pending Sanctions &amp; Approvals</div>
+                                <div class="kpi-value">{{ all_pending_count }}</div>
+                                <div class="kpi-meta">
+                                    {% if all_pending_count > 0 %}
+                                    {% if pending_leagues_count > 0 %}<strong>{{ pending_leagues_count }}
+                                        Leagues</strong> ·
+                                    {% endif %}{{ pending_count }} Organizers
                                     {% else %}
-                                    <div style="width:100%;background:#cbd5e1;"></div>
                                     {% endif %}
                                 </div>
-
-                                <!-- Status Breakdown Badges -->
-                                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px;text-align:center;">
-                                    <div style="padding:10px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
-                                        <div style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">🟢 Ongoing</div>
-                                        <div style="font-size:20px;font-weight:900;color:#166534;">{{ active_competitions_count }}</div>
-                                    </div>
-                                    <div style="padding:10px 8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
-                                        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;">⏳ Upcoming</div>
-                                        <div style="font-size:20px;font-weight:900;color:#92400e;">{{ upcoming_competitions_count }}</div>
-                                    </div>
-                                    <div style="padding:10px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
-                                        <div style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;">🏆 Completed</div>
-                                        <div style="font-size:20px;font-weight:900;color:#1e40af;">{{ completed_competitions_count }}</div>
-                                    </div>
-                                </div>
-
-                                <!-- Category Format Tags -->
-                                <div style="border-top:1px dashed var(--border);padding-top:12px;">
-                                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Playing Categories</div>
-                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                        <span style="font-size:11px;padding:3px 8px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-weight:600;">⚽ 11-a-side: <strong>{{ eleven_side_count }}</strong></span>
-                                        <span style="font-size:11px;padding:3px 8px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-weight:600;">🥅 7-a-side: <strong>{{ seven_side_count }}</strong></span>
-                                        <span style="font-size:11px;padding:3px 8px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-weight:600;">🏃 5-a-side: <strong>{{ five_side_count }}</strong></span>
-                                        <span style="font-size:11px;padding:3px 8px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-weight:600;">🌟 Youth: <strong>{{ youth_count }}</strong></span>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="kpi-card" onclick="openAdminTab('organizers')" style="cursor:pointer;"
+                                title="Click to view organizers">
+                                <div class="kpi-label">Approved Organizers</div>
+                                <div class="kpi-value">{{ approved_organizers_count }}</div>
+                            </div>
+                            <div class="kpi-card" onclick="openAdminTab('audit')" style="cursor:pointer;"
+                                title="Click to view activity logs">
+                                <div class="kpi-label">Total Platform Users</div>
+                                <div class="kpi-value">{{ total_users }}</div>
                             </div>
                         </div>
 
-                        <!-- COLUMN B: PLATFORM MATCH PULSE -->
-                        <div class="card" style="margin-bottom:0;">
-                            <div class="card-heading">
-                                <div>
-                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚽ Platform Match Pulse</h3>
-                                    <p class="card-subtitle">Real-time match fixtures and scoring activity across all tournaments.</p>
-                                </div>
-                                <span class="status-pill live" style="font-size:10px;">Synced</span>
-                            </div>
+                        <!-- 3. LEAGUE HEALTH & FORMAT DISTRIBUTION -->
+                        <div style="margin-bottom:20px;">
 
-                            <div style="padding:16px 20px;">
-                                <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;margin-bottom:16px;">
-                                    <div style="padding:14px;background:var(--cream);border:1px solid var(--border);border-radius:8px;">
-                                        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">Total Matches</span>
-                                        <strong style="font-size:24px;color:var(--dark);font-family:var(--font-heading);line-height:1.2;">{{ total_matches_count }}</strong>
-                                        <small style="font-size:10.5px;color:var(--muted);display:block;">All tournament rounds</small>
+                            <!-- LEAGUE HEALTH & FORMAT DISTRIBUTION -->
+                            <div class="card" style="margin-bottom:0;">
+                                <div class="card-heading">
+                                    <div>
+                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">📊
+                                            Tournament
+                                            Capacity &amp; Status</h3>
                                     </div>
-                                    <div style="padding:14px;background:var(--cream);border:1px solid var(--border);border-radius:8px;">
-                                        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">Completed Matches</span>
-                                        <strong style="font-size:24px;color:#16a34a;font-family:var(--font-heading);line-height:1.2;">{{ completed_matches_count }}</strong>
-                                        <small style="font-size:10.5px;color:var(--muted);display:block;">Results confirmed</small>
-                                    </div>
-                                    <div style="padding:14px;background:var(--cream);border:1px solid var(--border);border-radius:8px;">
-                                        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">Scheduled / Upcoming</span>
-                                        <strong style="font-size:24px;color:#2563eb;font-family:var(--font-heading);line-height:1.2;">{{ scheduled_matches_count }}</strong>
-                                        <small style="font-size:10.5px;color:var(--muted);display:block;">Pending kickoff</small>
-                                    </div>
-                                    <div style="padding:14px;background:var(--cream);border:1px solid var(--border);border-radius:8px;">
-                                        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">Total Goals Scored</span>
-                                        <strong style="font-size:24px;color:#d97706;font-family:var(--font-heading);line-height:1.2;">{{ total_platform_goals }}</strong>
-                                        <small style="font-size:10.5px;color:var(--muted);display:block;">Across finished games</small>
-                                    </div>
-                                </div>
-
-                                <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px dashed var(--border);padding-top:12px;">
-                                    <span style="font-size:12px;color:var(--muted);">🛡️ <strong>{{ total_teams_count }}</strong> teams &amp; <strong>{{ total_players_count }}</strong> players registered</span>
-                                    <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('leagues')">
-                                        View Leagues ↗
+                                    <button type="button" class="btn btn-outline"
+                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('leagues')">
+                                        Manage Leagues ↗
                                     </button>
                                 </div>
-                            </div>
-                        </div>
 
-                    </div>
-
-                    <!-- 4. TWO-COLUMN ROW 2: LIVE ACTIVITY STREAM & TOP ORGANIZERS -->
-                    <div class="two-column" style="margin-bottom:20px;">
-                        
-                        <!-- COLUMN C: LIVE ACTIVITY STREAM -->
-                        <div class="card" style="margin-bottom:0;">
-                            <div class="card-heading">
-                                <div>
-                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚡ Live Activity &amp; Audit Stream</h3>
-                                    <p class="card-subtitle">Latest administrative and organizer operations on Futbolix.</p>
-                                </div>
-                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('audit')">
-                                    Full Audit Logs →
-                                </button>
-                            </div>
-
-                            <div style="padding:12px 20px;">
-                                {% if recent_activity_logs %}
-                                <div style="display:flex;flex-direction:column;gap:10px;">
-                                    {% for log in recent_activity_logs %}
-                                    <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-                                        <div style="width:28px;height:28px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
-                                            📋
+                                <div style="padding:16px 20px;">
+                                    <!-- Segmented Status Progress Bar -->
+                                    <div
+                                        style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:14px;">
+                                        {% if total_competitions_count > 0 %}
+                                        <div class="stat-bar-seg"
+                                            data-width="{% widthratio active_competitions_count total_competitions_count 100 %}"
+                                            style="background:#10b981;" title="Active: {{ active_competitions_count }}">
                                         </div>
-                                        <div style="flex:1;min-width:0;">
-                                            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-                                                <strong style="font-size:12px;color:var(--dark);">{{ log.action_type|cut:"_" }}</strong>
-                                                <small style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{ log.created_at|date:"d M, H:i" }}</small>
-                                            </div>
-                                            <p style="margin:2px 0 0;font-size:12px;color:var(--text);word-break:break-word;line-height:1.4;">
-                                                {{ log.details }}
-                                            </p>
+                                        <div class="stat-bar-seg"
+                                            data-width="{% widthratio upcoming_competitions_count total_competitions_count 100 %}"
+                                            style="background:#f59e0b;"
+                                            title="Upcoming: {{ upcoming_competitions_count }}">
+                                        </div>
+                                        <div class="stat-bar-seg"
+                                            data-width="{% widthratio completed_competitions_count total_competitions_count 100 %}"
+                                            style="background:#3b82f6;"
+                                            title="Completed: {{ completed_competitions_count }}"></div>
+                                        <script>document.querySelectorAll('.stat-bar-seg').forEach(function (el) { if (el.dataset.width) el.style.width = el.dataset.width + '%'; });</script>
+                                        {% else %}
+                                        <div style="width:100%;background:#cbd5e1;"></div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Status Breakdown Badges -->
+                                    <div
+                                        style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px;text-align:center;">
+                                        <div
+                                            style="padding:10px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+                                            <div
+                                                style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">
+                                                🟢 Ongoing</div>
+                                            <div style="font-size:20px;font-weight:900;color:#166534;">{{
+                                                active_competitions_count }}</div>
+                                        </div>
+                                        <div
+                                            style="padding:10px 8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+                                            <div
+                                                style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;">
+                                                ⏳ Upcoming</div>
+                                            <div style="font-size:20px;font-weight:900;color:#92400e;">{{
+                                                upcoming_competitions_count }}</div>
+                                        </div>
+                                        <div
+                                            style="padding:10px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                                            <div
+                                                style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;">
+                                                🏆 Completed</div>
+                                            <div style="font-size:20px;font-weight:900;color:#1e40af;">{{
+                                                completed_competitions_count }}</div>
                                         </div>
                                     </div>
-                                    {% endfor %}
                                 </div>
-                                {% else %}
-                                <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
-                                    No recent activity logs recorded yet.
-                                </div>
-                                {% endif %}
                             </div>
+
                         </div>
 
-                        <!-- COLUMN D: TOP ACTIVE ORGANIZERS SPOTLIGHT -->
-                        <div class="card" style="margin-bottom:0;">
-                            <div class="card-heading">
-                                <div>
-                                    <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">👔 Top Active Organizers</h3>
-                                    <p class="card-subtitle">Most active directors managing competitions on the platform.</p>
-                                </div>
-                                <button type="button" class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('organizers')">
-                                    All Organizers ({{ total_organizers }}) →
-                                </button>
-                            </div>
+                        <!-- 4. TWO-COLUMN ROW 2: LIVE ACTIVITY STREAM & TOP ORGANIZERS -->
+                        <div class="two-column" style="margin-bottom:20px;">
 
-                            <div style="padding:12px 20px;">
-                                {% if top_organizers %}
-                                <div style="display:flex;flex-direction:column;gap:10px;">
-                                    {% for org in top_organizers %}
-                                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-                                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                            <div style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
-                                                👤
-                                            </div>
-                                            <div style="min-width:0;">
-                                                <strong style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.get_full_name|default:org.username }}</strong>
-                                                <small style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ org.profile.organization_name|default:"Independent Organizer" }}</small>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                                            <span style="font-size:11px;padding:3px 8px;background:var(--soft-green);color:var(--green-dark);border-radius:12px;font-weight:700;">
-                                                {{ org.all_hosted_competitions|length }} League{{ org.all_hosted_competitions|length|pluralize }}
-                                            </span>
-                                            <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline" style="padding:3px 8px;font-size:11px;">
-                                                Leagues ↗
-                                            </a>
-                                        </div>
+                            <!-- COLUMN C: LIVE ACTIVITY STREAM -->
+                            <div class="card" style="margin-bottom:0;">
+                                <div class="card-heading">
+                                    <div>
+                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">⚡ Live
+                                            Activity
+                                            &amp; Audit Stream</h3>
+                                        <p class="card-subtitle">Latest administrative and organizer operations on
+                                            Futbolix.
+                                        </p>
                                     </div>
-                                    {% endfor %}
+                                    <button type="button" class="btn btn-outline"
+                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('audit')">
+                                        Full Audit Logs →
+                                    </button>
                                 </div>
-                                {% else %}
-                                <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
-                                    No registered organizers on the platform yet.
+
+                                <div style="padding:12px 20px;">
+                                    {% if recent_activity_logs %}
+                                    <div style="display:flex;flex-direction:column;gap:10px;">
+                                        {% for log in recent_activity_logs %}
+                                        <div
+                                            style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+                                            <div
+                                                style="width:28px;height:28px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
+                                                📋
+                                            </div>
+                                            <div style="flex:1;min-width:0;">
+                                                <div
+                                                    style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+                                                    <strong style="font-size:12px;color:var(--dark);">{{
+                                                        log.action_type|cut:"_" }}</strong>
+                                                    <small
+                                                        style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:auto;">{{
+                                                        log.created_at|date:"d M, H:i" }}</small>
+                                                </div>
+                                                <p
+                                                    style="margin:2px 0 0;font-size:12px;color:var(--text);word-break:break-word;line-height:1.4;">
+                                                    {{ log.details }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
+                                        No recent activity logs recorded yet.
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </div>
+
+                            <!-- COLUMN D: TOP ACTIVE ORGANIZERS SPOTLIGHT -->
+                            <div class="card" style="margin-bottom:0;">
+                                <div class="card-heading">
+                                    <div>
+                                        <h3 style="font-size:16px;display:flex;align-items:center;gap:8px;">👔 Top
+                                            Active
+                                            Organizers</h3>
+                                        <p class="card-subtitle">Most active directors managing competitions on the
+                                            platform.</p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline"
+                                        style="font-size:11px;padding:4px 10px;" onclick="openAdminTab('organizers')">
+                                        All Organizers ({{ total_organizers }}) →
+                                    </button>
+                                </div>
+
+                                <div style="padding:12px 20px;">
+                                    {% if top_organizers %}
+                                    <div style="display:flex;flex-direction:column;gap:10px;">
+                                        {% for org in top_organizers %}
+                                        <div
+                                            style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+                                            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                                                <div
+                                                    style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                                                    👤
+                                                </div>
+                                                <div style="min-width:0;">
+                                                    <strong
+                                                        style="font-size:13px;color:var(--dark);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
+                                                        org.get_full_name|default:org.username }}</strong>
+                                                    <small
+                                                        style="font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{
+                                                        org.profile.organization_name|default:"Independent Organizer"
+                                                        }}</small>
+                                                </div>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                                                <span
+                                                    style="font-size:11px;padding:3px 8px;background:var(--soft-green);color:var(--green-dark);border-radius:12px;font-weight:700;">
+                                                    {{ org.all_hosted_competitions|length }} League{{
+                                                    org.all_hosted_competitions|length|pluralize }}
+                                                </span>
+                                                <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline"
+                                                    style="padding:3px 8px;font-size:11px;">
+                                                    Leagues ↗
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">
+                                        No registered organizers on the platform yet.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                         </div>
 
-                    </div>
-
-                    <!-- 5. QUICK ACTIONS DOCK -->
-                    <div class="quick-actions-dock">
-                        <div class="quick-action-item" onclick="openAdminTab('leagues')">
-                            <span class="qa-icon">🏆</span>
-                            <div>
-                                <strong class="qa-title">Leagues Directory</strong>
-                                <small class="qa-subtitle">Active competitions</small>
+                        <!-- 5. QUICK ACTIONS DOCK -->
+                        <div class="quick-actions-dock">
+                            <div class="quick-action-item" onclick="openAdminTab('leagues')">
+                                <span class="qa-icon">🏆</span>
+                                <div>
+                                    <strong class="qa-title">Leagues Directory</strong>
+                                    <small class="qa-subtitle">Active competitions</small>
+                                </div>
+                            </div>
+                            <div class="quick-action-item" onclick="openAdminTab('approvals')">
+                                <span class="qa-icon">⏳</span>
+                                <div>
+                                    <strong class="qa-title">Approvals Hub</strong>
+                                    <small class="qa-subtitle">League requests ({{ all_pending_count }})</small>
+                                </div>
+                            </div>
+                            <div class="quick-action-item" onclick="openAdminTab('organizers')">
+                                <span class="qa-icon">👔</span>
+                                <div>
+                                    <strong class="qa-title">Organizers Directory</strong>
+                                    <small class="qa-subtitle">Director profiles</small>
+                                </div>
+                            </div>
+                            <div class="quick-action-item" onclick="openAdminTab('settings')">
+                                <span class="qa-icon">⚙️</span>
+                                <div>
+                                    <strong class="qa-title">Platform Settings</strong>
+                                    <small class="qa-subtitle">Branding, rules, config</small>
+                                </div>
                             </div>
                         </div>
-                        <div class="quick-action-item" onclick="openAdminTab('approvals')">
-                            <span class="qa-icon">⏳</span>
-                            <div>
-                                <strong class="qa-title">Approvals Hub</strong>
-                                <small class="qa-subtitle">League requests ({{ all_pending_count }})</small>
-                            </div>
-                        </div>
-                        <div class="quick-action-item" onclick="openAdminTab('organizers')">
-                            <span class="qa-icon">👔</span>
-                            <div>
-                                <strong class="qa-title">Organizers Directory</strong>
-                                <small class="qa-subtitle">Director profiles</small>
-                            </div>
-                        </div>
-                        <div class="quick-action-item" onclick="openAdminTab('settings')">
-                            <span class="qa-icon">⚙️</span>
-                            <div>
-                                <strong class="qa-title">Platform Settings</strong>
-                                <small class="qa-subtitle">Branding, rules, config</small>
-                            </div>
-                        </div>
-                    </div>
 
                 </section>
 
@@ -2423,11 +2550,14 @@
                             <div class="card-heading" style="flex-wrap:wrap;gap:12px;">
                                 <div>
                                     <h2 style="font-size:20px;">🏆 League &amp; Competition Registrations</h2>
-                                    <p class="card-subtitle">New tournament registrations awaiting Super Admin sanctioning before fixtures and teams can be created.</p>
+                                    <p class="card-subtitle">New tournament registrations awaiting Super Admin
+                                        sanctioning before fixtures and teams can be created.</p>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                                     {% if pending_leagues_count > 0 %}
-                                    <span class="nav-badge alert" style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{ pending_leagues_count }} Under Review</span>
+                                    <span class="nav-badge alert"
+                                        style="font-size:12px;padding:4px 10px;font-weight:800;">⚡ {{
+                                        pending_leagues_count }} Under Review</span>
                                     {% endif %}
                                     <div style="font-size:12px;font-weight:800;color:var(--muted);">
                                         Pending Requests: {{ pending_leagues_count }}
@@ -2435,7 +2565,7 @@
                                 </div>
                             </div>
 
-                                                        <div class="table-wrap">
+                            <div class="table-wrap">
                                 <table id="leagueApprovalsTable">
                                     <thead>
                                         <tr>
@@ -2447,49 +2577,74 @@
                                     </thead>
                                     <tbody>
                                         {% for comp in pending_leagues %}
-                                        <tr data-status="{{ comp.status }}" style="background:rgba(253, 246, 178, 0.22);border-left:4px solid #b58105;cursor:pointer;" onclick="openLeagueDetailModal('{{ comp.id }}')" title="Click to view all league details">
+                                        <tr data-status="{{ comp.status }}"
+                                            style="background:rgba(253, 246, 178, 0.22);border-left:4px solid #b58105;cursor:pointer;"
+                                            onclick="openLeagueDetailModal('{{ comp.id }}')"
+                                            title="Click to view all league details">
                                             <td>
                                                 <div style="display:flex;align-items:center;gap:10px;">
-                                                    <div style="width:36px;height:36px;border-radius:6px;background:var(--cream);border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex-shrink:0;">
+                                                    <div
+                                                        style="width:36px;height:36px;border-radius:6px;background:var(--cream);border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex-shrink:0;">
                                                         {% if comp.get_logo_url %}
-                                                        <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                                                        <img src="{{ comp.get_logo_url }}" alt="{{ comp.name }}"
+                                                            style="width:100%;height:100%;object-fit:cover;">
                                                         {% else %}
                                                         <span style="font-size:18px;">🛡️</span>
                                                         {% endif %}
                                                     </div>
                                                     <div>
-                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name }}</strong>
-                                                        <div style="font-size:11px;color:var(--muted)">{{ comp.get_category_display }} · {{ comp.season }}</div>
+                                                        <strong style="font-size:13.5px;color:var(--dark);">{{ comp.name
+                                                            }}</strong>
+                                                        <div style="font-size:11px;color:var(--muted)">{{
+                                                            comp.get_category_display }} · {{ comp.season }}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
                                                 {% if comp.primary_organizer %}
-                                                    <strong style="color:var(--dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong><br>
-                                                    <small style="color:var(--muted)">{{ comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email }}</small>
+                                                <strong style="color:var(--dark);">{{
+                                                    comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
+                                                    }}</strong><br>
+                                                <small style="color:var(--muted)">{{
+                                                    comp.primary_organizer.profile.organization_name|default:comp.primary_organizer.email
+                                                    }}</small>
                                                 {% elif comp.created_by %}
-                                                    <strong style="color:var(--dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong><br>
-                                                    <small style="color:var(--muted)">{{ comp.created_by.profile.organization_name|default:comp.created_by.email }}</small>
+                                                <strong style="color:var(--dark);">{{
+                                                    comp.created_by.get_full_name|default:comp.created_by.username
+                                                    }}</strong><br>
+                                                <small style="color:var(--muted)">{{
+                                                    comp.created_by.profile.organization_name|default:comp.created_by.email
+                                                    }}</small>
                                                 {% else %}
-                                                    <span style="color:#d93838;font-weight:700;">Unassigned</span>
+                                                <span style="color:#d93838;font-weight:700;">Unassigned</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <span style="font-weight:600;color:var(--dark);">{{ comp.location|default:"City Ground" }}</span>
+                                                <span style="font-weight:600;color:var(--dark);">{{
+                                                    comp.location|default:"City Ground" }}</span>
                                             </td>
                                             <td style="text-align:right;">
-                                                <div style="display:inline-flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">
-                                                    <button class="btn btn-outline" style="padding:5px 12px;font-size:11px;font-weight:700;" type="button"
-                                                        onclick="openLeagueDetailModal('{{ comp.id }}')" title="View complete details of this league">
+                                                <div style="display:inline-flex;gap:6px;align-items:center;"
+                                                    onclick="event.stopPropagation()">
+                                                    <button class="btn btn-outline"
+                                                        style="padding:5px 12px;font-size:11px;font-weight:700;"
+                                                        type="button" onclick="openLeagueDetailModal('{{ comp.id }}')"
+                                                        title="View complete details of this league">
                                                         👁 View
                                                     </button>
-                                                    <form method="post" action="/super-admin/competition/{{ comp.id }}/approve/" style="display:inline;margin:0;">
+                                                    <form method="post"
+                                                        action="/super-admin/competition/{{ comp.id }}/approve/"
+                                                        style="display:inline;margin:0;">
                                                         {% csrf_token %}
-                                                        <button class="btn btn-primary" style="padding:5px 12px;font-size:11px;font-weight:800;" type="submit" title="Sanction and activate this league">
+                                                        <button class="btn btn-primary"
+                                                            style="padding:5px 12px;font-size:11px;font-weight:800;"
+                                                            type="submit" title="Sanction and activate this league">
                                                             ✓ Approve
                                                         </button>
                                                     </form>
-                                                    <button class="btn btn-danger" style="padding:5px 10px;font-size:11px;font-weight:800;" type="button"
+                                                    <button class="btn btn-danger"
+                                                        style="padding:5px 10px;font-size:11px;font-weight:800;"
+                                                        type="button"
                                                         onclick="openRejectLeagueModal('{{ comp.id }}', '{{ comp.name|escapejs }}')">
                                                         ✕ Decline
                                                     </button>
@@ -2529,10 +2684,14 @@
                                         </script>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="4" style="text-align:center;padding:50px 20px;color:var(--muted);">
+                                            <td colspan="4"
+                                                style="text-align:center;padding:50px 20px;color:var(--muted);">
                                                 <div style="font-size:36px;margin-bottom:8px;">✓</div>
-                                                <strong style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No Approvals</strong>
-                                                <p style="font-size:12px;margin:0;">No league registration approval requests at this time.</p>
+                                                <strong
+                                                    style="display:block;font-size:16px;color:var(--dark);margin-bottom:4px;">No
+                                                    Approvals</strong>
+                                                <p style="font-size:12px;margin:0;">No league registration approval
+                                                    requests at this time.</p>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -2551,7 +2710,8 @@
                         <div class="card-heading">
                             <div>
                                 <h2>🏆 All Leagues</h2>
-                                <p class="card-subtitle">Overview of registered leagues, assigned organizers, and statuses.</p>
+                                <p class="card-subtitle">Overview of registered leagues, assigned organizers, and
+                                    statuses.</p>
                             </div>
                         </div>
 
@@ -2570,47 +2730,64 @@
                                     <tr>
                                         <td>
                                             <div style="display:flex;align-items:center;gap:12px;">
-                                                <div style="width:36px;height:36px;border-radius:8px;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0;">
+                                                <div
+                                                    style="width:36px;height:36px;border-radius:8px;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0;">
                                                     {% if comp.logo_url %}
-                                                        <img src="{{ comp.logo_url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                                                    <img src="{{ comp.logo_url }}" alt="{{ comp.name }}"
+                                                        style="width:100%;height:100%;object-fit:cover;">
                                                     {% elif comp.logo %}
-                                                        <img src="{{ comp.logo.url }}" alt="{{ comp.name }}" style="width:100%;height:100%;object-fit:cover;">
+                                                    <img src="{{ comp.logo.url }}" alt="{{ comp.name }}"
+                                                        style="width:100%;height:100%;object-fit:cover;">
                                                     {% else %}
-                                                        🏆
+                                                    🏆
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name }}</strong>
-                                                    {% if comp.location %}<br><small style="color:var(--muted);font-size:11px;">📍 {{ comp.location }}</small>{% endif %}
+                                                    <strong style="font-size:14px;color:var(--dark);">{{ comp.name
+                                                        }}</strong>
+                                                    {% if comp.location %}<br><small
+                                                        style="color:var(--muted);font-size:11px;">📍 {{ comp.location
+                                                        }}</small>{% endif %}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             {% if comp.primary_organizer %}
-                                                <strong style="color:var(--green-dark);">{{ comp.primary_organizer.get_full_name|default:comp.primary_organizer.username }}</strong>
-                                                {% if comp.primary_organizer.profile.organization_name %}
-                                                    <br><small style="color:var(--muted);font-size:11px;">{{ comp.primary_organizer.profile.organization_name }}</small>
-                                                {% endif %}
+                                            <strong style="color:var(--green-dark);">{{
+                                                comp.primary_organizer.get_full_name|default:comp.primary_organizer.username
+                                                }}</strong>
+                                            {% if comp.primary_organizer.profile.organization_name %}
+                                            <br><small style="color:var(--muted);font-size:11px;">{{
+                                                comp.primary_organizer.profile.organization_name }}</small>
+                                            {% endif %}
                                             {% elif comp.created_by %}
-                                                <strong style="color:var(--green-dark);">{{ comp.created_by.get_full_name|default:comp.created_by.username }}</strong>
-                                                {% if comp.created_by.profile.organization_name %}
-                                                    <br><small style="color:var(--muted);font-size:11px;">{{ comp.created_by.profile.organization_name }}</small>
-                                                {% endif %}
+                                            <strong style="color:var(--green-dark);">{{
+                                                comp.created_by.get_full_name|default:comp.created_by.username
+                                                }}</strong>
+                                            {% if comp.created_by.profile.organization_name %}
+                                            <br><small style="color:var(--muted);font-size:11px;">{{
+                                                comp.created_by.profile.organization_name }}</small>
+                                            {% endif %}
                                             {% else %}
-                                                <span style="color:#d93838;font-weight:700;">Unassigned</span>
+                                            <span style="color:#d93838;font-weight:700;">Unassigned</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <span class="status-pill {% if comp.status == 'ACTIVE' %}live{% elif comp.status == 'COMPLETED' %}completed{% else %}pending{% endif %}">
+                                            <span
+                                                class="status-pill {% if comp.status == 'ACTIVE' %}live{% elif comp.status == 'COMPLETED' %}completed{% else %}pending{% endif %}">
                                                 {{ comp.get_status_display }}
                                             </span>
                                         </td>
                                         <td style="text-align:right;">
-                                            <div style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;">
-                                                <a href="/competition/{{ comp.id }}/" class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
+                                            <div
+                                                style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;">
+                                                <a href="/competition/{{ comp.id }}/" class="btn btn-outline"
+                                                    style="padding:6px 14px;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
                                                     View League
                                                 </a>
-                                                <button type="button" class="btn" style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;font-weight:700;" onclick="event.stopPropagation();openAdminDeleteLeagueModal('{{ comp.id }}', '{{ comp.name|escapejs }}')">
+                                                <button type="button" class="btn"
+                                                    style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;font-weight:700;"
+                                                    onclick="event.stopPropagation();openAdminDeleteLeagueModal('{{ comp.id }}', '{{ comp.name|escapejs }}')">
                                                     🗑️ Delete
                                                 </button>
                                             </div>
@@ -2635,7 +2812,8 @@
                         <div class="card-heading">
                             <div>
                                 <h2>👔 Registered League Organizers</h2>
-                                <p class="card-subtitle">Click any organizer to inspect full profile details and all hosted leagues.</p>
+                                <p class="card-subtitle">Click any organizer to inspect full profile details and all
+                                    hosted leagues.</p>
                             </div>
                         </div>
 
@@ -2651,35 +2829,51 @@
                                 </thead>
                                 <tbody>
                                     {% for org in organizers %}
-                                    <tr style="cursor:pointer;" onclick="openOrganizerModal('{{ org.id }}')" title="Click to view organizer details and hosted leagues">
+                                    <tr style="cursor:pointer;" onclick="openOrganizerModal('{{ org.id }}')"
+                                        title="Click to view organizer details and hosted leagues">
                                         <td>
                                             <div style="display:flex;align-items:center;gap:10px;">
-                                                <div style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                                                <div
+                                                    style="width:34px;height:34px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
                                                     👤
                                                 </div>
                                                 <div>
-                                                    <strong style="color:var(--dark);font-size:14px;">{{ org.get_full_name|default:org.username }}</strong><br>
-                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username }}</small>
+                                                    <strong style="color:var(--dark);font-size:14px;">{{
+                                                        org.get_full_name|default:org.username }}</strong><br>
+                                                    <small style="color:var(--muted);font-size:11px;">@{{ org.username
+                                                        }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span style="font-weight:600;color:var(--text);">{{ org.profile.organization_name|default:"Independent Organizer" }}</span>
+                                            <span style="font-weight:600;color:var(--text);">{{
+                                                org.profile.organization_name|default:"Independent Organizer" }}</span>
                                         </td>
                                         <td>
-                                            <span style="color:var(--text);font-size:13px;">{{ org.profile.phone|default:org.email|default:"N/A" }}</span>
+                                            <span style="color:var(--text);font-size:13px;">{{
+                                                org.profile.phone|default:org.email|default:"N/A" }}</span>
                                         </td>
                                         <td style="text-align:right;">
-                                            <div style="display:inline-flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">
-                                                <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline" style="padding:4px 10px;font-size:11px;text-decoration:none;" title="View organizer details and hosted leagues">
+                                            <div style="display:inline-flex;gap:6px;align-items:center;"
+                                                onclick="event.stopPropagation()">
+                                                <a href="/organizer/{{ org.id }}/details/" class="btn btn-outline"
+                                                    style="padding:4px 10px;font-size:11px;text-decoration:none;"
+                                                    title="View organizer details and hosted leagues">
                                                     View Details ↗
                                                 </a>
-                                                <form method="post" action="/super-admin/organizer/{{ org.id }}/toggle-status/" style="display:inline;">
+                                                <form method="post"
+                                                    action="/super-admin/organizer/{{ org.id }}/toggle-status/"
+                                                    style="display:inline;">
                                                     {% csrf_token %}
-                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not org.profile.is_active_organizer %}
-                                                        <button class="btn btn-primary" style="padding:4px 8px;font-size:11px" type="submit">Reactivate</button>
+                                                    {% if org.profile.organizer_status == 'SUSPENDED' or not
+                                                    org.profile.is_active_organizer %}
+                                                    <button class="btn btn-primary"
+                                                        style="padding:4px 8px;font-size:11px"
+                                                        type="submit">Reactivate</button>
                                                     {% else %}
-                                                        <button class="btn btn-danger" style="padding:4px 8px;font-size:11px" type="submit">Suspend</button>
+                                                    <button class="btn btn-danger"
+                                                        style="padding:4px 8px;font-size:11px"
+                                                        type="submit">Suspend</button>
                                                     {% endif %}
                                                 </form>
                                             </div>
@@ -2733,7 +2927,8 @@
                         <div class="card-heading">
                             <div>
                                 <h2>📋 System Activity Audit Logs</h2>
-                                <p class="card-subtitle">Real-time log of administrative events, match entries, approvals, and system changes.</p>
+                                <p class="card-subtitle">Real-time log of administrative events, match entries,
+                                    approvals, and system changes.</p>
                             </div>
                         </div>
 
@@ -2751,15 +2946,18 @@
                                 <tbody>
                                     {% for log in activity_logs %}
                                     <tr>
-                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                        <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{
+                                            log.created_at|date:"Y-m-d H:i:s" }}</td>
                                         <td><strong>{{ log.user.username|default:"System" }}</strong></td>
                                         <td><span class="status-pill">{{ log.action }}</span></td>
                                         <td>{{ log.details }}</td>
-                                        <td style="font-size:11px;color:var(--muted)">{{ log.ip_address|default:"Localhost" }}</td>
+                                        <td style="font-size:11px;color:var(--muted)">{{
+                                            log.ip_address|default:"Localhost" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="5" style="text-align:center;padding:25px;color:var(--muted)">No activity logs recorded yet.</td>
+                                        <td colspan="5" style="text-align:center;padding:25px;color:var(--muted)">No
+                                            activity logs recorded yet.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -2774,7 +2972,8 @@
                         <div class="card-heading">
                             <div>
                                 <h2>⚙️ Platform Configuration</h2>
-                                <p class="card-subtitle">Global settings for FUTBOLIX tournament &amp; league management platform.</p>
+                                <p class="card-subtitle">Global settings for FUTBOLIX tournament &amp; league management
+                                    platform.</p>
                             </div>
                         </div>
 
@@ -2782,28 +2981,42 @@
                             {% csrf_token %}
                             <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
                                 <div>
-                                    <label style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Platform Name</label>
-                                    <input type="text" class="field" name="platform_name" value="{{ platform_settings.platform_name }}" style="width:100%" required>
+                                    <label
+                                        style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Platform
+                                        Name</label>
+                                    <input type="text" class="field" name="platform_name"
+                                        value="{{ platform_settings.platform_name }}" style="width:100%" required>
                                 </div>
 
                                 <div>
-                                    <label style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Platform Tagline</label>
-                                    <input type="text" class="field" name="tagline" value="{{ platform_settings.tagline }}" style="width:100%" required>
+                                    <label
+                                        style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Platform
+                                        Tagline</label>
+                                    <input type="text" class="field" name="tagline"
+                                        value="{{ platform_settings.tagline }}" style="width:100%" required>
                                 </div>
 
                                 <div>
-                                    <label style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Support &amp; Inquiries Email</label>
-                                    <input type="email" class="field" name="contact_email" value="{{ platform_settings.contact_email }}" style="width:100%" required>
+                                    <label
+                                        style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Support
+                                        &amp; Inquiries Email</label>
+                                    <input type="email" class="field" name="contact_email"
+                                        value="{{ platform_settings.contact_email }}" style="width:100%" required>
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if platform_settings.allow_organizer_registration %}checked{% endif %}>
-                                    <label for="allowReg" style="font-size:13px;font-weight:700;cursor:pointer;">Allow Public Organizer Applications</label>
+                                    <input type="checkbox" id="allowReg" name="allow_organizer_registration" {% if
+                                        platform_settings.allow_organizer_registration %}checked{% endif %}>
+                                    <label for="allowReg" style="font-size:13px;font-weight:700;cursor:pointer;">Allow
+                                        Public Organizer Applications</label>
                                 </div>
 
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if platform_settings.auto_publish_fixtures %}checked{% endif %}>
-                                    <label for="autoPub" style="font-size:13px;font-weight:700;cursor:pointer;">Auto-publish generated fixtures to public portal</label>
+                                    <input type="checkbox" id="autoPub" name="auto_publish_fixtures" {% if
+                                        platform_settings.auto_publish_fixtures %}checked{% endif %}>
+                                    <label for="autoPub"
+                                        style="font-size:13px;font-weight:700;cursor:pointer;">Auto-publish generated
+                                        fixtures to public portal</label>
                                 </div>
 
                                 <div style="margin-top:16px;">
@@ -2820,13 +3033,17 @@
 
     </div>
 
-        <!-- MOBILE BOTTOM NAVIGATION BAR (Fixed at bottom on <=900px screens) -->
+    <!-- MOBILE BOTTOM NAVIGATION BAR (Fixed at bottom on <=900px screens) -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Super Admin Mobile Navigation">
-        <a href="/super-admin/?tab=overview" class="bottom-nav-item {% if active_tab == 'overview' or not active_tab %}active{% endif %}" id="bnavOverview" onclick="openAdminTab('overview', this); return false;">
+        <a href="/super-admin/?tab=overview"
+            class="bottom-nav-item {% if active_tab == 'overview' or not active_tab %}active{% endif %}"
+            id="bnavOverview" onclick="openAdminTab('overview', this); return false;">
             <span class="bottom-nav-icon">⚡</span>
             <span>Overview</span>
         </a>
-        <a href="/super-admin/?tab=approvals" class="bottom-nav-item {% if active_tab == 'approvals' %}active{% endif %}" id="bnavApprovals" onclick="openAdminTab('approvals', this); return false;">
+        <a href="/super-admin/?tab=approvals"
+            class="bottom-nav-item {% if active_tab == 'approvals' %}active{% endif %}" id="bnavApprovals"
+            onclick="openAdminTab('approvals', this); return false;">
             <span class="bottom-nav-icon" style="position:relative;">
                 ⏳
                 {% if all_pending_count > 0 %}
@@ -2835,27 +3052,32 @@
             </span>
             <span>Approvals</span>
         </a>
-        <a href="/super-admin/?tab=leagues" class="bottom-nav-item {% if active_tab == 'leagues' %}active{% endif %}" id="bnavLeagues" onclick="openAdminTab('leagues', this); return false;">
+        <a href="/super-admin/?tab=leagues" class="bottom-nav-item {% if active_tab == 'leagues' %}active{% endif %}"
+            id="bnavLeagues" onclick="openAdminTab('leagues', this); return false;">
             <span class="bottom-nav-icon">🏆</span>
             <span>Leagues</span>
         </a>
-        <a href="/super-admin/?tab=organizers" class="bottom-nav-item {% if active_tab == 'organizers' %}active{% endif %}" id="bnavOrganizers" onclick="openAdminTab('organizers', this); return false;">
+        <a href="/super-admin/?tab=organizers"
+            class="bottom-nav-item {% if active_tab == 'organizers' %}active{% endif %}" id="bnavOrganizers"
+            onclick="openAdminTab('organizers', this); return false;">
             <span class="bottom-nav-icon">👔</span>
             <span>Organizers</span>
         </a>
-        <a href="/super-admin/?tab=audit" class="bottom-nav-item {% if active_tab == 'audit' %}active{% endif %}" id="bnavAudit" onclick="openAdminTab('audit', this); return false;">
+        <a href="/super-admin/?tab=audit" class="bottom-nav-item {% if active_tab == 'audit' %}active{% endif %}"
+            id="bnavAudit" onclick="openAdminTab('audit', this); return false;">
             <span class="bottom-nav-icon">📋</span>
             <span>Logs</span>
         </a>
-        <a href="/super-admin/?tab=settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}" id="bnavSettings" onclick="openAdminTab('settings', this); return false;">
+        <a href="/super-admin/?tab=settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}"
+            id="bnavSettings" onclick="openAdminTab('settings', this); return false;">
             <span class="bottom-nav-icon">⚙️</span>
             <span>Settings</span>
         </a>
     </nav>
 
 
-    
-    
+
+
 
     <!-- REJECT APPLICATION MODAL -->
     <div class="modal-backdrop" id="rejectApplicationModal" onclick="closeRejectModal(event)">
@@ -2903,7 +3125,8 @@
                         <label>Select Approved Organizer *</label>
                         <select class="field" name="organizer_id" required>
                             {% for org in approved_organizers %}
-                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{ org.profile.organization_name|default:org.username }})</option>
+                            <option value="{{ org.id }}">{{ org.get_full_name|default:org.username }} ({{
+                                org.profile.organization_name|default:org.username }})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -2955,7 +3178,7 @@
                 const url = new URL(window.location);
                 url.searchParams.set('tab', tabName);
                 window.history.replaceState({ tab: tabName }, '', url.toString());
-            } catch (e) {}
+            } catch (e) { }
 
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3181,7 +3404,7 @@
         }
         window.addEventListener('resize', initMobileNav);
 
-    
+
         function openOrganizerModal(orgId) {
             const dataEl = document.getElementById('orgData_' + orgId);
             if (!dataEl) return;
@@ -3265,7 +3488,7 @@
             } else {
                 let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
                 data.leagues.forEach(comp => {
-                    const logoHtml = comp.logo_url 
+                    const logoHtml = comp.logo_url
                         ? `<img src="${comp.logo_url}" alt="${comp.name}" style="width:100%;height:100%;object-fit:cover;">`
                         : `🏆`;
                     const statusClass = (comp.status_code === 'ACTIVE') ? 'live' : ((comp.status_code === 'COMPLETED') ? 'completed' : 'pending');
@@ -3304,7 +3527,7 @@
             }
         }
 
-        
+
         function openLeagueDetailModal(compId) {
             const dataEl = document.getElementById('leagueData_' + compId);
             if (!dataEl) {
@@ -3328,7 +3551,7 @@
             setField('modalLeagueName', data.name || 'League Details');
             setField('modalLeagueTypeBadge', data.competition_type || 'League');
             setField('modalLeagueCategoryBadge', (data.category || '') + (data.format ? ' · ' + data.format : ''));
-            
+
             // Logo / Trophy icon
             const logoImg = document.getElementById('modalLeagueLogoImg');
             const logoIcon = document.getElementById('modalLeagueLogoIcon');
@@ -3361,7 +3584,7 @@
             setField('modalLeagueOrgName', data.organizer_name || 'Unassigned');
             setField('modalLeagueOrgUsername', data.organizer_username ? '@' + data.organizer_username : '-');
             setField('modalLeagueOrganization', data.organization || 'Independent Organizer');
-            
+
             const emailEl = document.getElementById('modalLeagueOrgEmail');
             if (emailEl) {
                 emailEl.textContent = data.organizer_email || '-';
@@ -3377,7 +3600,7 @@
             const orgLoc = (data.organizer_city || '') + (data.organizer_country ? (data.organizer_city ? ', ' : '') + data.organizer_country : '');
             setField('modalLeagueOrgLocation', orgLoc || 'Not provided');
             setField('modalLeagueOrgExp', data.organizer_experience || '1 Year(s)');
-            
+
             const bioWrap = document.getElementById('modalLeagueOrgBioWrap');
             const bioEl = document.getElementById('modalLeagueOrgBio');
             if (bioWrap && bioEl) {
@@ -3407,14 +3630,14 @@
             }
             const declineBtn = document.getElementById('modalDeclineBtn');
             if (declineBtn) {
-                declineBtn.onclick = function() {
+                declineBtn.onclick = function () {
                     closeLeagueDetailModal();
                     openRejectLeagueModal(compId, data.name || '');
                 };
             }
             const deleteBtn = document.getElementById('modalDeleteLeagueBtn');
             if (deleteBtn) {
-                deleteBtn.onclick = function() {
+                deleteBtn.onclick = function () {
                     closeLeagueDetailModal();
                     openAdminDeleteLeagueModal(compId, data.name || '');
                 };
@@ -3474,37 +3697,51 @@
     </script>
 
 
-        <!-- LEAGUE DETAIL MODAL -->
+    <!-- LEAGUE DETAIL MODAL -->
     <div class="modal-backdrop" id="leagueDetailModal" onclick="closeLeagueDetailModal(event)">
-        <div class="modal-card" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        <div class="modal-card" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column;"
+            onclick="event.stopPropagation()">
             <div class="modal-sheet-handle"></div>
-            
+
             <!-- Header -->
-            <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff;">
+            <div class="modal-header"
+                style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff;">
                 <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-                    <div id="modalLeagueLogoWrap" style="width:48px;height:48px;border-radius:10px;background:var(--cream);border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex-shrink:0;">
+                    <div id="modalLeagueLogoWrap"
+                        style="width:48px;height:48px;border-radius:10px;background:var(--cream);border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex-shrink:0;">
                         <span id="modalLeagueLogoIcon" style="font-size:26px;">🏆</span>
-                        <img id="modalLeagueLogoImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                        <img id="modalLeagueLogoImg" src="" alt=""
+                            style="width:100%;height:100%;object-fit:cover;display:none;">
                     </div>
                     <div style="min-width:0;">
-                        <h3 id="modalLeagueName" style="margin:0;font-size:19px;font-weight:800;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">League Details</h3>
+                        <h3 id="modalLeagueName"
+                            style="margin:0;font-size:19px;font-weight:800;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            League Details</h3>
                         <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;">
-                            <span id="modalLeagueTypeBadge" class="status-pill live" style="font-size:10.5px;padding:2px 8px;font-weight:700;">League</span>
-                            <span id="modalLeagueCategoryBadge" class="status-pill" style="font-size:10.5px;padding:2px 8px;font-weight:700;">11-a-side</span>
-                            <span class="status-pill pending" style="font-size:10.5px;padding:2px 8px;font-weight:700;">⏳ Awaiting Sanction</span>
+                            <span id="modalLeagueTypeBadge" class="status-pill live"
+                                style="font-size:10.5px;padding:2px 8px;font-weight:700;">League</span>
+                            <span id="modalLeagueCategoryBadge" class="status-pill"
+                                style="font-size:10.5px;padding:2px 8px;font-weight:700;">11-a-side</span>
+                            <span class="status-pill pending"
+                                style="font-size:10.5px;padding:2px 8px;font-weight:700;">⏳ Awaiting Sanction</span>
                         </div>
                     </div>
                 </div>
-                <button class="modal-close-btn" onclick="closeLeagueDetailModal()" style="font-size:18px;border:none;background:transparent;cursor:pointer;color:var(--muted);padding:4px 8px;">✕</button>
+                <button class="modal-close-btn" onclick="closeLeagueDetailModal()"
+                    style="font-size:18px;border:none;background:transparent;cursor:pointer;color:var(--muted);padding:4px 8px;">✕</button>
             </div>
 
             <!-- Scrollable Body -->
-            <div class="modal-body" style="padding: 18px 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
-                
+            <div class="modal-body"
+                style="padding: 18px 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+
                 <!-- SECTION 1: TOURNAMENT / LEAGUE INFORMATION -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid var(--cream);padding-bottom:8px;">
-                        <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--green-dark);display:flex;align-items:center;gap:6px;">
+                <div
+                    style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid var(--cream);padding-bottom:8px;">
+                        <span
+                            style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--green-dark);display:flex;align-items:center;gap:6px;">
                             🏆 Tournament &amp; Competition Details
                         </span>
                         <span style="font-size:11px;color:var(--muted);" id="modalLeagueSubmittedAt">-</span>
@@ -3512,35 +3749,50 @@
 
                     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px 16px;">
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Tournament Name</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Tournament
+                                Name</span>
                             <strong id="modalLeagueNameText" style="font-size:13.5px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Competition Type</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Competition
+                                Type</span>
                             <strong id="modalLeagueType" style="font-size:13.5px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Format &amp; Structure</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Format
+                                &amp; Structure</span>
                             <strong id="modalLeagueFormat" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Playing Category</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Playing
+                                Category</span>
                             <strong id="modalLeagueCategory" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Season</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Season</span>
                             <strong id="modalLeagueSeason" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Match Venue / Location</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Match
+                                Venue / Location</span>
                             <strong id="modalLeagueLocation" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Team Capacity Limit</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Team
+                                Capacity Limit</span>
                             <strong id="modalLeagueCapacity" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Tournament Dates</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Tournament
+                                Dates</span>
                             <strong style="font-size:12.5px;color:var(--dark);">
                                 <span id="modalLeagueStartDate">-</span> to <span id="modalLeagueEndDate">-</span>
                             </strong>
@@ -3549,58 +3801,86 @@
 
                     <!-- Tournament Rules / Guidelines -->
                     <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:10px;">
-                        <span style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">📝 Description, Rules &amp; Guidelines</span>
-                        <div id="modalLeagueDescription" style="font-size:12.5px;color:var(--text);line-height:1.55;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:10px 12px;max-height:110px;overflow-y:auto;white-space:pre-wrap;">
+                        <span
+                            style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">📝
+                            Description, Rules &amp; Guidelines</span>
+                        <div id="modalLeagueDescription"
+                            style="font-size:12.5px;color:var(--text);line-height:1.55;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:10px 12px;max-height:110px;overflow-y:auto;white-space:pre-wrap;">
                             -
                         </div>
                     </div>
                 </div>
 
                 <!-- SECTION 2: ORGANIZER INFORMATION (ENTERED BY ORGANIZER) -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid var(--cream);padding-bottom:8px;">
-                        <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--green-dark);display:flex;align-items:center;gap:6px;">
+                <div
+                    style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid var(--cream);padding-bottom:8px;">
+                        <span
+                            style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--green-dark);display:flex;align-items:center;gap:6px;">
                             👔 Organizer Profile &amp; Contact Details
                         </span>
-                        <span style="font-size:11px;font-weight:700;color:var(--green-dark);background:var(--soft-green);padding:2px 8px;border-radius:4px;" id="modalLeagueOrgExp">1 Year(s)</span>
+                        <span
+                            style="font-size:11px;font-weight:700;color:var(--green-dark);background:var(--soft-green);padding:2px 8px;border-radius:4px;"
+                            id="modalLeagueOrgExp">1 Year(s)</span>
                     </div>
 
                     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px 16px;">
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Full Name</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Full
+                                Name</span>
                             <strong id="modalLeagueOrgName" style="font-size:13.5px;color:var(--dark);">-</strong>
-                            <small id="modalLeagueOrgUsername" style="font-size:11px;color:var(--muted);display:block;">-</small>
+                            <small id="modalLeagueOrgUsername"
+                                style="font-size:11px;color:var(--muted);display:block;">-</small>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Organization / Club Name</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Organization
+                                / Club Name</span>
                             <strong id="modalLeagueOrganization" style="font-size:13.5px;color:var(--dark);">-</strong>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Contact Email</span>
-                            <a id="modalLeagueOrgEmail" href="#" style="font-size:12.5px;color:var(--green-dark);font-weight:700;text-decoration:underline;display:block;overflow:hidden;text-overflow:ellipsis;">-</a>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Contact
+                                Email</span>
+                            <a id="modalLeagueOrgEmail" href="#"
+                                style="font-size:12.5px;color:var(--green-dark);font-weight:700;text-decoration:underline;display:block;overflow:hidden;text-overflow:ellipsis;">-</a>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Phone Number</span>
-                            <a id="modalLeagueOrgPhone" href="#" style="font-size:12.5px;color:var(--dark);font-weight:700;display:block;">-</a>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Phone
+                                Number</span>
+                            <a id="modalLeagueOrgPhone" href="#"
+                                style="font-size:12.5px;color:var(--dark);font-weight:700;display:block;">-</a>
                         </div>
                         <div>
-                            <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Organizer City / Location</span>
+                            <span
+                                style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;">Organizer
+                                City / Location</span>
                             <strong id="modalLeagueOrgLocation" style="font-size:13px;color:var(--dark);">-</strong>
                         </div>
                     </div>
 
                     <!-- Experience Summary -->
-                    <div id="modalLeagueOrgBioWrap" style="margin-top:12px;border-top:1px dashed var(--border);padding-top:10px;">
-                        <span style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">💼 Organizing Experience &amp; Background</span>
-                        <div id="modalLeagueOrgBio" style="font-size:12px;color:var(--text);line-height:1.5;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:8px 12px;max-height:80px;overflow-y:auto;white-space:pre-wrap;">
+                    <div id="modalLeagueOrgBioWrap"
+                        style="margin-top:12px;border-top:1px dashed var(--border);padding-top:10px;">
+                        <span
+                            style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">💼
+                            Organizing Experience &amp; Background</span>
+                        <div id="modalLeagueOrgBio"
+                            style="font-size:12px;color:var(--text);line-height:1.5;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:8px 12px;max-height:80px;overflow-y:auto;white-space:pre-wrap;">
                             -
                         </div>
                     </div>
 
                     <!-- Proposed Leagues Notes -->
                     <div id="modalLeagueOrgProposedWrap" style="margin-top:10px;">
-                        <span style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">📋 Proposed Tournaments / Application Notes</span>
-                        <div id="modalLeagueOrgProposed" style="font-size:12px;color:var(--text);line-height:1.5;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:8px 12px;max-height:80px;overflow-y:auto;white-space:pre-wrap;">
+                        <span
+                            style="font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;">📋
+                            Proposed Tournaments / Application Notes</span>
+                        <div id="modalLeagueOrgProposed"
+                            style="font-size:12px;color:var(--text);line-height:1.5;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:8px 12px;max-height:80px;overflow-y:auto;white-space:pre-wrap;">
                             -
                         </div>
                     </div>
@@ -3609,20 +3889,25 @@
             </div>
 
             <!-- Footer Actions -->
-            <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; gap: 10px; flex-wrap: wrap;">
+            <div class="modal-footer"
+                style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; gap: 10px; flex-wrap: wrap;">
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <button type="button" id="modalDeclineBtn" class="btn btn-danger" style="font-size:12px;padding:8px 16px;font-weight:700;">
+                    <button type="button" id="modalDeclineBtn" class="btn btn-danger"
+                        style="font-size:12px;padding:8px 16px;font-weight:700;">
                         ✕ Decline Request
                     </button>
-                    <button type="button" id="modalDeleteLeagueBtn" class="btn" style="font-size:12px;padding:8px 16px;font-weight:700;background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);border-radius:4px;cursor:pointer;">
+                    <button type="button" id="modalDeleteLeagueBtn" class="btn"
+                        style="font-size:12px;padding:8px 16px;font-weight:700;background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);border-radius:4px;cursor:pointer;">
                         🗑️ Delete League
                     </button>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <button class="btn btn-outline" type="button" onclick="closeLeagueDetailModal()" style="font-size:12px;padding:8px 16px;">Close</button>
+                    <button class="btn btn-outline" type="button" onclick="closeLeagueDetailModal()"
+                        style="font-size:12px;padding:8px 16px;">Close</button>
                     <form id="modalApproveLeagueForm" method="post" action="" style="display:inline;margin:0;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary" style="font-size:12px;padding:8px 20px;font-weight:800;">
+                        <button type="submit" class="btn btn-primary"
+                            style="font-size:12px;padding:8px 20px;font-weight:800;">
                             ✓ Approve &amp; Sanction League
                         </button>
                     </form>
@@ -3631,7 +3916,7 @@
         </div>
     </div>
 
-<!-- REJECT LEAGUE MODAL -->
+    <!-- REJECT LEAGUE MODAL -->
     <div class="modal-backdrop" id="rejectLeagueModal" onclick="closeRejectLeagueModal(event)">
         <div class="modal-card" onclick="event.stopPropagation()">
             <div class="modal-sheet-handle"></div>
@@ -3666,7 +3951,8 @@
             <div class="modal-sheet-handle"></div>
             <div class="modal-header">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:42px;height:42px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                    <div
+                        style="width:42px;height:42px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
                         👔
                     </div>
                     <div>
@@ -3678,53 +3964,83 @@
             </div>
             <div class="modal-body" style="padding:20px;max-height:75vh;overflow-y:auto;">
                 <!-- Profile Credentials Grid -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+                <div
+                    style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🏢 Organization</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🏢
+                            Organization</span>
                         <strong id="modalOrgOrganization" style="font-size:13px;color:var(--dark);">-</strong>
                     </div>
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📞 Phone / Contact</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📞
+                            Phone / Contact</span>
                         <strong id="modalOrgPhone" style="font-size:13px;color:var(--dark);">-</strong>
                     </div>
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📧 Email Address</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📧
+                            Email Address</span>
                         <strong id="modalOrgEmail" style="font-size:13px;color:var(--dark);">-</strong>
                     </div>
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🏅 Experience</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🏅
+                            Experience</span>
                         <strong id="modalOrgExperience" style="font-size:13px;color:var(--dark);">-</strong>
                     </div>
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📅 Date Joined</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">📅
+                            Date Joined</span>
                         <strong id="modalOrgJoined" style="font-size:13px;color:var(--dark);">-</strong>
                     </div>
                     <div>
-                        <span style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🛡️ Status</span>
+                        <span
+                            style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:3px;">🛡️
+                            Status</span>
                         <span id="modalOrgStatusBadge" class="status-pill live">Active</span>
                     </div>
                 </div>
 
                 <!-- 4 League Status Cards: Hosted, Completed, Ongoing, Upcoming -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:20px;">
-                    <div style="background:#ffffff;border:1px solid var(--border);border-left:4px solid var(--green);border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
-                        <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">🏆 Hosted Leagues</span>
-                        <strong id="modalOrgHostedLeagues" style="font-size:22px;color:var(--dark);font-family:var(--font-heading);line-height:1.2;">0</strong>
+                <div
+                    style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:20px;">
+                    <div
+                        style="background:#ffffff;border:1px solid var(--border);border-left:4px solid var(--green);border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+                        <span
+                            style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">🏆
+                            Hosted Leagues</span>
+                        <strong id="modalOrgHostedLeagues"
+                            style="font-size:22px;color:var(--dark);font-family:var(--font-heading);line-height:1.2;">0</strong>
                         <small style="font-size:10px;color:var(--muted);display:block;">All tournaments</small>
                     </div>
-                    <div style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #7c3aed;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
-                        <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">🟢 Completed Leagues</span>
-                        <strong id="modalOrgCompletedLeagues" style="font-size:22px;color:#7c3aed;font-family:var(--font-heading);line-height:1.2;">0</strong>
+                    <div
+                        style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #7c3aed;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+                        <span
+                            style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">🟢
+                            Completed Leagues</span>
+                        <strong id="modalOrgCompletedLeagues"
+                            style="font-size:22px;color:#7c3aed;font-family:var(--font-heading);line-height:1.2;">0</strong>
                         <small style="font-size:10px;color:var(--muted);display:block;">Seasons finished</small>
                     </div>
-                    <div style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #2563eb;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
-                        <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">⚡ Ongoing Leagues</span>
-                        <strong id="modalOrgOngoingLeagues" style="font-size:22px;color:#2563eb;font-family:var(--font-heading);line-height:1.2;">0</strong>
+                    <div
+                        style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #2563eb;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+                        <span
+                            style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">⚡
+                            Ongoing Leagues</span>
+                        <strong id="modalOrgOngoingLeagues"
+                            style="font-size:22px;color:#2563eb;font-family:var(--font-heading);line-height:1.2;">0</strong>
                         <small style="font-size:10px;color:var(--muted);display:block;">Active in play</small>
                     </div>
-                    <div style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #b58105;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
-                        <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">⏳ Upcoming Leagues</span>
-                        <strong id="modalOrgUpcomingLeagues" style="font-size:22px;color:#b58105;font-family:var(--font-heading);line-height:1.2;">0</strong>
+                    <div
+                        style="background:#ffffff;border:1px solid var(--border);border-left:4px solid #b58105;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+                        <span
+                            style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">⏳
+                            Upcoming Leagues</span>
+                        <strong id="modalOrgUpcomingLeagues"
+                            style="font-size:22px;color:#b58105;font-family:var(--font-heading);line-height:1.2;">0</strong>
                         <small style="font-size:10px;color:var(--muted);display:block;">Scheduled / review</small>
                     </div>
                 </div>
@@ -3734,7 +4050,8 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
                         <h4 style="margin:0;font-size:15px;display:flex;align-items:center;gap:8px;">
                             🏆 Leagues Hosted by this Organizer
-                            <span id="modalOrgLeaguesCount" style="font-size:11px;padding:2px 8px;background:var(--cream);border:1px solid var(--border);border-radius:12px;font-weight:700;">0</span>
+                            <span id="modalOrgLeaguesCount"
+                                style="font-size:11px;padding:2px 8px;background:var(--cream);border:1px solid var(--border);border-radius:12px;font-weight:700;">0</span>
                         </h4>
                     </div>
 
@@ -3746,12 +4063,14 @@
             <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
                 <form id="modalToggleStatusForm" method="post" action="">
                     {% csrf_token %}
-                    <button type="submit" id="modalToggleStatusBtn" class="btn btn-danger" style="font-size:12px;padding:6px 14px;">
+                    <button type="submit" id="modalToggleStatusBtn" class="btn btn-danger"
+                        style="font-size:12px;padding:6px 14px;">
                         Suspend Organizer
                     </button>
                 </form>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <a id="modalFullPageBtn" href="#" class="btn btn-primary" style="font-size:12px;padding:6px 14px;text-decoration:none;">
+                    <a id="modalFullPageBtn" href="#" class="btn btn-primary"
+                        style="font-size:12px;padding:6px 14px;text-decoration:none;">
                         View Hosted Leagues ↗
                     </a>
                     <button class="btn btn-outline" type="button" onclick="closeOrganizerModal()">Close</button>
@@ -3772,15 +4091,21 @@
                 {% csrf_token %}
                 <div class="modal-body" style="padding:20px;">
                     <p style="font-size:13px;line-height:1.55;color:var(--text);margin-bottom:16px;">
-                        Are you sure you want to permanently delete <strong id="adminDeleteCompName" style="color:var(--dark);">this competition</strong>?
+                        Are you sure you want to permanently delete <strong id="adminDeleteCompName"
+                            style="color:var(--dark);">this competition</strong>?
                     </p>
-                    <div style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.3);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:#b91c1c;">
-                        ⚠️ <strong>Warning:</strong> All scheduled fixtures, recorded results, points tables, team entries, and penalty shootouts for this league will be permanently erased. This action cannot be undone.
+                    <div
+                        style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.3);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:#b91c1c;">
+                        ⚠️ <strong>Warning:</strong> All scheduled fixtures, recorded results, points tables, team
+                        entries, and penalty shootouts for this league will be permanently erased. This action cannot be
+                        undone.
                     </div>
                 </div>
-                <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border);background:var(--cream);">
+                <div class="modal-footer"
+                    style="display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border);background:var(--cream);">
                     <button type="button" class="btn" onclick="closeAdminDeleteLeagueModal()">Cancel</button>
-                    <button type="submit" class="btn" style="background:#ef4444;color:white;border:none;font-weight:700;padding:8px 18px;border-radius:6px;cursor:pointer;">
+                    <button type="submit" class="btn"
+                        style="background:#ef4444;color:white;border:none;font-weight:700;padding:8px 18px;border-radius:6px;cursor:pointer;">
                         Yes, Delete Permanently
                     </button>
                 </div>
