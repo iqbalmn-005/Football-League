@@ -302,3 +302,93 @@ def add_fixture_view(request, comp_id):
         return redirect(f"/organizer/{comp.id}/?tab=fixtures")
 
     return redirect(f"/organizer/{comp.id}/?tab=fixtures")
+
+
+def api_fixture_poster_data(request, comp_id):
+    """
+    Read-only JSON API endpoint for Day-wise Fixture Poster generation:
+    GET /api/leagues/<comp_id>/fixtures/poster/?date=YYYY-MM-DD
+    """
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Authentication required.'}, status=401)
+
+    from accounts.models import UserRole, OrganizerStatus
+    from leagues.organizer_views import get_organizer_competitions
+
+    profile = getattr(request.user, 'profile', None)
+    is_admin = request.user.is_superuser or (profile and profile.role == UserRole.SUPER_ADMIN)
+    is_approved_org = bool(
+        profile
+        and profile.role == UserRole.ORGANIZER
+        and profile.organizer_status == OrganizerStatus.APPROVED
+    )
+    if not (is_admin or is_approved_org):
+        return JsonResponse({'success': False, 'error': 'Access denied: League Organizer privileges required.'}, status=403)
+
+    comp = Competition.objects.filter(id=comp_id).first()
+    if not comp:
+        return JsonResponse({'success': False, 'error': 'League not found.'}, status=404)
+
+    if not is_admin and not get_organizer_competitions(request.user).filter(id=comp.id).exists():
+        return JsonResponse({'success': False, 'error': 'You do not have permission to access this league.'}, status=403)
+
+    date_str = (request.GET.get('date') or '').strip()
+    if not date_str:
+        return JsonResponse({'success': False, 'error': 'Missing date parameter. Expected YYYY-MM-DD.'}, status=400)
+
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'Invalid date format. Expected YYYY-MM-DD.'}, status=400)
+
+    matches_qs = (
+        comp.matches.filter(match_date=target_date)
+        .exclude(status=MatchStatus.CANCELLED)
+        .select_related('home_team', 'away_team', 'group')
+        .order_by('kickoff_time', 'id')
+    )
+    if not matches_qs.exists():
+        return JsonResponse({'success': False, 'error': f'No published fixtures found for {date_str}.'}, status=404)
+
+    distinct_dates = list(
+        comp.matches.exclude(status=MatchStatus.CANCELLED)
+        .order_by('match_date')
+        .values_list('match_date', flat=True)
+        .distinct()
+    )
+    day_number = distinct_dates.index(target_date) + 1 if target_date in distinct_dates else 1
+
+    matches_payload = []
+    for m in matches_qs:
+        kickoff_display = m.kickoff_time.strftime('%I:%M %p') if m.kickoff_time else 'TBA'
+        matches_payload.append({
+            'id': m.id,
+            'kickoff_time': kickoff_display,
+            'kickoff_time_24': m.kickoff_time.strftime('%H:%M') if m.kickoff_time else '',
+            'tournament_round': (m.tournament_round or '').strip(),
+            'group_name': m.group.name if m.group else '',
+            'home_team_name': m.home_display_name,
+            'home_team_logo': m.home_team.get_logo_url() if m.home_team else '',
+            'away_team_name': m.away_display_name,
+            'away_team_logo': m.away_team.get_logo_url() if m.away_team else '',
+        })
+
+    resp = JsonResponse({
+        'success': True,
+        'league': {
+            'id': comp.id,
+            'name': comp.name,
+            'season': comp.season,
+            'logo_url': comp.get_logo_url() or '',
+        },
+        'date': target_date.isoformat(),
+        'formatted_date': target_date.strftime('%d %b %Y').upper(),
+        'filename_date': target_date.strftime('%d-%b-%Y'),
+        'day_number': day_number,
+        'matches': matches_payload,
+    })
+    resp['Cache-Control'] = 'no-store'
+    return resp

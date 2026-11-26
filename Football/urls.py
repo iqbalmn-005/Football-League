@@ -66,6 +66,7 @@ urlpatterns = [
     path('organizer/<int:comp_id>/api/generate-preview/', fixture_views.api_generate_fixture_preview, name='api_generate_fixture_preview'),
     path('organizer/<int:comp_id>/api/revalidate-fixtures/', fixture_views.api_revalidate_fixtures, name='api_revalidate_fixtures'),
     path('organizer/<int:comp_id>/api/publish-fixtures/', fixture_views.api_publish_fixtures, name='api_publish_fixtures'),
+    path('api/leagues/<int:comp_id>/fixtures/poster/', fixture_views.api_fixture_poster_data, name='api_fixture_poster_data'),
     path('organizer/<int:comp_id>/fixture/add/', fixture_views.add_fixture_view, name='add_fixture'),
     path('organizer/match/<int:match_id>/update/', match_views.update_match_view, name='update_match'),
     path('organizer/match/<int:match_id>/result/', match_views.enter_match_result_view, name='enter_match_result'),

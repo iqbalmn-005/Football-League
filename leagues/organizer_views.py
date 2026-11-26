@@ -72,6 +72,21 @@ def organizer_dashboard(request, comp_id=None):
             'events', 'events__player', 'events__team'
         ).order_by('-match_date', '-kickoff_time')
         all_matches = active_competition.matches.all().select_related('home_team', 'away_team', 'group').order_by('round_number', 'match_date', 'kickoff_time')
+        distinct_poster_dates = list(
+            active_competition.matches.exclude(status=MatchStatus.CANCELLED)
+            .order_by('match_date')
+            .values_list('match_date', flat=True)
+            .distinct()
+        )
+        poster_days = [
+            {
+                'day_number': idx + 1,
+                'date': d,
+                'iso_date': d.isoformat(),
+                'display_date': d.strftime('%d %B %Y'),
+            }
+            for idx, d in enumerate(distinct_poster_dates)
+        ]
         next_match = upcoming_matches.filter(home_team__isnull=False, away_team__isnull=False).first() or upcoming_matches.first()
         last_match = completed_matches.first()
 
@@ -143,6 +158,7 @@ def organizer_dashboard(request, comp_id=None):
             'upcoming_matches': upcoming_matches,
             'completed_matches': completed_matches,
             'all_matches': all_matches,
+            'poster_days': poster_days,
             'next_match': next_match,
             'last_match': last_match,
             'standings': standings,
