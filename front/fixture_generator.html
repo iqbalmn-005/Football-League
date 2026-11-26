@@ -734,6 +734,72 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .preview-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .preview-table thead {
+                display: none;
+            }
+
+            .preview-table,
+            .preview-table tbody {
+                display: block;
+                width: 100%;
+            }
+
+            .preview-table tr {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 10px;
+                padding: 12px 14px;
+                border-bottom: 1.5px solid var(--border);
+                background: #fff;
+            }
+
+            .preview-table td {
+                display: block;
+                width: 100% !important;
+                padding: 2px 0;
+                border-bottom: none;
+            }
+
+            .preview-table td[data-label]::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                color: var(--muted);
+                margin-bottom: 3px;
+            }
+
+            .preview-table td.vs-cell {
+                grid-column: 1 / -1;
+                text-align: center !important;
+                padding: 2px 0;
+            }
+
+            .preview-table td.full-row-mobile {
+                grid-column: 1 / -1;
+            }
+
+            .preview-table td .inline-input {
+                width: 100% !important;
+                max-width: none !important;
+                box-sizing: border-box;
+            }
+
+            .matchweek-header {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+        }
+
         @media (max-width: 640px) {
             .form-grid-2 {
                 grid-template-columns: 1fr;
@@ -1845,23 +1911,23 @@
                     const isValid = m.is_valid !== false;
                     rowsHtml += `
                     <tr data-temp-id="${m.temp_id}" style="${isValid ? '' : 'background:rgba(239,68,68,0.06);'}">
-                        <td style="width:140px;">
+                        <td data-label="Match Date" style="width:140px;">
                             <input type="date" class="inline-input" value="${m.match_date}" onchange="updateMatchDate('${m.temp_id}', this.value)">
                         </td>
-                        <td style="width:110px;">
+                        <td data-label="Kickoff Time" style="width:110px;">
                             <input type="time" class="inline-input" value="${m.kickoff_time}" onchange="updateMatchTime('${m.temp_id}', this.value)">
                         </td>
-                        <td style="font-weight:700;">
+                        <td data-label="Home Club" class="full-row-mobile" style="font-weight:700;">
                             ${m.home_team_name}
                             ${(isGroupWiseFmt && m.group_name) ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">(${m.group_name})</span>` : ''}
                         </td>
-                        <td style="text-align:center;width:40px;">
+                        <td class="vs-cell" style="text-align:center;width:40px;">
                             <span class="vs-tag">VS</span>
                         </td>
-                        <td style="font-weight:700;">
+                        <td data-label="Away Club" class="full-row-mobile" style="font-weight:700;">
                             ${m.away_team_name}
                         </td>
-                        <td>
+                        <td data-label="Ground / Pitch" class="full-row-mobile">
                             <input type="text" class="inline-input" value="${m.venue}" style="width:100%;max-width:200px;" onchange="updateMatchVenue('${m.temp_id}', this.value)">
                         </td>
                     </tr>
