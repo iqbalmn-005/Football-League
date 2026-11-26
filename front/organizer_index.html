@@ -9086,9 +9086,6 @@
                             <div style="width:2px;height:24px;background:rgba(255,255,255,0.28);"></div>
                             <span id="dpSharedRoundLabel" style="font-family:'Barlow Condensed', 'Impact', 'Arial Narrow', sans-serif;font-size:28px;font-weight:700;letter-spacing:0.5px;color:#e2e8f0;white-space:nowrap;">Matchweek 1</span>
                         </div>
-                        <div id="dpModeBadge" style="display:none;padding:3px 12px;border-radius:999px;background:rgba(132,255,0,0.18);border:1px solid rgba(132,255,0,0.55);color:#84ff00;font-size:14px;font-weight:800;letter-spacing:0.8px;white-space:nowrap;text-transform:uppercase;">
-                            FULL-TIME RESULTS
-                        </div>
                     </div>
                     <svg width="32" height="32" viewBox="0 0 80 80" fill="none">
                         <circle cx="40" cy="40" r="34" fill="#ffffff" stroke="#0d1b14" stroke-width="4"/>
@@ -9205,11 +9202,6 @@
                 leagueNameEl.textContent = leagueName;
                 leagueNameEl.style.fontSize = leagueName.length > 26 ? '30px' : '38px';
                 leagueNameEl.style.whiteSpace = leagueName.length <= 18 ? 'nowrap' : 'normal';
-
-                const modeBadgeEl = document.getElementById('dpModeBadge');
-                if (modeBadgeEl) {
-                    modeBadgeEl.style.display = (data.mode === 'results') ? 'inline-block' : 'none';
-                }
 
                 leagueLogoEl.src = (data.league && data.league.logo_url) ? data.league.logo_url : DEFAULT_LEAGUE_SVG;
                 dayNumberEl.textContent = String(data.day_number || 1);
