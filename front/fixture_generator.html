@@ -1168,9 +1168,12 @@
                 if (groupHint) groupHint.innerText = "Clubs are divided equally into groups, followed by the tournament playoff stage.";
                 if (groupBadge) groupBadge.innerText = "GROUP MODE + TOURNAMENT";
                 handleTournamentTypeChange();
-                updateGroupEqualDivisionInfo();
-                if (Object.keys(groupAssignmentsMap).length === 0) initGroupAssignments(false);
+                const expectedGroups = Math.max(1, parseInt(document.getElementById('numGroupsSelect').value || '2') || 2);
+                if (Object.keys(groupAssignmentsMap).length !== expectedGroups) {
+                    initGroupAssignments(true);
+                }
                 renderEditableGroupList();
+                updateGroupEqualDivisionInfo();
             } else if (fmt === 'KNOCKOUT') {
                 groupSec.style.display = 'block';
                 roundRobinGroup.style.display = 'none';
@@ -1315,6 +1318,10 @@
 
         // DYNAMIC EQUAL DIVISION & TOURNAMENT INFO
         function updateGroupEqualDivisionInfo() {
+            const noticeEl = document.getElementById('equalDivisionNoticeText');
+            if (!noticeEl) {
+                return;
+            }
             const fmt = document.querySelector('input[name="tournament_format"]:checked').value;
             const tType = document.getElementById('tournamentTypeSelect') ? document.getElementById('tournamentTypeSelect').value : 'single_elimination';
             const koLegs = document.getElementById('knockoutLegsSelect') ? document.getElementById('knockoutLegsSelect').value : 'single';
