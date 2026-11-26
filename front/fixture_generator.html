@@ -753,45 +753,72 @@
 
             .preview-table tr {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px 10px;
-                padding: 12px 14px;
-                border-bottom: 1.5px solid var(--border);
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                gap: 10px 8px;
+                margin: 10px 12px;
+                padding: 12px;
+                border: 1.5px solid var(--border);
+                border-radius: 10px;
                 background: #fff;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
             }
 
             .preview-table td {
                 display: block;
                 width: 100% !important;
-                padding: 2px 0;
+                padding: 0;
                 border-bottom: none;
             }
 
-            .preview-table td[data-label]::before {
-                content: attr(data-label);
-                display: block;
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.4px;
-                color: var(--muted);
-                margin-bottom: 3px;
+            /* Row 1: Date (left) and Time (right) */
+            .preview-table td:nth-child(1) {
+                grid-column: 1 / 2;
+                grid-row: 1;
             }
 
-            .preview-table td.vs-cell {
-                grid-column: 1 / -1;
+            .preview-table td:nth-child(2) {
+                grid-column: 3 / 4;
+                grid-row: 1;
+            }
+
+            /* Row 2: Home Club (left) - VS (center) - Away Club (right) */
+            .preview-table td:nth-child(3) {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                text-align: center;
+                font-size: 13px;
+                padding: 6px 2px;
+            }
+
+            .preview-table td:nth-child(4) {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                width: auto !important;
                 text-align: center !important;
-                padding: 2px 0;
+                padding: 6px 4px;
             }
 
-            .preview-table td.full-row-mobile {
-                grid-column: 1 / -1;
+            .preview-table td:nth-child(5) {
+                grid-column: 3 / 4;
+                grid-row: 2;
+                text-align: center;
+                font-size: 13px;
+                padding: 6px 2px;
+            }
+
+            /* Row 3: Ground / Pitch full width */
+            .preview-table td:nth-child(6) {
+                grid-column: 1 / 4;
+                grid-row: 3;
             }
 
             .preview-table td .inline-input {
                 width: 100% !important;
                 max-width: none !important;
                 box-sizing: border-box;
+                font-size: 12px;
+                padding: 5px 8px;
             }
 
             .matchweek-header {
