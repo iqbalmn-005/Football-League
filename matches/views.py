@@ -436,6 +436,17 @@ def enter_match_result_view(request, match_id):
             # Advance knockout brackets (e.g. Page-McIntyre Preliminary & Grand Finals)
             advance_knockout_bracket(match.competition)
 
+            # Sync competition status to COMPLETED once all scheduled matches finish
+            from leagues.models import CompetitionStatus
+            comp = match.competition
+            if (
+                comp.status != CompetitionStatus.COMPLETED
+                and comp.matches.filter(status=MatchStatus.COMPLETED).exists()
+                and not comp.matches.exclude(status=MatchStatus.COMPLETED).exists()
+            ):
+                comp.status = CompetitionStatus.COMPLETED
+                comp.save(update_fields=['status'])
+
             messages.success(
                 request,
                 f"✓ Official Result Confirmed: {match.home_display_name} {home_score} - {away_score} {match.away_display_name}. Goals, assists, penalties, and cards updated!"

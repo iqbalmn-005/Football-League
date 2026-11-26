@@ -214,15 +214,30 @@ def organizer_dashboard(request, comp_id=None):
         filtered_competitions = filtered_competitions.filter(
             Q(name__icontains=search_q) | Q(location__icontains=search_q) | Q(season__icontains=search_q)
         )
-    if status_f and status_f != 'all':
-        filtered_competitions = filtered_competitions.filter(status=status_f)
+    all_user_comps = list(user_competitions)
+    total_count = len(all_user_comps)
+    completed_count = 0
+    active_count = 0
+    upcoming_count = 0
+    pending_count = 0
+    for c in all_user_comps:
+        if c.is_completed:
+            completed_count += 1
+        elif c.status == CompetitionStatus.ACTIVE:
+            active_count += 1
+        elif c.status == CompetitionStatus.UPCOMING:
+            upcoming_count += 1
+        elif c.status == CompetitionStatus.PENDING:
+            pending_count += 1
 
-    status_counts = dict(user_competitions.values('status').annotate(cnt=Count('id')).values_list('status', 'cnt'))
-    total_count = sum(status_counts.values())
-    active_count = status_counts.get(CompetitionStatus.ACTIVE, 0)
-    upcoming_count = status_counts.get(CompetitionStatus.UPCOMING, 0)
-    completed_count = status_counts.get(CompetitionStatus.COMPLETED, 0)
-    pending_count = status_counts.get(CompetitionStatus.PENDING, 0)
+    if status_f and status_f != 'all':
+        if status_f == CompetitionStatus.COMPLETED:
+            filtered_competitions = [c for c in filtered_competitions if c.is_completed]
+        elif status_f == CompetitionStatus.ACTIVE:
+            filtered_competitions = [c for c in filtered_competitions if not c.is_completed and c.status == CompetitionStatus.ACTIVE]
+        else:
+            filtered_competitions = filtered_competitions.filter(status=status_f)
+
     total_teams = CompetitionTeam.objects.filter(competition__in=user_competitions).count()
 
     context = {
